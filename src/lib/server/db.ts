@@ -1,0 +1,123 @@
+// Mongo 연결과 컬렉션 모양. DB 이름 기본값 chamjal.
+// 개발 중에는 `npm run dev:mem` 이 임시 Mongo 를 띄워 MONGODB_URI 를 넣어 준다.
+
+import { MongoClient, type Db, type ObjectId } from "mongodb";
+import type { ReactionKind } from "@/lib/social";
+import type { Stroke } from "@/lib/crayon";
+
+export class NoDbError extends Error {
+  constructor() {
+    super("MONGODB_URI 가 없어요");
+  }
+}
+
+export type UserDoc = {
+  _id: ObjectId;
+  googleSub: string; // 개발용 로그인은 "dev:이름"
+  email: string;
+  nickname: string;
+  entryYear: number | null; // 초등학교 입학 연도 (이름표)
+  classNo: number; // 반
+  createdAt: Date;
+  lastSeenAt: Date;
+  banned?: boolean;
+};
+
+export type BoardState = {
+  status: "visible" | "pending" | "hidden";
+  mode: "drawing" | "full"; // 그림만 / 글까지
+  at: Date;
+  cardUrl: string;
+  thumbUrl: string;
+  reports: number;
+  checked: boolean; // AI 검사를 거쳤나
+  note?: string; // 숨김·대기 이유
+};
+
+export type DiaryDoc = {
+  _id: ObjectId;
+  userId: ObjectId;
+  clientId: string; // 기기에서 만든 id (중복 저장 막기)
+  date: string;
+  weather: string | null;
+  title: string;
+  body: string;
+  strokes: Stroke[];
+  bg: string | null;
+  teacher: string;
+  teacherBy: "ai" | "rule";
+  care: boolean;
+  secret: boolean;
+  topic: string | null; // 오늘의 숙제로 쓴 날짜 키 (YYYY-MM-DD)
+  createdAt: Date;
+  updatedAt: Date;
+  board?: BoardState;
+  classIds: ObjectId[];
+  reactions: Partial<Record<ReactionKind, number>>;
+};
+
+export type ReactionDoc = { _id: ObjectId; diaryId: ObjectId; userId: ObjectId; kind: ReactionKind; at: Date };
+export type ReportDoc = { _id: ObjectId; diaryId: ObjectId; userId: ObjectId; reason: string; at: Date };
+export type ClassDoc = {
+  _id: ObjectId;
+  name: string;
+  code: string; // 초대 코드
+  ownerId: ObjectId;
+  memberIds: ObjectId[];
+  createdAt: Date;
+};
+export type AwardDoc = {
+  _id: ObjectId;
+  userId: ObjectId;
+  kind: "streak7" | "streak30" | "streak100" | "weekly";
+  key: string; // 사람마다 한 번만 (예: streak7:2026-11-01, weekly:2026-W45)
+  rank?: number; // 주간 1~3등
+  diaryId?: ObjectId;
+  label: string; // 상장 이름
+  detail: string; // 상장 본문 한 줄
+  at: Date;
+};
+
+const g = globalThis as unknown as { _cjMongo?: Promise<MongoClient>; _cjIdx?: Promise<void> };
+
+export async function getDb(): Promise<Db> {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new NoDbError();
+  g._cjMongo ??= new MongoClient(uri, { maxPoolSize: 5 }).connect();
+  const client = await g._cjMongo;
+  const db = client.db(process.env.MONGODB_DB || "chamjal");
+  g._cjIdx ??= ensureIndexes(db).catch((e) => {
+    g._cjIdx = undefined;
+    throw e;
+  });
+  await g._cjIdx;
+  return db;
+}
+
+export async function cols() {
+  const db = await getDb();
+  return {
+    users: db.collection<UserDoc>("users"),
+    diaries: db.collection<DiaryDoc>("diaries"),
+    reactions: db.collection<ReactionDoc>("reactions"),
+    reports: db.collection<ReportDoc>("reports"),
+    classes: db.collection<ClassDoc>("classes"),
+    awards: db.collection<AwardDoc>("awards"),
+  };
+}
+
+async function ensureIndexes(db: Db) {
+  await Promise.all([
+    db.collection("users").createIndex({ googleSub: 1 }, { unique: true }),
+    db.collection("diaries").createIndex({ userId: 1, clientId: 1 }, { unique: true }),
+    db.collection("diaries").createIndex({ "board.status": 1, "board.at": -1 }),
+    db.collection("diaries").createIndex({ topic: 1, "board.at": -1 }),
+    db.collection("diaries").createIndex({ classIds: 1, createdAt: -1 }),
+    db.collection("reactions").createIndex({ diaryId: 1, userId: 1, kind: 1 }, { unique: true }),
+    db.collection("reports").createIndex({ diaryId: 1, userId: 1 }, { unique: true }),
+    db.collection("classes").createIndex({ code: 1 }, { unique: true }),
+    db.collection("classes").createIndex({ memberIds: 1 }),
+    db.collection("awards").createIndex({ userId: 1, key: 1 }, { unique: true }),
+    db.collection("awards").createIndex({ kind: 1, key: 1 }),
+  ]);
+}

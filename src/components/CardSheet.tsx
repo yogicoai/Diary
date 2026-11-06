@@ -12,11 +12,13 @@ export default function CardSheet({
   onClose,
   onToast,
   onDelete,
+  extra,
 }: {
   diary: Diary | null;
   onClose: () => void;
   onToast: (m: string) => void;
   onDelete?: () => void;
+  extra?: React.ReactNode; // 게시판·우리 반 버튼 같은 것
 }) {
   const [url, setUrl] = useState<string | null>(null);
   const [blob, setBlob] = useState<Blob | null>(null);
@@ -111,6 +113,7 @@ export default function CardSheet({
           친구한테 보내기
         </button>
       </div>
+      {extra}
       <button type="button" className="btn plain" onClick={shareLink} disabled={!diary}>
         링크로 보내기
       </button>

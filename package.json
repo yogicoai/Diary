@@ -8,11 +8,15 @@
     "start": "next start -p 6900",
     "lint": "eslint src scripts",
     "shot": "node scripts/shot.mjs http://localhost:6900 shots",
-    "icons": "node scripts/icons.mjs"
+    "icons": "node scripts/icons.mjs",
+    "dev:mem": "node scripts/dev-mem.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",
+    "basic-ftp": "^6.2.6",
     "idb-keyval": "^6.3.0",
+    "jose": "^6.2.15",
+    "mongodb": "^7.8.0",
     "next": "16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
@@ -24,6 +28,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
+    "mongodb-memory-server": "^11.3.0",
     "puppeteer-core": "^25.16.0",
     "sharp": "^0.35.5",
     "typescript": "^5"

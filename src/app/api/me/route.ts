@@ -1,0 +1,92 @@
+// 내 이름표 + 간단한 기록. 로그인 안 했으면 user:null 과 사용할 수 있는 로그인 방법만.
+
+import type { NextRequest } from "next/server";
+import { streakOf } from "@/lib/server/awards";
+import { cols, NoDbError } from "@/lib/server/db";
+import { assertSameOrigin, handle, HttpError, json, readJson } from "@/lib/server/http";
+import { meToClient } from "@/lib/server/serialize";
+import { currentUser, isAdmin, requireUser } from "@/lib/server/session";
+
+function flags() {
+  return {
+    google: !!process.env.GOOGLE_CLIENT_ID,
+    devLogin: process.env.NODE_ENV !== "production" && process.env.DEV_LOGIN === "1",
+    server: !!process.env.MONGODB_URI && !!process.env.AUTH_SECRET,
+  };
+}
+
+export async function GET(req: NextRequest) {
+  return handle(async () => {
+    let user = null;
+    try {
+      user = await currentUser(req);
+    } catch (e) {
+      if (!(e instanceof NoDbError) && !(e instanceof HttpError)) throw e;
+    }
+    if (!user) return json({ user: null, flags: flags() });
+
+    const { diaries } = await cols();
+    const [dates, agg] = await Promise.all([
+      diaries.distinct("date", { userId: user._id }) as Promise<string[]>,
+      diaries
+        .aggregate<{ n: number; stamps: number; board: number }>([
+          { $match: { userId: user._id } },
+          {
+            $group: {
+              _id: null,
+              n: { $sum: 1 },
+              board: { $sum: { $cond: [{ $eq: ["$board.status", "visible"] }, 1, 0] } },
+              stamps: {
+                $sum: {
+                  $add: [
+                    { $ifNull: ["$reactions.cham", 0] },
+                    { $ifNull: ["$reactions.best", 0] },
+                    { $ifNull: ["$reactions.cheer", 0] },
+                    { $ifNull: ["$reactions.star", 0] },
+                    { $ifNull: ["$reactions.heart", 0] },
+                    { $ifNull: ["$reactions.smile", 0] },
+                  ],
+                },
+              },
+            },
+          },
+        ])
+        .toArray(),
+    ]);
+    const s = agg[0] ?? { n: 0, stamps: 0, board: 0 };
+    return json({
+      user: meToClient(user, isAdmin(user)),
+      stats: { diaries: s.n, stamps: s.stamps, board: s.board, streak: streakOf(new Set(dates)).streak },
+      flags: flags(),
+    });
+  });
+}
+
+/** 이름표 고치기: 닉네임 2~8자, 입학 연도, 반 */
+export async function PATCH(req: NextRequest) {
+  return handle(async () => {
+    assertSameOrigin(req);
+    const user = await requireUser(req);
+    const body = await readJson<{ nickname?: string; entryYear?: number | null; classNo?: number }>(req);
+    const set: Record<string, unknown> = {};
+    if (body.nickname !== undefined) {
+      const nick = String(body.nickname).trim();
+      if (!/^[\p{L}\p{N}]{2,8}$/u.test(nick)) throw new HttpError(400, "nickname", "이름은 띄어쓰기 없이 2~8자로 써 주세요");
+      set.nickname = nick;
+    }
+    if (body.entryYear !== undefined) {
+      const y = body.entryYear === null ? null : Number(body.entryYear);
+      if (y !== null && !(y >= 1960 && y <= 2020)) throw new HttpError(400, "entryYear", "입학 연도를 다시 골라 주세요");
+      set.entryYear = y;
+    }
+    if (body.classNo !== undefined) {
+      const c = Number(body.classNo);
+      if (!(c >= 1 && c <= 15)) throw new HttpError(400, "classNo", "반은 1~15반 중에 골라 주세요");
+      set.classNo = c;
+    }
+    const { users } = await cols();
+    const updated = await users.findOneAndUpdate({ _id: user._id }, { $set: set }, { returnDocument: "after" });
+    if (!updated) throw new HttpError(404, "user");
+    return json({ user: meToClient(updated, isAdmin(updated)) });
+  });
+}

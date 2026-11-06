@@ -9,6 +9,7 @@ import { deleteDiary, listDiaries, type Diary } from "@/lib/store";
 import { BOOK } from "@/lib/business";
 import BookSheet from "./BookSheet";
 import CardSheet from "./CardSheet";
+import DiaryActions from "./DiaryActions";
 import { BrandMark, PencilIcon, StampSvg } from "./Icons";
 
 const DAY_NAMES = ["월", "화", "수", "목", "금", "토", "일"];
@@ -129,6 +130,8 @@ export default function DiaryShelf() {
             <div className="when">{shortDate(d.date)}</div>
             <div className="ttl">{d.title || d.body.slice(0, 10) || "그림만 그린 날"}</div>
             <StampSvg className="mini-stamp" />
+            {d.board?.status === "visible" && <span className="mini-badge">게시판</span>}
+            {!!d.classIds?.length && <span className="mini-badge cls">우리 반</span>}
           </button>
         ))}
       </div>
@@ -137,8 +140,21 @@ export default function DiaryShelf() {
         diary={open}
         onClose={() => setOpen(null)}
         onToast={setToast}
+        extra={
+          open ? (
+            <DiaryActions
+              diary={open}
+              onChange={(d) => {
+                setOpen(d);
+                setList((l) => (l ?? []).map((x) => (x.id === d.id ? d : x)));
+              }}
+              onToast={setToast}
+            />
+          ) : null
+        }
         onDelete={async () => {
           if (!open || !confirm("이 일기를 지울까요? 되돌릴 수 없어요.")) return;
+          if (open.serverId) await fetch(`/api/diaries/${open.serverId}`, { method: "DELETE" }).catch(() => {});
           await deleteDiary(open.id);
           setList((l) => (l ?? []).filter((x) => x.id !== open.id));
           setOpen(null);

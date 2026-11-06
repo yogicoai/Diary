@@ -5,6 +5,9 @@ import { useCallback, useEffect, useState } from "react";
 import { defaultBg } from "@/lib/backgrounds";
 import type { Stroke } from "@/lib/crayon";
 import { koreanDate, todayKey } from "@/lib/date";
+import { useMe } from "@/lib/me";
+import { topicOf } from "@/lib/social";
+import { pushDiary } from "@/lib/sync";
 import { saveDiary, track, type Diary } from "@/lib/store";
 import { rowSpans } from "@/lib/manuscript";
 import { teacherLine } from "@/lib/teacher";
@@ -13,10 +16,12 @@ import type { WeatherId } from "@/lib/weather";
 import AiSheet from "./AiSheet";
 import CardSheet from "./CardSheet";
 import ConsentSheet from "./ConsentSheet";
+import DiaryActions from "./DiaryActions";
 import CrayonPad from "./CrayonPad";
-import { BrandMark, NotebookIcon, StampSvg } from "./Icons";
+import { BrandMark, StampSvg } from "./Icons";
 import Manuscript, { READ_MS } from "./Manuscript";
 import ThemePicker from "./ThemePicker";
+import TopicBanner from "./TopicBanner";
 import WeatherPicker from "./WeatherPicker";
 
 function newId() {
@@ -24,6 +29,8 @@ function newId() {
 }
 
 export default function DiaryEditor() {
+  const { me } = useMe();
+  const [topicOn, setTopicOn] = useState(false); // 오늘의 숙제로 쓰기
   const [date, setDate] = useState<string | null>(null);
   const [weather, setWeather] = useState<WeatherId | null>(null);
   const [title, setTitle] = useState("");
@@ -75,6 +82,7 @@ export default function DiaryEditor() {
       teacher: teacherLine(body + title, weather), // Claude 가 못 쓰면 이 한 줄
       teacherBy: "rule",
       secret,
+      topic: topicOn ? date : null,
       createdAt: Date.now(),
     };
     setDone(draft);
@@ -95,6 +103,15 @@ export default function DiaryEditor() {
     } catch {
       setToast("이 기기에 저장하지 못했어요. 카드로는 남길 수 있어요");
     }
+    // 이름표가 있으면 서버에도 보관 (개근상도 여기서 받는다)
+    if (me) {
+      pushDiary(d)
+        .then((res) => {
+          setDone((cur) => (cur && cur.id === d.id ? { ...cur, serverId: res.diary.serverId } : cur));
+          if (res.awards.length) setToast(`${res.awards[0].label}을 받았어요! 나 › 상장함`);
+        })
+        .catch(() => {});
+    }
     track("diary_created", { weather, chars: d.body.length, drew: strokes.length > 0, bg, by: d.teacherBy });
     // 2) 다 읽으면 도장 쾅 (도장이 종이에 닿는 0.3초쯤 짧게 진동)
     setDone(d);
@@ -112,6 +129,7 @@ export default function DiaryEditor() {
     setStrokes([]);
     setBg(defaultBg());
     setSecret(false);
+    setTopicOn(false);
     setDone(null);
     setReading(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -129,10 +147,12 @@ export default function DiaryEditor() {
             <span className="brand-sub">어른이 그림일기</span>
           </span>
         </Link>
-        <Link href="/diary" className="toplink">
-          <NotebookIcon />내 일기장
+        <Link href={me ? "/me" : "/login?next=/"} className="toplink nametag-link">
+          {me ? me.nickname : "이름표 만들기"}
         </Link>
       </header>
+
+      <TopicBanner date={date} on={topicOn} onToggle={() => setTopicOn((v) => !v)} locked={locked} />
 
       <article className={`page${done && !reading ? " stamped" : ""}`} aria-label="오늘의 그림일기">
         <div className="page-head">
@@ -155,7 +175,7 @@ export default function DiaryEditor() {
             id="title"
             value={title}
             maxLength={16}
-            placeholder="드디어 금요일"
+            placeholder={topicOn && date ? topicOf(date) : "드디어 금요일"}
             onChange={(e) => setTitle(e.target.value)}
             readOnly={locked}
             autoComplete="off"
@@ -207,6 +227,7 @@ export default function DiaryEditor() {
           <button type="button" className="btn" onClick={() => setCardOf(done)}>
             카드로 만들어 자랑하기
           </button>
+          <DiaryActions diary={done} onChange={setDone} onToast={setToast} />
           <div className="btn-row">
             <Link href="/diary" className="btn plain">
               내 일기장 보기
@@ -218,7 +239,11 @@ export default function DiaryEditor() {
         </>
       )}
 
-      <p className="note">일기는 이 기기에만 저장돼요. 카드로 보낼 때만 그림이 밖으로 나가요.</p>
+      <p className="note">
+        {me
+          ? "이름표가 있어서 일기가 이 기기와 서버에 함께 보관돼요. 게시판과 우리 반에는 직접 보낼 때만 올라가요."
+          : "일기는 이 기기에만 저장돼요. 이름표를 만들면 게시판에 붙이고 우리 반과 나눌 수 있어요."}
+      </p>
 
       <h2 className="section-title">일기장 바꾸기</h2>
       <ThemePicker />

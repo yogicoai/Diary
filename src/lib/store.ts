@@ -16,6 +16,12 @@ export type Diary = {
   teacher: string;
   teacherBy?: "ai" | "rule"; // 선생님 한 줄을 누가 썼나
   care?: boolean; // Claude 가 위험 신호를 봤을 때
+  topic?: string | null; // 오늘의 숙제로 쓴 날 (YYYY-MM-DD)
+  // 서버에 올라간 뒤 채워지는 값
+  serverId?: string;
+  board?: { status: "visible" | "pending" | "hidden"; mode: "drawing" | "full"; cardUrl: string; thumbUrl: string; note?: string } | null;
+  classIds?: string[];
+  reactions?: Partial<Record<string, number>>;
   secret: boolean;
   createdAt: number;
 };

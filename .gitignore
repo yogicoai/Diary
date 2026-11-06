@@ -45,3 +45,7 @@ next-env.d.ts
 
 # 생성 원본 (앱용은 public/bg)
 /drafts
+
+# 개발용 업로드
+/public/_dev-uploads
+!.env.example
