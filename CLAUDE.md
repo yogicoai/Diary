@@ -7,7 +7,9 @@
 
 ## 실행
 
-- `npm run dev -- -p 6900` → http://localhost:6900
+- `npm run dev:mem` → http://localhost:6900 (임시 Mongo + 개발용 로그인. 끄면 데이터 사라짐, 첫 실행은 Mongo 내려받기)
+- `npm run dev` → .env.local 의 실제 Mongo·구글·FTP·Claude 로 실행. 변수 목록은 `.env.example`
+- 참여 기능 화면 시험: dev:mem 켠 뒤 `node scripts/e2e-social.mjs <임시 Mongo 주소>` → shots/social
 - 화면 확인: `node scripts/shot.mjs http://localhost:6900 <출력폴더>` (390px, 테마 3종, 카드·시트·일기장 캡처)
 - 아이콘: `src/app/icon.svg` 고친 뒤 `node scripts/icons.mjs`
 - 커밋 전: `npx eslint src scripts` + `npx next build`
@@ -28,6 +30,17 @@
 - 일기 내용은 지금 기기(IndexedDB)에만 있다. **일기 내용을 AI 서버(국외)로 보내는 코드는 국외 이전 동의 화면과 같이** 넣는다.
 - 유료 생성(이미지·영상) 호출은 실행 전 사용자에게 장수·비용을 묻는다. 키는 서버 환경변수에만.
 - 판매 설정은 `lib/business.ts` 한곳. `SALES_READY=false` 동안은 가격 반응만 모은다.
+
+## 참여 기능 (11-06, 사용자: "다 가보자")
+
+- 로그인 = **구글만** (OAuth 직접 구현 `api/auth/google`, jose 세션 쿠키 `cj_session`). 개발용 로그인은 DEV_LOGIN=1 + 운영 아님일 때만.
+- 저장 = **Mongo(DB chamjal) + Cafe24 FTP**(그림 파일, QR 스튜디오 price_Line 과 같은 FTP_* / PUBLIC_ASSET_BASE 이름). FTP 없으면 개발은 public/_dev-uploads.
+- 일기는 **이 기기가 원본(local-first)**: IndexedDB 에 먼저, 로그인하면 `lib/sync.ts` 가 서버와 합친다(기기 id = clientId 로 겹침 방지).
+- 이름표: 별명·초등학교 입학 연도·반. 게시판엔 이것만 보이고 구글 이메일은 안 보인다.
+- 교실 뒤 게시판: 그림만/글까지, 붙이기 전 `lib/server/moderate.ts`(Haiku 5.5, 글+미리보기 그림) 검사. 검사 못 하면 운영은 pending → /admin(ADMIN_EMAILS). 신고 3건 자동 숨김. 비밀 일기는 못 붙임.
+- 도장 3·스티커 3(`lib/social.ts` REACTIONS), 오늘의 숙제(TOPICS, 날짜로 돌아감) — 둘 다 순서 고정 목록.
+- 상장: 개근 7/30/100일(일기 저장 때), 지난주 참 잘한 일기 1~3등(처음 조회 때 계산·저장), 상장 그림은 `lib/certificate.ts`.
+- 우리 반: 초대 코드 6자리(/join/코드), 30명, 반 피드는 FTP 없이 획으로 그린다.
 
 ## 구조
 
