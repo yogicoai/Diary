@@ -1,0 +1,24 @@
+{
+  "_note": "화풍(style)은 시안에서 고른 것으로 바꾼다. name = public/bg 파일 이름 = lib/backgrounds.ts id. 순서는 앱 목록 순서.",
+  "quality": "medium",
+  "common": "A background illustration for a grown-up's picture diary app. The user will draw themselves on top of it with a crayon brush, so: NO people, NO animals, NO faces, NO text, NO letters, NO numbers, NO signs with writing, NO signature, NO frame or border. Keep colors light and soft (lower saturation) and leave an open, simple area in the lower middle where a person could be drawn. Keep all important elements inside the central 4:3 area; the far left and right edges will be cropped. Fill the whole canvas edge to edge.",
+  "style": {
+    "chosen": "Style: (시안에서 고른 화풍 문장을 여기에)"
+  },
+  "items": [
+    { "name": "bus-stop", "label": "퇴근길 정류장", "style": "chosen", "scene": "A city bus stop at sunset after work: a simple bus shelter with a bench, a street lamp just turning on, a few low buildings, orange-pink evening sky." },
+    { "name": "office", "label": "회사 책상", "style": "chosen", "scene": "An office desk by a window: a computer monitor with a blank screen, a coffee mug, a small potted plant, a stack of papers, a desk lamp, the chair pushed in." },
+    { "name": "cafe", "label": "카페 창가", "style": "chosen", "scene": "A cozy cafe window seat: a small round table with a cup of latte and a slice of cake, a big window showing trees outside, a hanging lamp." },
+    { "name": "snack-bar", "label": "분식집", "style": "chosen", "scene": "A Korean snack bar table: a shallow pan of red tteokbokki, a plate of kimbap rolls, fish cake skewers in a cup, two empty stools, warm light." },
+    { "name": "living-room", "label": "우리 집 거실", "style": "chosen", "scene": "A comfortable living room: a soft sofa with cushions, a low table with a mug, a tall plant, a window with curtains, a rug on the floor." },
+    { "name": "bedroom", "label": "이불 속", "style": "chosen", "scene": "A bedroom at night: a bed with a fluffy blanket and pillows, a small bedside lamp glowing, a window with the moon and stars." },
+    { "name": "park", "label": "공원 벤치", "style": "chosen", "scene": "A quiet city park on a sunny afternoon: a wooden bench, two round trees, a curving path, a few flowers, blue sky with a cloud." },
+    { "name": "beach", "label": "바닷가", "style": "chosen", "scene": "A sunny beach: gentle waves, sand, a striped beach umbrella, a bucket and spade, a seagull-free clear sky with a big sun." },
+    { "name": "rainy-street", "label": "비 오는 거리", "style": "chosen", "scene": "A rainy street: falling rain lines, puddles on the sidewalk, a shop awning, a street lamp, grey-blue sky." },
+    { "name": "night-sky", "label": "밤하늘", "style": "chosen", "scene": "A night sky over a small neighborhood: a big crescent moon, many stars, rooftops and a few lit windows, a hill in front." },
+    { "name": "schoolyard", "label": "학교 운동장", "style": "chosen", "scene": "An elementary school playground: monkey bars, a slide, a sandbox, a low school building in the back, a flag pole without a flag, sunny sky." },
+    { "name": "classroom", "label": "교실", "style": "chosen", "scene": "An old elementary school classroom: a green chalkboard with nothing written on it, rows of small wooden desks and chairs, a window with sunlight." },
+    { "name": "snow-day", "label": "눈 오는 날", "style": "chosen", "scene": "A snowy day: snow falling, a snow-covered street with small houses and a tree, footprints in the snow, soft grey sky." },
+    { "name": "christmas", "label": "크리스마스", "style": "chosen", "scene": "A cozy room at Christmas: a decorated Christmas tree with lights and a star, wrapped presents under it, a window with snow outside." }
+  ]
+}

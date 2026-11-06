@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { bgById, bgSrc } from "@/lib/backgrounds";
 import { renderStrokes } from "@/lib/crayon";
 import { shortDate, todayKey } from "@/lib/date";
 import { deleteDiary, listDiaries, type Diary } from "@/lib/store";
@@ -29,8 +30,15 @@ function Thumb({ d }: { d: Diary }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 캔버스는 브라우저에서만 그릴 수 있다
     setSrc(c.toDataURL("image/png"));
   }, [d]);
-  // eslint-disable-next-line @next/next/no-img-element
-  return <div className="thumb">{src && <img src={src} alt="" />}</div>;
+  const b = bgById(d.bg);
+  return (
+    <div className="thumb">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {b && <img src={bgSrc(b.id)} alt="" />}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {src && <img src={src} alt="" />}
+    </div>
+  );
 }
 
 export default function DiaryShelf() {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { defaultBg } from "@/lib/backgrounds";
 import type { Stroke } from "@/lib/crayon";
 import { koreanDate, todayKey } from "@/lib/date";
 import { saveDiary, track, type Diary } from "@/lib/store";
@@ -25,6 +26,7 @@ export default function DiaryEditor() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [strokes, setStrokes] = useState<Stroke[]>([]);
+  const [bg, setBg] = useState<string | null>(defaultBg());
   const [secret, setSecret] = useState(false);
   const [done, setDone] = useState<Diary | null>(null);
   const [cardOf, setCardOf] = useState<Diary | null>(null);
@@ -54,6 +56,7 @@ export default function DiaryEditor() {
       title: title.trim(),
       body: body.trim(),
       strokes,
+      bg,
       teacher: teacherLine(body + title, weather),
       secret,
       createdAt: Date.now(),
@@ -63,7 +66,7 @@ export default function DiaryEditor() {
     } catch {
       setToast("이 기기에 저장하지 못했어요. 카드로는 남길 수 있어요");
     }
-    track("diary_created", { weather, chars: d.body.length, drew: strokes.length > 0 });
+    track("diary_created", { weather, chars: d.body.length, drew: strokes.length > 0, bg });
     setDone(d);
     requestAnimationFrame(() =>
       document.getElementById("teacher")?.scrollIntoView({ behavior: "smooth", block: "center" }),
@@ -75,6 +78,7 @@ export default function DiaryEditor() {
     setTitle("");
     setBody("");
     setStrokes([]);
+    setBg(defaultBg());
     setSecret(false);
     setDone(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -103,7 +107,14 @@ export default function DiaryEditor() {
           <WeatherPicker value={weather} onChange={setWeather} readOnly={locked} />
         </div>
 
-        <CrayonPad strokes={strokes} onChange={setStrokes} readOnly={locked} onAskAi={() => setAiOpen(true)} />
+        <CrayonPad
+          strokes={strokes}
+          onChange={setStrokes}
+          bg={bg}
+          onBg={setBg}
+          readOnly={locked}
+          onAskAi={() => setAiOpen(true)}
+        />
 
         <div className="title-row">
           <label htmlFor="title">제목</label>

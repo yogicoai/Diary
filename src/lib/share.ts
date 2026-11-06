@@ -13,6 +13,7 @@ type Packed = {
   t: string; // 제목
   b: string | null; // 본문 (비밀이면 null)
   c: string; // 선생님 한 줄
+  g?: string | null; // 배경 id (없으면 흰 종이)
   s: [string, number, number[], 0 | 1][]; // [색, 굵기×1000, 점들(0~4095, x,y 번갈아), 지우개]
 };
 
@@ -26,6 +27,7 @@ function pack(d: Diary): Packed {
     t: d.title,
     b: d.secret ? null : d.body,
     c: d.teacher,
+    g: d.bg ?? null,
     s: d.strokes.map((st) => [
       st.color,
       Math.round(st.size * 1000),
@@ -48,6 +50,7 @@ function unpack(p: Packed): Diary {
     title: p.t,
     body: p.b ?? "",
     strokes,
+    bg: p.g ?? null,
     teacher: p.c,
     secret: p.b === null,
     createdAt: 0,

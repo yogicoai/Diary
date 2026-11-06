@@ -1,0 +1,14 @@
+{
+  "quality": "medium",
+  "common": "A background illustration for a grown-up's picture diary app. The user will draw themselves on top of it with a crayon brush, so: NO people, NO animals, NO faces, NO text, NO letters, NO numbers, NO signature, NO frame or border. Keep colors light and soft (lower saturation) and leave an open, simple area in the lower middle where a person could be drawn. Keep all important elements inside the central 4:3 area; the far left and right edges will be cropped. Fill the whole canvas edge to edge.",
+  "style": {
+    "original": "Style: match the attached reference exactly — a child's wax crayon drawing on white paper, visible crayon strokes and paper grain, simple rounded shapes, warm cheerful colors, slightly wobbly lines. Use the reference only for drawing style; do not copy its boy, food or table.",
+    "pastel": "Style: soft pastel wax crayon on cream drawing paper, like a gentle picture book. Light layered strokes, lots of visible paper texture, calm muted colors, slightly wobbly hand-drawn outlines.",
+    "kid": "Style: bold wax crayon drawn by a 7-year-old on rough white paper. Thick uneven outlines, quick back-and-forth coloring that leaves white gaps, naive perspective, bright primary colors but not too dense."
+  },
+  "items": [
+    { "name": "_style-original", "style": "original", "ref": "drafts/bg/_ref-original.png", "scene": "A quiet city park on a sunny afternoon: a wooden bench, two round trees, a curving path, a few flowers, blue sky with a cloud." },
+    { "name": "_style-pastel", "style": "pastel", "scene": "A quiet city park on a sunny afternoon: a wooden bench, two round trees, a curving path, a few flowers, blue sky with a cloud." },
+    { "name": "_style-kid", "style": "kid", "scene": "A quiet city park on a sunny afternoon: a wooden bench, two round trees, a curving path, a few flowers, blue sky with a cloud." }
+  ]
+}

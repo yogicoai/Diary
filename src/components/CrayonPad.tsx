@@ -1,19 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { BACKGROUNDS, bgById, bgSrc, bgThumb } from "@/lib/backgrounds";
 import { CRAYONS, drawStroke, type Point, type Stroke } from "@/lib/crayon";
-import { CrayonStick } from "./Icons";
+import { CrayonStick, PencilIcon } from "./Icons";
 
 const SIZES = [0.012, 0.022, 0.04]; // 그림칸 너비 대비 굵기
 
 type Props = {
   strokes: Stroke[];
   onChange: (next: Stroke[]) => void;
+  bg?: string | null; // null = 직접 그리기(흰 종이)
+  onBg?: (id: string | null) => void;
   readOnly?: boolean;
   onAskAi: () => void;
 };
 
-export default function CrayonPad({ strokes, onChange, readOnly, onAskAi }: Props) {
+export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly, onAskAi }: Props) {
+  const bgItem = bgById(bg);
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef<Stroke | null>(null);
@@ -108,8 +112,12 @@ export default function CrayonPad({ strokes, onChange, readOnly, onAskAi }: Prop
         onPointerCancel={onUp}
         aria-label="그림칸. 손가락으로 그려요"
       >
+        {bgItem && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="draw-bg" src={bgSrc(bgItem.id)} alt="" draggable={false} />
+        )}
         <canvas ref={canvasRef} />
-        {empty && !readOnly && (
+        {empty && !readOnly && !bgItem && (
           <div className="draw-hint">
             <div>
               여기에 오늘을 그려요
@@ -117,7 +125,41 @@ export default function CrayonPad({ strokes, onChange, readOnly, onAskAi }: Prop
             </div>
           </div>
         )}
+        {empty && !readOnly && bgItem && <div className="draw-hint-chip">배경 위에 오늘의 나를 그려 넣어요</div>}
       </div>
+
+      {!readOnly && BACKGROUNDS.length > 0 && (
+        <div className="bg-tray" role="radiogroup" aria-label="배경 고르기">
+          <button
+            type="button"
+            role="radio"
+            aria-checked={!bgItem}
+            className="bg-tile blank"
+            onClick={() => onBg?.(null)}
+          >
+            <span className="bg-thumb">
+              <PencilIcon />
+            </span>
+            <span className="bg-name">직접 그리기</span>
+          </button>
+          {BACKGROUNDS.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              role="radio"
+              aria-checked={bgItem?.id === b.id}
+              className="bg-tile"
+              onClick={() => onBg?.(b.id)}
+            >
+              <span className="bg-thumb">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={bgThumb(b.id)} alt="" loading="lazy" />
+              </span>
+              <span className="bg-name">{b.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {!readOnly && (
         <>

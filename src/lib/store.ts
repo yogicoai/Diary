@@ -12,6 +12,7 @@ export type Diary = {
   title: string;
   body: string;
   strokes: Stroke[];
+  bg?: string | null; // 그림칸 배경 id, 없으면 직접 그리기(흰 종이)
   teacher: string;
   secret: boolean;
   createdAt: number;

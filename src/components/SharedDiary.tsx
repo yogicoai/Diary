@@ -52,7 +52,7 @@ export default function SharedDiary() {
               <div className="page-date">{koreanDate(diary.date)}</div>
               <WeatherPicker value={diary.weather} onChange={() => {}} readOnly />
             </div>
-            <CrayonPad strokes={diary.strokes} onChange={() => {}} readOnly onAskAi={() => {}} />
+            <CrayonPad strokes={diary.strokes} bg={diary.bg} onChange={() => {}} readOnly onAskAi={() => {}} />
             <div className="title-row">
               <label>제목</label>
               <input value={diary.title} readOnly aria-label="제목" />
