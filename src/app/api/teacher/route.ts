@@ -3,12 +3,13 @@
 // - 일기 글은 여기서 저장하지 않는다. 화면에서 국외 이전 동의를 받은 경우에만 부른다.
 
 import Anthropic from "@anthropic-ai/sdk";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import { WEATHERS } from "@/lib/weather";
 
-// 모델은 여기 한 곳. 장당 비용은 docs/revenue/수익구조.md 참고
-const MODEL = "claude-opus-5-5";
+// 모델은 여기 한 곳 (11-06 사용자: Haiku 5.5 정도면 충분). 비용은 docs/revenue/수익구조.md
+// Haiku 5.5 는 서버 대체 모델(fallbacks)이 없어서 거절되면 기본 한 줄로 간다
+const MODEL = "claude-haiku-5-5";
 
 const SYSTEM = `당신은 초등학교 담임 선생님입니다. 학생은 사실 20~40대 어른인데, 어린 시절처럼 크레파스 그림일기를 써서 냈습니다. 일기를 읽고 일기장 아래에 빨간 색연필로 한 줄을 써 줍니다.
 
@@ -89,13 +90,11 @@ export async function POST(req: Request) {
 
   const client = new Anthropic({ maxRetries: 1, timeout: 8000 });
   try {
-    const res = await client.beta.messages.parse({
+    const res = await client.messages.parse({
       model: MODEL,
       max_tokens: 4000,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
       system: SYSTEM,
-      output_config: { effort: "low", format: betaZodOutputFormat(Result) },
+      output_config: { effort: "low", format: zodOutputFormat(Result) },
       messages: [{ role: "user", content: `<일기장>\n${diary}\n</일기장>` }],
     });
 
