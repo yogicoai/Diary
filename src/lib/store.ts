@@ -14,6 +14,8 @@ export type Diary = {
   strokes: Stroke[];
   bg?: string | null; // 그림칸 배경 id, 없으면 직접 그리기(흰 종이)
   teacher: string;
+  teacherBy?: "ai" | "rule"; // 선생님 한 줄을 누가 썼나
+  care?: boolean; // Claude 가 위험 신호를 봤을 때
   secret: boolean;
   createdAt: number;
 };

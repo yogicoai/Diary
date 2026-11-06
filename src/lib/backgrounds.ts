@@ -4,7 +4,22 @@
 
 export type Background = { id: string; name: string };
 
-export const BACKGROUNDS: Background[] = [];
+// 화풍: 원본 사이트 크레파스 (11-06 시안 A, 원본 그림을 참고 그림으로). 장면 설명은 scripts/bg-scenes.json
+export const BACKGROUNDS: Background[] = [
+  { id: "office", name: "회사 책상" },
+  { id: "cafe", name: "카페 창가" },
+  { id: "snack-bar", name: "분식집" },
+  { id: "living-room", name: "우리 집 거실" },
+  { id: "bedroom", name: "이불 속" },
+  { id: "park", name: "공원 벤치" },
+  { id: "beach", name: "바닷가" },
+  { id: "rainy-street", name: "비 오는 거리" },
+  { id: "night-sky", name: "밤하늘" },
+  { id: "schoolyard", name: "학교 운동장" },
+  { id: "classroom", name: "교실" },
+  { id: "snow-day", name: "눈 오는 날" },
+  { id: "christmas", name: "크리스마스" },
+];
 
 export function bgSrc(id: string): string {
   return `/bg/${id}.webp`;

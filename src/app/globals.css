@@ -1131,3 +1131,97 @@ a {
   inset: 0;
   object-fit: cover;
 }
+
+/* 도장이 찍힐 때 종이가 살짝 눌린다 */
+.page.stamped {
+  animation: page-bump 0.26s 0.27s ease-out;
+}
+
+@keyframes page-bump {
+  45% {
+    transform: translateY(3px) scale(0.995);
+  }
+}
+
+/* ---------- 선생님 검사 ---------- */
+.check-lines {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  aspect-ratio: 10 / 6;
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  pointer-events: none;
+}
+
+.check-row {
+  position: relative;
+}
+
+.check-row svg {
+  position: absolute;
+  left: 0;
+  bottom: 1px;
+  height: 9px;
+  overflow: visible;
+  clip-path: inset(0 100% 0 0);
+  animation: underline 0.34s ease-out forwards;
+}
+
+.check-row path {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.9;
+}
+
+@keyframes underline {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.teacher-reading {
+  font-family: var(--font-pen), cursive;
+  font-size: 26px;
+  color: var(--red);
+  padding-top: 8px;
+}
+
+.teacher-reading .dots::after {
+  content: "";
+  animation: dots 1.2s steps(4) infinite;
+}
+
+@keyframes dots {
+  0% {
+    content: "";
+  }
+  25% {
+    content: ".";
+  }
+  50% {
+    content: "..";
+  }
+  75% {
+    content: "...";
+  }
+}
+
+.care-note {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--paper-edge);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.care-note a {
+  color: var(--red);
+  font-weight: 700;
+}

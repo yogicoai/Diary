@@ -35,3 +35,13 @@ export function clampText(text: string): string {
   }
   return out;
 }
+
+/** 줄마다 마지막 글자까지의 칸 수 (빈 줄은 0). 선생님 밑줄 길이에 쓴다 */
+export function rowSpans(text: string, cols = COLS, rows = ROWS): number[] {
+  const cells = layoutCells(text, cols, rows);
+  return Array.from({ length: rows }, (_, r) => {
+    let last = 0;
+    for (let c = 0; c < cols; c++) if (cells[r * cols + c]?.trim()) last = c + 1;
+    return last;
+  });
+}

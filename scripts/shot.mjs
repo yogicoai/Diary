@@ -25,6 +25,7 @@ try {
     await page.goto(base + "/", { waitUntil: "networkidle0" });
     await page.evaluate((t) => {
       localStorage.setItem("chamjal.theme", t);
+      localStorage.setItem("chamjal.aiConsent", "no"); // 캡처는 기본 한 줄로
     }, theme);
     await page.goto(base + "/", { waitUntil: "networkidle0" });
     await page.evaluate(() => document.fonts.ready);

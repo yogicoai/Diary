@@ -215,7 +215,15 @@ export async function renderCard(d: Diary): Promise<HTMLCanvasElement> {
   ctx.rotate(-0.025);
   ctx.fillStyle = color.red;
   ctx.font = `66px ${pen}`;
-  ctx.fillText(d.teacher, 0, 0, cw - 250);
+  // 도장 자리를 비우고, 길면 두 줄로 (글자 단위로 자름)
+  const maxW = cw - 250;
+  const lines: string[] = [""];
+  for (const ch of Array.from(d.teacher)) {
+    const cur = lines[lines.length - 1];
+    if (ctx.measureText(cur + ch).width > maxW && lines.length < 2) lines.push(ch.trim());
+    else lines[lines.length - 1] = cur + ch;
+  }
+  lines.forEach((ln, i) => ctx.fillText(ln, 0, i * 70 - (lines.length - 1) * 30, maxW));
   ctx.restore();
 
   // 도장
