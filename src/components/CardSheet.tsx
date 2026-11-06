@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { canvasToBlob, renderCard } from "@/lib/card";
+import { shareUrl } from "@/lib/share";
 import { track, type Diary } from "@/lib/store";
 import Sheet from "./Sheet";
 
@@ -68,6 +69,28 @@ export default function CardSheet({
     save();
   };
 
+  // 받는 사람은 /d 화면에서 일기장 그대로 본다 (그림·글이 링크 안에 들어 있음)
+  const shareLink = async () => {
+    if (!diary) return;
+    const link = await shareUrl(diary);
+    try {
+      if (navigator.share) {
+        await navigator.share({ url: link, title: "오늘의 그림일기", text: "친구가 그림일기를 보냈어요" });
+        track("link_share", { via: "native", len: link.length });
+        return;
+      }
+    } catch (e) {
+      if ((e as Error).name === "AbortError") return;
+    }
+    try {
+      await navigator.clipboard.writeText(link);
+      track("link_share", { via: "copy", len: link.length });
+      onToast("링크를 복사했어요. 카톡에 붙여 넣어 보내요");
+    } catch {
+      onToast("링크를 복사하지 못했어요");
+    }
+  };
+
   return (
     <Sheet open={!!diary} onClose={onClose} label="공유 카드">
       <h2>오늘의 그림일기</h2>
@@ -88,6 +111,9 @@ export default function CardSheet({
           친구한테 보내기
         </button>
       </div>
+      <button type="button" className="btn plain" onClick={shareLink} disabled={!diary}>
+        링크로 보내기
+      </button>
       {onDelete && (
         <p className="note" style={{ textAlign: "center" }}>
           <button type="button" className="linkish" onClick={onDelete}>

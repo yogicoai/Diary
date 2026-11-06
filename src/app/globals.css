@@ -953,3 +953,21 @@ a {
   text-decoration: underline;
   font-size: 13px;
 }
+
+/* ---------- 받은 일기 ---------- */
+.received {
+  margin: 0 4px 12px;
+  font-family: var(--font-kid), cursive;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.secret-note {
+  margin-top: 16px;
+  padding: 34px 10px;
+  border: 1.5px dashed var(--line);
+  text-align: center;
+  font-family: var(--font-kid), cursive;
+  font-size: 19px;
+  color: var(--muted);
+}
