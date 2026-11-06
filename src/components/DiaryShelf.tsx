@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { renderStrokes } from "@/lib/crayon";
 import { shortDate, todayKey } from "@/lib/date";
 import { deleteDiary, listDiaries, type Diary } from "@/lib/store";
+import { BOOK } from "@/lib/business";
+import BookSheet from "./BookSheet";
 import CardSheet from "./CardSheet";
 import { BrandMark, PencilIcon, StampSvg } from "./Icons";
 
@@ -37,6 +39,7 @@ export default function DiaryShelf() {
   const [today, setToday] = useState("");
   const [open, setOpen] = useState<Diary | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [bookOpen, setBookOpen] = useState(false);
 
   useEffect(() => {
     listDiaries().then(setList);
@@ -79,6 +82,27 @@ export default function DiaryShelf() {
         ))}
       </section>
 
+      {list && (
+        <button type="button" className="book-progress" onClick={() => setBookOpen(true)}>
+          <span className="bp-head">
+            <span>그림일기 책까지</span>
+            <b>
+              {Math.min(list.length, BOOK.pages)}/{BOOK.pages}장
+            </b>
+          </span>
+          <svg className="bp-bar" viewBox="0 0 300 14" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M4 7 Q 75 4 150 7 T 296 7" className="bp-track" />
+            <path
+              d="M4 7 Q 75 4 150 7 T 296 7"
+              className="bp-fill"
+              pathLength={100}
+              style={{ strokeDasharray: `${(Math.min(list.length, BOOK.pages) / BOOK.pages) * 100} 100` }}
+            />
+          </svg>
+          <span className="bp-more">책으로 받기 알아보기</span>
+        </button>
+      )}
+
       {list && list.length === 0 && (
         <div className="empty">
           아직 쓴 일기가 없어요.
@@ -112,6 +136,7 @@ export default function DiaryShelf() {
           setOpen(null);
         }}
       />
+      <BookSheet open={bookOpen} onClose={() => setBookOpen(false)} count={list?.length ?? 0} />
       {toast && (
         <div className="toast" role="status">
           {toast}

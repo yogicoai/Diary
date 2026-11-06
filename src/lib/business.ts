@@ -12,6 +12,9 @@ export const PACKS: Pack[] = [
   { id: "p40", credits: 40, price: 14900 },
 ];
 
+// 실물 그림일기 책: 50장이 한 권. 가격은 인쇄 견적 전 가설 (docs/revenue/수익구조.md)
+export const BOOK = { pages: 50, priceFrom: 24900, priceTo: 29900 };
+
 export function won(n: number) {
   return n.toLocaleString("ko-KR") + "원";
 }

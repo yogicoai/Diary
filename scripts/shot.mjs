@@ -102,6 +102,9 @@ try {
       await page.goto(base + "/diary", { waitUntil: "networkidle0" });
       await new Promise((r) => setTimeout(r, 600));
       await page.screenshot({ path: path.join(out, "07-shelf.png"), fullPage: true });
+      await page.evaluate(() => document.querySelector(".book-progress")?.click());
+      await new Promise((r) => setTimeout(r, 400));
+      await page.screenshot({ path: path.join(out, "09-book-sheet.png") });
     }
   }
   console.log(errors.length ? "브라우저 오류:\n" + errors.join("\n") : "브라우저 오류 없음");

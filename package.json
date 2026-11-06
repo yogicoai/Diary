@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 6900",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "start": "next start -p 6900",
+    "lint": "eslint src scripts",
+    "shot": "node scripts/shot.mjs http://localhost:6900 shots",
+    "icons": "node scripts/icons.mjs"
   },
   "dependencies": {
     "idb-keyval": "^6.3.0",
