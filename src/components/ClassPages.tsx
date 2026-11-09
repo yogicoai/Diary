@@ -10,7 +10,8 @@ import { shortDate } from "@/lib/date";
 import { useMe } from "@/lib/me";
 import type { Stroke } from "@/lib/crayon";
 import { renderThumb } from "@/lib/thumb";
-import { BrandMark } from "./Icons";
+import { pencilTick } from "@/lib/feel";
+import { BrandMark, StampSvg } from "./Icons";
 import { LoginButtons } from "./LoginBox";
 import { StickerSvg } from "./PraiseStickers";
 import Reactions from "./Reactions";
@@ -119,6 +120,8 @@ export function ClassList() {
   );
 }
 
+type Note = { id: string; who: string; text: string; mine: boolean };
+
 type FeedItem = {
   id: string;
   date: string;
@@ -133,7 +136,11 @@ type FeedItem = {
   reactions: Partial<Record<string, number>>;
   mine: boolean;
   myReactions: string[];
+  notes: Note[];
 };
+
+type Member = { id: string; nameTag: string; handedIn: boolean; me: boolean };
+type ClassData = { today: string; class: ClassLite; homework: string | null; members: Member[]; feed: FeedItem[] };
 
 function FeedThumb({ item }: { item: FeedItem }) {
   const [src, setSrc] = useState<string | null>(null);
@@ -148,16 +155,67 @@ function FeedThumb({ item }: { item: FeedItem }) {
   return <div className="feed-thumb">{src && <img src={src} alt="" />}</div>;
 }
 
+/** 짝꿍 한마디: 반 친구 일기에 빨간 색연필 한 줄 */
+function Notes({ diaryId, initial, onToast }: { diaryId: string; initial: Note[]; onToast: (m: string) => void }) {
+  const [list, setList] = useState(initial);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const send = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!text.trim() || busy) return;
+    setBusy(true);
+    try {
+      const r = await api<{ note: Note }>("/api/notes", { method: "POST", json: { diaryId, text } });
+      setList((l) => [...l, r.note]);
+      setText("");
+      pencilTick();
+    } catch (err) {
+      onToast(err instanceof Error ? err.message : "남기지 못했어요");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const remove = async (id: string) => {
+    await api(`/api/notes?id=${id}`, { method: "DELETE" }).catch(() => {});
+    setList((l) => l.filter((n) => n.id !== id));
+  };
+
+  return (
+    <div className="notes">
+      {list.map((n) => (
+        <p key={n.id} className="note-line">
+          <b>{n.who}</b> {n.text}
+          {n.mine && (
+            <button type="button" className="note-x" aria-label="내 한마디 지우기" onClick={() => remove(n.id)}>
+              ×
+            </button>
+          )}
+        </p>
+      ))}
+      <form className="note-form" onSubmit={send}>
+        <input value={text} maxLength={40} onChange={(e) => setText(e.target.value)} placeholder="짝꿍 한마디 (40자)" aria-label="짝꿍 한마디" />
+        <button type="submit" className="tool" disabled={!text.trim() || busy}>
+          남기기
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export function ClassFeed({ id }: { id: string }) {
   const { me, loading } = useMe();
   const router = useRouter();
-  const [data, setData] = useState<{ class: ClassLite; members: { id: string; nameTag: string }[]; feed: FeedItem[] } | null>(null);
+  const [data, setData] = useState<ClassData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [hw, setHw] = useState("");
+  const [hwEdit, setHwEdit] = useState(false);
 
   useEffect(() => {
     if (!me) return;
-    api<typeof data & object>(`/api/classes/${id}`)
+    api<ClassData>(`/api/classes/${id}`)
       .then(setData)
       .catch((e) => setError(e instanceof Error ? e.message : "반을 못 열었어요"));
   }, [id, me]);
@@ -189,6 +247,21 @@ export function ClassFeed({ id }: { id: string }) {
     router.push("/class");
   };
 
+  const saveHomework = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const r = await api<{ homework: string | null }>(`/api/classes/${id}/homework`, { method: "POST", json: { text: hw } });
+      setData((d) => (d ? { ...d, homework: r.homework } : d));
+      setHwEdit(false);
+      setToast(r.homework ? "반 숙제를 냈어요" : "반 숙제를 지웠어요");
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "숙제를 못 냈어요");
+    }
+  };
+
+  const done = data?.members.filter((m) => m.handedIn).length ?? 0;
+  const iDid = !!data?.members.find((m) => m.me)?.handedIn;
+
   return (
     <main className="app">
       <Header title={data?.class.name ?? "우리 반"} sub={data ? `친구 ${data.members.length}명 · 초대 코드 ${data.class.code}` : ""} />
@@ -196,22 +269,70 @@ export function ClassFeed({ id }: { id: string }) {
       {error && <div className="empty">{error}</div>}
       {data && (
         <>
-          <div className="btn-row" style={{ marginTop: -6 }}>
-            <button type="button" className="btn" onClick={invite}>
+          {/* 반 숙제 */}
+          <section className="homework">
+            <span className="hw-label">오늘의 반 숙제</span>
+            {hwEdit ? (
+              <form className="inline-form" onSubmit={saveHomework} style={{ marginTop: 8 }}>
+                <input value={hw} maxLength={30} onChange={(e) => setHw(e.target.value)} placeholder="예) 오늘 점심 메뉴 그리기" aria-label="반 숙제" />
+                <button type="submit" className="btn">
+                  내기
+                </button>
+              </form>
+            ) : (
+              <p className="hw-text">{data.homework ?? (data.class.owner ? "아직 숙제를 안 냈어요. 반장님, 오늘 숙제를 내 주세요!" : "반장님이 아직 숙제를 안 냈어요. 자유 주제예요.")}</p>
+            )}
+            <div className="hw-actions">
+              {data.class.owner && !hwEdit && (
+                <button
+                  type="button"
+                  className="linkish"
+                  onClick={() => {
+                    setHw(data.homework ?? "");
+                    setHwEdit(true);
+                  }}
+                >
+                  {data.homework ? "숙제 바꾸기" : "숙제 내기"}
+                </button>
+              )}
+              <Link href={`/?class=${id}`} className="btn" style={{ marginTop: 0, minHeight: 44, fontSize: 18 }}>
+                {iDid ? "한 장 더 내기" : "숙제하러 가기"}
+              </Link>
+            </div>
+          </section>
+
+          {/* 출석부 */}
+          <section className="attendance" aria-label={`오늘 ${done}/${data.members.length}명 냈어요`}>
+            <div className="att-head">
+              <b>출석부</b>
+              <span>
+                오늘 {done}/{data.members.length}명 냈어요
+              </span>
+            </div>
+            <div className="att-grid">
+              {data.members.map((m) => (
+                <div key={m.id} className={`att${m.handedIn ? " in" : ""}`}>
+                  <span className="att-slot">{m.handedIn && <StampSvg />}</span>
+                  <span className="att-name">
+                    {m.nameTag.split(" ").slice(-1)[0]}
+                    {m.me ? " (나)" : ""}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {done < data.members.length && <p className="att-nudge">{done === 0 ? "아직 아무도 안 냈어요. 첫 번째로 내 볼까요?" : "아직 안 낸 친구가 있어요. 콕 찔러 볼까요?"}</p>}
+          </section>
+
+          <div className="btn-row">
+            <button type="button" className="btn plain" onClick={invite}>
               친구 초대하기
             </button>
-            <Link href="/" className="btn plain">
-              일기 쓰고 보내기
-            </Link>
+            <button type="button" className="btn plain" onClick={leave}>
+              반에서 나가기
+            </button>
           </div>
-          <div className="member-chips">
-            {data.members.map((m) => (
-              <span key={m.id} className="chip">
-                {m.nameTag}
-              </span>
-            ))}
-          </div>
-          {data.feed.length === 0 && <div className="empty">아직 보낸 일기가 없어요. 오늘 일기를 써서 보내 볼까요?</div>}
+
+          {data.feed.length === 0 && <div className="empty">아직 반에 낸 일기가 없어요. 오늘 숙제를 내 볼까요?</div>}
           <div className="feed">
             {data.feed.map((it) => (
               <article key={it.id} className="feed-item">
@@ -225,22 +346,16 @@ export function ClassFeed({ id }: { id: string }) {
                 {it.teacher && <p className="feed-teacher">{it.teacher}</p>}
                 {!!it.stickers?.length && (
                   <div className="feed-stickers">
-                    {it.stickers.map((id) => (
-                      <StickerSvg key={id} id={id} size={44} />
+                    {it.stickers.map((sid) => (
+                      <StickerSvg key={sid} id={sid} size={44} />
                     ))}
                   </div>
                 )}
-                {!it.mine && (
-                  <Reactions diaryId={it.id} initial={it.reactions} mine={it.myReactions} canReact onToast={setToast} />
-                )}
+                {!it.mine && <Reactions diaryId={it.id} initial={it.reactions} mine={it.myReactions} canReact onToast={setToast} />}
+                <Notes diaryId={it.id} initial={it.notes} onToast={setToast} />
               </article>
             ))}
           </div>
-          <p className="note" style={{ textAlign: "center" }}>
-            <button type="button" className="linkish" onClick={leave}>
-              이 반에서 나가기
-            </button>
-          </p>
         </>
       )}
       {toast && (

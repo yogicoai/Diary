@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BACKGROUNDS, bgById, bgSrc, bgThumb } from "@/lib/backgrounds";
 import { CRAYONS, drawStroke, type Point, type Stroke } from "@/lib/crayon";
-import { crayonStroke } from "@/lib/feel";
+import { addWear, newCrayon, wearMap } from "@/lib/crayonWear";
+import { crayonStroke, pencilTick } from "@/lib/feel";
 import { CrayonStick, PencilIcon } from "./Icons";
 
 const SIZES = [0.012, 0.022, 0.04]; // 그림칸 너비 대비 굵기
@@ -28,6 +29,32 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
   const [color, setColor] = useState<string>(CRAYONS[0].hex);
   const [size, setSize] = useState(1);
   const [erase, setErase] = useState(false);
+  // 몽당 크레파스: 색마다 닳은 정도 (0~1)
+  const [wear, setWear] = useState<Record<string, number>>({});
+  const drawnPx = useRef(0);
+  // 손끝을 따라다니는 크레파스
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const crayonId = CRAYONS.find((c) => c.hex === color)?.id ?? "black";
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 이 기기에 남은 크레파스 길이를 읽는다
+    setWear(wearMap());
+  }, []);
+
+  // 크레파스 끝(뷰박스 y = 3 + 39×닳음)을 손끝(0,0)에 두고 그 점을 중심으로 기울인다
+  const tipStyle = (w: number) => {
+    const tip = (3 + 39 * w) * 1.3;
+    return { top: -tip, transformOrigin: `19.5px ${tip}px` };
+  };
+
+  const moveCursor = (e: React.PointerEvent, show: boolean) => {
+    const el = cursorRef.current;
+    const box = boxRef.current;
+    if (!el || !box || readOnly) return;
+    const r = box.getBoundingClientRect();
+    el.style.transform = `translate(${e.clientX - r.left}px, ${e.clientY - r.top}px)`;
+    el.style.opacity = show ? "1" : "0";
+  };
 
   // 캔버스 크기 = 화면 크기 × 화소 비율
   const redraw = useCallback(
@@ -73,6 +100,8 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
     e.preventDefault();
     (e.target as Element).setPointerCapture(e.pointerId);
     drawing.current = { color, size: SIZES[size] * (erase ? 1.6 : 1), points: [toPoint(e)], erase };
+    drawnPx.current = 0;
+    moveCursor(e, true);
     feelRef.current = crayonStroke(erase);
     lastMove.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
     paintLive();
@@ -80,6 +109,8 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
 
   const onMove = (e: React.PointerEvent) => {
     const s = drawing.current;
+    // 마우스는 누르지 않아도 크레파스가 따라온다, 손가락은 그릴 때만
+    if (s || e.pointerType === "mouse") moveCursor(e, true);
     if (!s) return;
     const p = toPoint(e);
     const last = s.points[s.points.length - 1];
@@ -89,14 +120,20 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
     const lm = lastMove.current;
     const step = Math.hypot(e.clientX - lm.x, e.clientY - lm.y);
     feelRef.current?.move(step / Math.max(8, e.timeStamp - lm.t), step);
+    if (!s.erase) drawnPx.current += step;
     lastMove.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
     paintLive();
   };
 
-  const onUp = () => {
+  const onUp = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") moveCursor(e, false);
     const s = drawing.current;
     if (!s) return;
     drawing.current = null;
+    if (drawnPx.current > 0) {
+      addWear(crayonId, drawnPx.current);
+      setWear(wearMap());
+    }
     feelRef.current?.end();
     feelRef.current = null;
     onChange([...strokesRef.current, s]);
@@ -122,6 +159,7 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
         onPointerMove={onMove}
         onPointerUp={onUp}
         onPointerCancel={onUp}
+        onPointerLeave={(e) => moveCursor(e, false)}
         aria-label="그림칸. 손가락으로 그려요"
       >
         {bgItem && (
@@ -129,6 +167,20 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
           <img className="draw-bg" src={bgSrc(bgItem.id)} alt="" draggable={false} />
         )}
         <canvas ref={canvasRef} />
+        {!readOnly && (
+          <div className="crayon-cursor" ref={cursorRef} aria-hidden="true">
+            {erase ? (
+              <svg className="cc-eraser" viewBox="0 0 40 24">
+                <rect x="1" y="1" width="38" height="22" rx="4" fill="#f4b6c2" stroke="rgba(0,0,0,.3)" />
+                <rect x="1" y="1" width="14" height="22" rx="4" fill="#5aa9e6" stroke="rgba(0,0,0,.3)" />
+              </svg>
+            ) : (
+              <span className="cc-stick" style={tipStyle(wear[crayonId] ?? 0)}>
+                <CrayonStick color={color} selected={false} wear={wear[crayonId] ?? 0} />
+              </span>
+            )}
+          </div>
+        )}
         {empty && !readOnly && !bgItem && (
           <div className="draw-hint">
             <div>
@@ -198,7 +250,7 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
                   setErase(false);
                 }}
               >
-                <CrayonStick color={c.hex} selected={!erase && color === c.hex} />
+                <CrayonStick color={c.hex} selected={!erase && color === c.hex} wear={wear[c.id] ?? 0} />
               </button>
             ))}
           </div>
@@ -228,6 +280,19 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
                 <path d="M9 7 4.5 11.5 9 16M5 11.5h9.5a5 5 0 0 1 0 10H12" />
               </svg>
             </button>
+            {!erase && (wear[crayonId] ?? 0) >= 0.96 && (
+              <button
+                type="button"
+                className="tool new-crayon"
+                onClick={() => {
+                  newCrayon(crayonId);
+                  setWear(wearMap());
+                  pencilTick();
+                }}
+              >
+                새 크레파스 꺼내기
+              </button>
+            )}
           </div>
         </>
       )}

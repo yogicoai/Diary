@@ -1,6 +1,7 @@
-// 반 하나: 반 정보 + 친구 이름표 + 반에 보낸 일기(GET) / 반 나가기(DELETE)
+// 반 하나: 반 정보 + 출석부(오늘 반에 일기 낸 친구) + 반 숙제 + 반에 보낸 일기와 짝꿍 한마디(GET) / 반 나가기(DELETE)
 
 import type { NextRequest } from "next/server";
+import { kstKey } from "@/lib/server/awards";
 import { cols } from "@/lib/server/db";
 import { memberClass, ownersOf } from "@/lib/server/find";
 import { assertSameOrigin, handle, json } from "@/lib/server/http";
@@ -14,27 +15,47 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   return handle(async () => {
     const user = await requireUser(req);
     const c = await memberClass((await params).id, user);
-    const { diaries, users, reactions } = await cols();
-    const [members, feed] = await Promise.all([
+    const today = kstKey();
+    const { diaries, users, reactions, notes } = await cols();
+    const [members, feed, todays] = await Promise.all([
       users.find({ _id: { $in: c.memberIds } }, { projection: { nickname: 1, entryYear: 1, classNo: 1 } }).toArray(),
       diaries.find({ classIds: c._id }).sort({ createdAt: -1 }).limit(40).toArray(),
+      // 출석부: 오늘 이 반에 일기를 낸 사람 (혼자 쓴 일기는 드러나지 않는다)
+      diaries.distinct("userId", { classIds: c._id, date: today }),
     ]);
+    const handedIn = new Set(todays.map((id) => id.toHexString()));
     const owners = await ownersOf(feed);
-    const mine = await reactions
-      .find({ userId: user._id, diaryId: { $in: feed.map((d) => d._id) } }, { projection: { diaryId: 1, kind: 1 } })
-      .toArray();
+    const ids = feed.map((d) => d._id);
+    const [mine, allNotes] = await Promise.all([
+      reactions.find({ userId: user._id, diaryId: { $in: ids } }, { projection: { diaryId: 1, kind: 1 } }).toArray(),
+      notes.find({ diaryId: { $in: ids } }).sort({ at: 1 }).limit(400).toArray(),
+    ]);
     const mineBy = new Map<string, string[]>();
     for (const r of mine) {
       const k = r.diaryId.toHexString();
       mineBy.set(k, [...(mineBy.get(k) ?? []), r.kind]);
     }
+    const memberTag = new Map(members.map((m) => [m._id.toHexString(), nameTag(m)]));
+    const notesBy = new Map<string, { id: string; who: string; text: string; mine: boolean }[]>();
+    for (const n of allNotes) {
+      const k = n.diaryId.toHexString();
+      notesBy.set(k, [
+        ...(notesBy.get(k) ?? []),
+        { id: n._id.toHexString(), who: memberTag.get(n.userId.toHexString()) ?? "전학 간 친구", text: n.text, mine: n.userId.equals(user._id) },
+      ]);
+    }
     return json({
+      today,
       class: classToClient(c, user._id.toHexString()),
-      members: members.map((m) => ({ id: m._id.toHexString(), nameTag: nameTag(m) })),
+      homework: c.homework?.date === today ? c.homework.text : null,
+      members: members
+        .map((m) => ({ id: m._id.toHexString(), nameTag: nameTag(m), handedIn: handedIn.has(m._id.toHexString()), me: m._id.equals(user._id) }))
+        .sort((a, b) => Number(b.handedIn) - Number(a.handedIn)),
       feed: feed.map((d) => ({
         ...classItem(d, owners.get(d.userId.toHexString()) ?? null),
         mine: d.userId.equals(user._id),
         myReactions: mineBy.get(d._id.toHexString()) ?? [],
+        notes: notesBy.get(d._id.toHexString()) ?? [],
       })),
     });
   });

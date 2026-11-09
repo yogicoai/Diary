@@ -113,7 +113,7 @@ export default function Reactions({
           <button
             key={r.kind}
             type="button"
-            className={`reaction ${r.type}${on ? " on" : ""}`}
+            className={`reaction rx-${r.type}${on ? " on" : ""}`}
             aria-pressed={on}
             aria-label={`${r.label} ${counts[r.kind] ?? 0}개`}
             onClick={() => toggle(r.kind)}

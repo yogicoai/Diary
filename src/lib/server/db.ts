@@ -67,7 +67,10 @@ export type ClassDoc = {
   ownerId: ObjectId;
   memberIds: ObjectId[];
   createdAt: Date;
+  homework?: { date: string; text: string }; // 반 숙제 (반장이 그날 낸 주제)
 };
+// 짝꿍 한마디: 반 친구 일기에 남기는 빨간 색연필 한 줄 (반 친구끼리만 보인다)
+export type NoteDoc = { _id: ObjectId; diaryId: ObjectId; userId: ObjectId; text: string; at: Date };
 export type AwardDoc = {
   _id: ObjectId;
   userId: ObjectId;
@@ -105,6 +108,7 @@ export async function cols() {
     reports: db.collection<ReportDoc>("reports"),
     classes: db.collection<ClassDoc>("classes"),
     awards: db.collection<AwardDoc>("awards"),
+    notes: db.collection<NoteDoc>("notes"),
   };
 }
 
@@ -121,5 +125,6 @@ async function ensureIndexes(db: Db) {
     db.collection("classes").createIndex({ memberIds: 1 }),
     db.collection("awards").createIndex({ userId: 1, key: 1 }, { unique: true }),
     db.collection("awards").createIndex({ kind: 1, key: 1 }),
+    db.collection("notes").createIndex({ diaryId: 1, at: 1 }),
   ]);
 }

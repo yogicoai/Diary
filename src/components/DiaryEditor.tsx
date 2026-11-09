@@ -10,6 +10,7 @@ import { stampThump, underlineSwish } from "@/lib/feel";
 import { preferredBg } from "@/lib/prefs";
 import { topicOf } from "@/lib/social";
 import { pushDiary } from "@/lib/sync";
+import { api } from "@/lib/api";
 import { saveDiary, track, type Diary } from "@/lib/store";
 import { rowSpans } from "@/lib/manuscript";
 import { teacherReply } from "@/lib/teacher";
@@ -37,6 +38,8 @@ export default function DiaryEditor() {
   const [date, setDate] = useState<string | null>(null);
   const [today, setToday] = useState<string | null>(null);
   const [lateOpen, setLateOpen] = useState(false);
+  // 우리 반에서 "숙제하러 가기"로 왔을 때: 반 숙제를 보여 주고, 다 쓰면 그 반에 낸다
+  const [classCtx, setClassCtx] = useState<{ id: string; name: string; homework: string | null } | null>(null);
   const [weather, setWeather] = useState<WeatherId | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -60,6 +63,12 @@ export default function DiaryEditor() {
     setDate(want && /^\d{4}-\d{2}-\d{2}$/.test(want) && want <= t ? want : t);
     // 처음 배경은 "나 → 기본 설정"에서 고른 것
     setBg(preferredBg());
+    const cls = new URLSearchParams(location.search).get("class");
+    if (cls && /^[a-f0-9]{24}$/.test(cls)) {
+      api<{ class: { id: string; name: string }; homework: string | null }>(`/api/classes/${cls}`)
+        .then((r) => setClassCtx({ id: r.class.id, name: r.class.name, homework: r.homework }))
+        .catch(() => {});
+    }
   }, []);
 
   useEffect(() => {
@@ -126,9 +135,15 @@ export default function DiaryEditor() {
     // 이름표가 있으면 서버에도 보관 (개근상도 여기서 받는다)
     if (me) {
       pushDiary(d)
-        .then((res) => {
+        .then(async (res) => {
           setDone((cur) => (cur && cur.id === d.id ? { ...cur, serverId: res.diary.serverId } : cur));
           if (res.awards.length) setToast(`${res.awards[0].label}을 받았어요! 나 › 상장함`);
+          if (classCtx) {
+            const ids = [...new Set([...(res.diary.classIds ?? []), classCtx.id])];
+            await api(`/api/diaries/${res.diary.serverId}`, { method: "PATCH", json: { classIds: ids } });
+            setDone((cur) => (cur && cur.id === d.id ? { ...cur, classIds: ids } : cur));
+            setToast(`${classCtx.name} 반에 숙제를 냈어요`);
+          }
         })
         .catch(() => {});
     }
@@ -172,7 +187,15 @@ export default function DiaryEditor() {
         </Link>
       </header>
 
-      <TopicBanner date={date} on={topicOn} onToggle={() => setTopicOn((v) => !v)} locked={locked} />
+      {classCtx ? (
+        <div className="topic-banner on">
+          <span className="tb-label">{classCtx.name} 숙제</span>
+          <span className="tb-topic">{classCtx.homework ?? "자유 주제"}</span>
+          <span className="tb-btn done">{locked ? "반에 냄" : "다 쓰면 반에 내요"}</span>
+        </div>
+      ) : (
+        <TopicBanner date={date} on={topicOn} onToggle={() => setTopicOn((v) => !v)} locked={locked} />
+      )}
 
       <article className={`page${done && !reading ? " stamped" : ""}`} aria-label="오늘의 그림일기">
         <div className="page-head">
@@ -198,7 +221,7 @@ export default function DiaryEditor() {
             id="title"
             value={title}
             maxLength={16}
-            placeholder={topicOn && date ? topicOf(date) : "드디어 금요일"}
+            placeholder={classCtx?.homework ?? (topicOn && date ? topicOf(date) : "드디어 금요일")}
             onChange={(e) => setTitle(e.target.value)}
             readOnly={locked}
             autoComplete="off"

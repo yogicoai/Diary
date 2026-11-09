@@ -79,15 +79,37 @@ export function PencilIcon() {
   );
 }
 
-export function CrayonStick({ color, selected }: { color: string; selected: boolean }) {
-  // 종이 띠를 두른 크레파스 한 자루
+/**
+ * 종이 띠를 두른 크레파스 한 자루. wear(0~1)만큼 짧아지고 끝이 뭉툭해진다 (몽당 크레파스).
+ * 바닥(y=63)에 붙어 있고, 위쪽이 닳는다.
+ */
+export function CrayonStick({ color, selected, wear = 0 }: { color: string; selected: boolean; wear?: number }) {
+  const w = Math.min(1, Math.max(0, wear));
+  const len = 48 - w * 32; // 몸통 48 → 16
+  const top = 63 - len;
+  const tipH = 12 - w * 7; // 뾰족함이 줄어든다
+  const flat = w * 4.5; // 끝이 평평해진다
+  const label = len > 24; // 많이 닳으면 종이 띠가 벗겨져 없다
+  const lt = top + len * 0.22;
+  const lh = len * 0.5;
   return (
     <svg viewBox="0 0 30 64" aria-hidden="true">
-      <path d="M8 16 L15 3 L22 16 Z" fill={color} stroke="rgba(0,0,0,.25)" strokeWidth="0.8" />
-      <rect x="7" y="15" width="16" height="48" rx="2" fill={color} stroke="rgba(0,0,0,.25)" strokeWidth="0.8" />
-      <rect x="7" y="26" width="16" height="24" fill="rgba(255,255,255,.82)" />
-      <path d="M7 28h16M7 48h16" stroke={color} strokeWidth="1.4" />
-      <path d="M10 33h10M10 37h7M10 41h9" stroke={color} strokeWidth="1.1" strokeLinecap="round" opacity=".7" />
+      <path
+        d={`M8 ${top + 1} L${15 - flat} ${top - tipH} Q15 ${top - tipH - 1.2} ${15 + flat} ${top - tipH} L22 ${top + 1} Z`}
+        fill={color}
+        stroke="rgba(0,0,0,.25)"
+        strokeWidth="0.8"
+        strokeLinejoin="round"
+      />
+      <rect x="7" y={top} width="16" height={len} rx="2" fill={color} stroke="rgba(0,0,0,.25)" strokeWidth="0.8" />
+      {label && (
+        <>
+          <rect x="7" y={lt} width="16" height={lh} fill="rgba(255,255,255,.82)" />
+          <path d={`M7 ${lt + 2}h16M7 ${lt + lh - 2}h16`} stroke={color} strokeWidth="1.4" />
+          <path d={`M10 ${lt + lh * 0.35}h10M10 ${lt + lh * 0.55}h7`} stroke={color} strokeWidth="1.1" strokeLinecap="round" opacity=".7" />
+        </>
+      )}
+      {!label && <path d={`M9 ${top + len * 0.5} l3 -2 l3 2 l3 -2 l3 2`} stroke="rgba(255,255,255,.7)" strokeWidth="1" fill="none" />}
       {selected && <circle cx="15" cy="58" r="2" fill="#fff" />}
     </svg>
   );
