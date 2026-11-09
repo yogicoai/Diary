@@ -230,7 +230,7 @@ export function Confirm({
 }
 
 /* ── 아이콘 (선 하나 굵기 1.8) ── */
-export type IconName = "dashboard" | "users" | "class" | "board" | "external" | "logout" | "key" | "search" | "close" | "back" | "lock" | "chevron";
+export type IconName = "dashboard" | "users" | "class" | "board" | "pencil" | "external" | "logout" | "key" | "search" | "close" | "back" | "lock" | "chevron";
 
 const PATHS: Record<IconName, ReactNode> = {
   dashboard: (
@@ -260,6 +260,7 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M12 2.8v2.7M7.5 10.5h4v4h-4zM14.5 10.5h3M14.5 13.5h3" />
     </>
   ),
+  pencil: <path d="M4.5 19.5 5.6 15 15.8 4.8a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L9 18.4zM13.8 6.8l3.4 3.4" />,
   external: <path d="M14 4.5h5.5V10M19.5 4.5 11 13M17 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 4 18.5v-10A1.5 1.5 0 0 1 5.5 7H10" />,
   logout: <path d="M14 4.5h4a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5h-4M10 16.5 5.5 12 10 7.5M5.5 12H15" />,
   key: (

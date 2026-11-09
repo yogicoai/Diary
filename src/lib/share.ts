@@ -15,6 +15,7 @@ type Packed = {
   c: string; // 선생님 한 줄
   g?: string | null; // 배경 id (없으면 흰 종이)
   k?: string[]; // 선생님 칭찬 스티커
+  p?: string; // 선생님 도장 (참 잘했어요면 생략)
   s: [string, number, number[], 0 | 1][]; // [색, 굵기×1000, 점들(0~4095, x,y 번갈아), 지우개]
 };
 
@@ -30,6 +31,7 @@ function pack(d: Diary): Packed {
     c: d.teacher,
     g: d.bg ?? null,
     k: d.stickers ?? [],
+    p: d.stamp && d.stamp !== "cham" ? d.stamp : undefined,
     s: d.strokes.map((st) => [
       st.color,
       Math.round(st.size * 1000),
@@ -54,6 +56,7 @@ function unpack(p: Packed): Diary {
     strokes,
     bg: p.g ?? null,
     stickers: p.k ?? [],
+    stamp: p.p,
     teacher: p.c,
     secret: p.b === null,
     createdAt: 0,

@@ -1264,3 +1264,34 @@ a.adm-name:hover {
 .adm-toast.error {
   background: var(--a-red);
 }
+
+/* ── 오늘의 숙제: 숙제 걸기 칸 ── */
+.adm-topic-form {
+  display: grid;
+  gap: 4px 12px;
+  align-items: end;
+}
+@media (min-width: 900px) {
+  .adm-topic-form {
+    grid-template-columns: 170px minmax(0, 1fr) minmax(0, 1.3fr) auto;
+  }
+  .adm-topic-form .adm-btn {
+    height: 44px;
+  }
+}
+.adm-topic-form .adm-field {
+  margin-top: 0;
+}
+.adm-topic-form .adm-btn {
+  margin-top: 10px;
+}
+.adm-field em {
+  margin-left: 4px;
+  font-style: normal;
+  font-weight: 600;
+  color: var(--a-faint);
+  font-variant-numeric: tabular-nums;
+}
+.adm-field em.warn {
+  color: var(--a-amber);
+}

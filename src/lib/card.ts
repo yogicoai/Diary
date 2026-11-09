@@ -4,6 +4,7 @@
 import { bgById, bgSrc, loadImage } from "./backgrounds";
 import { crayonPattern, renderStrokes } from "./crayon";
 import { drawSticker, STICKERS } from "./stickers";
+import { stampDraw } from "./stamps";
 import { COLS, ROWS, layoutCells, rowSpans } from "./manuscript";
 import { koreanDate } from "./date";
 import { weatherChoices } from "./weather";
@@ -268,7 +269,7 @@ export async function renderCard(d: Diary): Promise<HTMLCanvasElement> {
   (d.stickers ?? []).slice(0, 3).forEach((id, i) => drawSticker(ctx, id, spots[i][0], spots[i][1], 150, spots[i][2], kid));
 
   // 도장
-  drawStamp(ctx, px + pw - 120, py + ph - 125, 108, color.red, kid);
+  drawStamp(ctx, px + pw - 120, py + ph - 125, 108, color.red, kid, d.stamp);
 
   // 바닥 글씨
   ctx.fillStyle = color.ink;
@@ -289,28 +290,31 @@ export function drawStamp(
   r: number,
   red: string,
   kidFont: string,
+  stamp?: string | null,
 ) {
+  const g = stampDraw(stamp);
+  const k = r / 45; // 도장 모양은 100×100 칸, 바깥 동그라미 반지름 45
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(-0.24);
+  ctx.scale(k, k);
+  ctx.translate(-50, -50);
   // 도장은 크레파스보다 진하게: 단색 + 살짝 비침
   ctx.globalAlpha = 0.86;
   ctx.strokeStyle = red;
   ctx.fillStyle = red;
-  ctx.lineWidth = r * 0.08;
-  ctx.beginPath();
-  ctx.arc(0, 0, r, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.lineWidth = r * 0.03;
-  ctx.beginPath();
-  ctx.arc(0, 0, r * 0.84, 0, Math.PI * 2);
-  ctx.stroke();
+  ctx.lineJoin = "round";
+  for (const p of g.outline) {
+    ctx.lineWidth = p.w;
+    ctx.stroke(new Path2D(p.d));
+  }
+  if (g.motif) ctx.fill(new Path2D(g.motif));
   ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = `700 ${Math.round(r * 0.62)}px ${kidFont}`;
-  ctx.fillText("참", 0, -r * 0.26);
-  ctx.font = `700 ${Math.round(r * 0.34)}px ${kidFont}`;
-  ctx.fillText("잘했어요", 0, r * 0.32);
+  ctx.textBaseline = "alphabetic";
+  for (const t of g.text) {
+    ctx.font = `700 ${t.size}px ${kidFont}`;
+    ctx.fillText(t.t, 50, t.y);
+  }
   ctx.restore();
 }
 

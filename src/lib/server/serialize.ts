@@ -29,10 +29,12 @@ export function diaryToClient(d: DiaryDoc) {
     teacher: d.teacher,
     teacherBy: d.teacherBy,
     stickers: d.stickers ?? [],
+    stamp: d.stamp ?? "cham",
     late: !!d.late,
     care: d.care,
     secret: d.secret,
     topic: d.topic,
+    topicText: d.topicText ?? null,
     createdAt: d.createdAt.getTime(),
     board: d.board
       ? { status: d.board.status, mode: d.board.mode, cardUrl: d.board.cardUrl, thumbUrl: d.board.thumbUrl, note: d.board.note }
@@ -53,6 +55,7 @@ export function boardItem(d: DiaryDoc, owner: Pick<UserDoc, "nickname" | "entryY
     body: full ? d.body : "",
     teacher: d.teacher,
     topic: d.topic,
+    topicText: d.topicText ?? null,
     mode: d.board?.mode ?? "drawing",
     thumbUrl: d.board?.thumbUrl ?? "",
     cardUrl: d.board?.cardUrl ?? "",

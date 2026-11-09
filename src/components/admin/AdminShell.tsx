@@ -27,6 +27,7 @@ const NAV: { href: string; label: string; icon: IconName; todo?: boolean }[] = [
   { href: "/admin", label: "대시보드", icon: "dashboard" },
   { href: "/admin/members", label: "회원", icon: "users" },
   { href: "/admin/classes", label: "반", icon: "class" },
+  { href: "/admin/topics", label: "오늘의 숙제", icon: "pencil" },
   { href: "/admin/board", label: "게시판 검사", icon: "board", todo: true },
 ];
 

@@ -23,7 +23,7 @@ export function setConsent(v: "yes" | "no") {
   }
 }
 
-export async function askTeacher(d: Diary, lateDays = 0): Promise<{ line: string; stickers: string[]; care: boolean } | null> {
+export async function askTeacher(d: Diary, lateDays = 0): Promise<{ line: string; stickers: string[]; stamp: string; care: boolean } | null> {
   try {
     const res = await fetch("/api/teacher", {
       method: "POST",
@@ -32,9 +32,9 @@ export async function askTeacher(d: Diary, lateDays = 0): Promise<{ line: string
       signal: AbortSignal.timeout(9000),
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { line?: string; stickers?: string[]; care?: boolean };
+    const data = (await res.json()) as { line?: string; stickers?: string[]; stamp?: string; care?: boolean };
     if (!data.line) return null;
-    return { line: data.line, stickers: data.stickers ?? [], care: !!data.care };
+    return { line: data.line, stickers: data.stickers ?? [], stamp: data.stamp ?? "cham", care: !!data.care };
   } catch {
     return null;
   }

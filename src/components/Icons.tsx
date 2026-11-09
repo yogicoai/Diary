@@ -1,8 +1,13 @@
 // 손으로 그린 듯한 작은 그림들. 이모지 대신 쓴다.
 
-export function StampSvg({ className, title = "참 잘했어요" }: { className?: string; title?: string }) {
+import { stampById, stampDraw } from "@/lib/stamps";
+
+/** 선생님 도장. stamp 를 안 주면 "참 잘했어요" (lib/stamps.ts 의 8가지) */
+export function StampSvg({ className, stamp, title }: { className?: string; stamp?: string | null; title?: string }) {
+  const s = stampById(stamp);
+  const g = stampDraw(stamp);
   return (
-    <svg className={className} viewBox="0 0 100 100" role="img" aria-label={title}>
+    <svg className={className} viewBox="0 0 100 100" role="img" aria-label={title ?? s.label}>
       <defs>
         <filter id="stamp-grain" x="0" y="0" width="100%" height="100%">
           <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" result="n" />
@@ -15,26 +20,22 @@ export function StampSvg({ className, title = "참 잘했어요" }: { className?
         </filter>
       </defs>
       <g filter="url(#stamp-grain)" fill="currentColor" stroke="currentColor">
-        <circle cx="50" cy="50" r="45" fill="none" strokeWidth="5" />
-        <circle cx="50" cy="50" r="38" fill="none" strokeWidth="1.6" />
-        <text
-          x="50"
-          y="49"
-          textAnchor="middle"
-          stroke="none"
-          style={{ fontFamily: "var(--font-kid), cursive", fontWeight: 700, fontSize: 30 }}
-        >
-          참
-        </text>
-        <text
-          x="50"
-          y="70"
-          textAnchor="middle"
-          stroke="none"
-          style={{ fontFamily: "var(--font-kid), cursive", fontWeight: 700, fontSize: 16 }}
-        >
-          잘했어요
-        </text>
+        {g.outline.map((p, i) => (
+          <path key={i} d={p.d} fill="none" strokeWidth={p.w} strokeLinejoin="round" />
+        ))}
+        {g.motif && <path d={g.motif} stroke="none" />}
+        {g.text.map((t) => (
+          <text
+            key={t.t}
+            x="50"
+            y={t.y}
+            textAnchor="middle"
+            stroke="none"
+            style={{ fontFamily: "var(--font-kid), cursive", fontWeight: 700, fontSize: t.size }}
+          >
+            {t.t}
+          </text>
+        ))}
       </g>
     </svg>
   );

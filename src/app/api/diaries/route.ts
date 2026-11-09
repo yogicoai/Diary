@@ -8,6 +8,7 @@ import { awardToClient, diaryToClient } from "@/lib/server/serialize";
 import { requireUser } from "@/lib/server/session";
 import type { Stroke } from "@/lib/crayon";
 import { cleanStickers } from "@/lib/stickers";
+import { cleanStamp } from "@/lib/stamps";
 
 export async function GET(req: NextRequest) {
   return handle(async () => {
@@ -33,6 +34,8 @@ type In = {
   care?: boolean;
   secret: boolean;
   topic?: string | null;
+  topicText?: string | null;
+  stamp?: string;
   createdAt: number;
 };
 
@@ -59,9 +62,11 @@ export async function POST(req: NextRequest) {
       teacherBy: d.teacherBy === "ai" ? ("ai" as const) : ("rule" as const),
       care: !!d.care,
       stickers: cleanStickers(d.stickers, []),
+      stamp: cleanStamp(d.stamp),
       late: !!d.late,
       secret: !!d.secret,
       topic: typeof d.topic === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.topic) ? d.topic : null,
+      topicText: typeof d.topic === "string" && typeof d.topicText === "string" ? d.topicText.replace(/\s+/g, " ").trim().slice(0, 30) || null : null,
       updatedAt: now,
     };
 

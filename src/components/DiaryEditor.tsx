@@ -8,7 +8,7 @@ import { koreanDate, todayKey } from "@/lib/date";
 import { useMe } from "@/lib/me";
 import { stampThump, underlineSwish } from "@/lib/feel";
 import { preferredBg } from "@/lib/prefs";
-import { topicOf } from "@/lib/social";
+import { useTopic } from "@/lib/useTopic";
 import { pushDiary } from "@/lib/sync";
 import { api } from "@/lib/api";
 import { saveDiary, track, type Diary } from "@/lib/store";
@@ -42,6 +42,7 @@ export default function DiaryEditor() {
   // 우리 반에서 "숙제하러 가기"로 왔을 때: 반 숙제를 보여 주고, 다 쓰면 그 반에 낸다
   const [classCtx, setClassCtx] = useState<{ id: string; name: string; homework: string | null } | null>(null);
   const [weather, setWeather] = useState<WeatherId | null>(null);
+  const topic = useTopic(date); // 그날 숙제 (선생님이 건 숙제 → 그날만의 숙제 → 요일 숙제)
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [strokes, setStrokes] = useState<Stroke[]>([]);
@@ -94,7 +95,7 @@ export default function DiaryEditor() {
     if (!date) return;
     const lateDays = today ? daysBetween(date, today) : 0;
     const fallback = lateDays > 0
-      ? { line: "밀린 숙제 발견! 개학 전날 밤 냄새가 나는데요? 그래도 냈으니 통과예요.", stickers: ["bravo", "laugh"] }
+      ? { line: "밀린 숙제 발견! 개학 전날 밤 냄새가 나는데요? 그래도 냈으니 통과예요.", stickers: ["bravo", "laugh"], stamp: "cham" }
       : teacherReply(body + title, weather);
     const draft: Diary = {
       id: newId(),
@@ -106,10 +107,12 @@ export default function DiaryEditor() {
       bg,
       teacher: fallback.line, // Claude 가 못 쓰면 이 답장
       stickers: fallback.stickers,
+      stamp: fallback.stamp,
       late: lateDays > 0,
       teacherBy: "rule",
       secret,
       topic: topicOn ? date : null,
+      topicText: topicOn ? (topic?.text ?? null) : null, // 그때 숙제 글 (선생님이 나중에 바꿔도 그대로)
       createdAt: Date.now(),
     };
     setDone(draft);
@@ -126,7 +129,7 @@ export default function DiaryEditor() {
       useAi ? askTeacher(draft, lateDays) : Promise.resolve(null),
     ]);
     const d: Diary = ai
-      ? { ...draft, teacher: ai.line, teacherBy: "ai", care: ai.care, stickers: ai.stickers.length ? ai.stickers : draft.stickers }
+      ? { ...draft, teacher: ai.line, teacherBy: "ai", care: ai.care, stickers: ai.stickers.length ? ai.stickers : draft.stickers, stamp: ai.stamp }
       : draft;
     try {
       await saveDiary(d);
@@ -197,7 +200,16 @@ export default function DiaryEditor() {
           <span className="tb-btn done">{locked ? "반에 냄" : "다 쓰면 반에 내요"}</span>
         </div>
       ) : (
-        <TopicBanner date={date} on={topicOn} onToggle={() => setTopicOn((v) => !v)} locked={locked} />
+        <TopicBanner
+          date={date}
+          topic={topic}
+          today={today}
+          weather={weather}
+          on={topicOn}
+          onToggle={() => setTopicOn((v) => !v)}
+          onPickDay={() => setLateOpen(true)}
+          locked={locked}
+        />
       )}
 
       <article className={`page${done && !reading ? " stamped" : ""}`} aria-label="오늘의 그림일기">
@@ -224,7 +236,7 @@ export default function DiaryEditor() {
             id="title"
             value={title}
             maxLength={16}
-            placeholder={classCtx?.homework ?? (topicOn && date ? topicOf(date) : "드디어 금요일")}
+            placeholder={classCtx?.homework ?? (topicOn && topic ? topic.text : "드디어 금요일")}
             onChange={(e) => setTitle(e.target.value)}
             readOnly={locked}
             autoComplete="off"
@@ -247,7 +259,7 @@ export default function DiaryEditor() {
         {done && !reading && (
           <div className="teacher" id="teacher">
             <div className="teacher-line writing">{done.teacher}</div>
-            <StampSvg className="stamp landing" />
+            <StampSvg className="stamp landing" stamp={done.stamp} />
           </div>
         )}
         {done && !reading && done.care && (

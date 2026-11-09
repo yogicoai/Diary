@@ -29,13 +29,16 @@ export type UserDoc = {
   lockedUntil?: Date;
 };
 
+// 선생님(운영자)이 날짜별로 미리 걸어 둔 오늘의 숙제. 없는 날은 lib/topics.ts 의 요일 숙제가 나간다.
+export type TopicDoc = { _id: ObjectId; date: string; text: string; note?: string; by: string; at: Date };
+
 // 관리자 페이지에서 한 일 (정지·게시판 처리). 개발자 계정 대시보드에서만 보인다.
 export type AdminLogDoc = {
   _id: ObjectId;
   at: Date;
   by: ObjectId;
   byName: string;
-  action: "ban" | "unban" | "approve" | "hide";
+  action: "ban" | "unban" | "approve" | "hide" | "topic" | "untopic";
   target: string; // 회원 id 또는 일기 id
   note?: string;
 };
@@ -68,6 +71,8 @@ export type DiaryDoc = {
   care: boolean;
   secret: boolean;
   topic: string | null; // 오늘의 숙제로 쓴 날짜 키 (YYYY-MM-DD)
+  topicText?: string | null; // 그때 숙제 글 (선생님이 나중에 숙제를 바꿔도 이 일기의 숙제는 그대로)
+  stamp?: string; // 선생님 도장 (lib/stamps.ts)
   createdAt: Date;
   updatedAt: Date;
   board?: BoardState;
@@ -127,6 +132,7 @@ export async function cols() {
     awards: db.collection<AwardDoc>("awards"),
     notes: db.collection<NoteDoc>("notes"),
     adminlog: db.collection<AdminLogDoc>("adminlog"),
+    topics: db.collection<TopicDoc>("topics"),
   };
 }
 
@@ -145,5 +151,6 @@ async function ensureIndexes(db: Db) {
     db.collection("awards").createIndex({ kind: 1, key: 1 }),
     db.collection("notes").createIndex({ diaryId: 1, at: 1 }),
     db.collection("adminlog").createIndex({ at: -1 }),
+    db.collection("topics").createIndex({ date: 1 }, { unique: true }),
   ]);
 }

@@ -59,7 +59,7 @@ export default function BoardDetail({ id }: { id: string }) {
           <p className="received" style={{ marginBottom: 4 }}>
             {data.item.nameTag}의 그림일기
           </p>
-          {data.item.topic && <p className="topic-chip">오늘의 숙제로 쓴 일기</p>}
+          {data.item.topic && <p className="topic-chip">{data.item.topicText ? `숙제: ${data.item.topicText}` : "오늘의 숙제로 쓴 일기"}</p>}
           {data.status !== "visible" && <p className="care-note">{data.note ?? "지금은 게시판에 보이지 않아요"}</p>}
           {/* Cafe24 에서 늦게 와도 도장 버튼이 밀려 내려가지 않게 카드 자리를 먼저 잡아 둔다 */}
           {/* eslint-disable-next-line @next/next/no-img-element */}

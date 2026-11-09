@@ -70,7 +70,7 @@ export default function SharedDiary() {
             )}
             <div className="teacher">
               <div className="teacher-line">{diary.teacher}</div>
-              <StampSvg className="stamp" />
+              <StampSvg className="stamp" stamp={diary.stamp} />
             </div>
           </article>
         </>

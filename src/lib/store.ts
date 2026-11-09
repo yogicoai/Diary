@@ -19,6 +19,8 @@ export type Diary = {
   late?: boolean; // 밀린 숙제 (날짜가 지나서 쓴 일기) — 개근상에는 안 들어간다
   care?: boolean; // Claude 가 위험 신호를 봤을 때
   topic?: string | null; // 오늘의 숙제로 쓴 날 (YYYY-MM-DD)
+  topicText?: string | null; // 그때 숙제 글 (선생님이 나중에 바꿔도 그대로)
+  stamp?: string; // 선생님 도장 (lib/stamps.ts, 없으면 참 잘했어요)
   // 서버에 올라간 뒤 채워지는 값
   serverId?: string;
   board?: { status: "visible" | "pending" | "hidden"; mode: "drawing" | "full"; cardUrl: string; thumbUrl: string; note?: string } | null;

@@ -20,7 +20,7 @@ type Dash = {
   } | null;
 };
 
-const ACTION: Record<string, string> = { ban: "회원 정지", unban: "정지 풀기", approve: "게시판 보이기", hide: "게시판 내리기" };
+const ACTION: Record<string, string> = { ban: "회원 정지", unban: "정지 풀기", approve: "게시판 보이기", hide: "게시판 내리기", topic: "숙제 걸기", untopic: "숙제 되돌리기" };
 
 export default function Dashboard() {
   const { data, error, at, reload } = useAdminGet<Dash>("/api/admin/dashboard");

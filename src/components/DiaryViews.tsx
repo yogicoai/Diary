@@ -171,7 +171,7 @@ export function DayView({
         </div>
         <div className="teacher">
           <div className="teacher-line">{d.teacher}</div>
-          <StampSvg className="stamp" />
+          <StampSvg className="stamp" stamp={d.stamp} />
         </div>
       </article>
       <ReadAloud key={d.id} diary={d} />

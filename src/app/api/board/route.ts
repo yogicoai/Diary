@@ -6,10 +6,10 @@ import type { Filter } from "mongodb";
 import { kstKey } from "@/lib/server/awards";
 import { cols, type DiaryDoc } from "@/lib/server/db";
 import { ownersOf } from "@/lib/server/find";
+import { resolveTopic } from "@/lib/server/topics";
 import { handle, json } from "@/lib/server/http";
 import { boardItem } from "@/lib/server/serialize";
 import { currentUser } from "@/lib/server/session";
-import { topicOf } from "@/lib/social";
 
 const PAGE = 24;
 
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     if (tab === "year") {
       const me = await currentUser(req);
       year = me?.entryYear ?? null;
-      if (!year) return json({ items: [], today, topic: topicOf(today), year: null, needYear: true });
+      if (!year) return json({ items: [], today, topic: (await resolveTopic(today)).text, year: null, needYear: true });
       const peers = await users.find({ entryYear: year }, { projection: { _id: 1 } }).limit(5000).toArray();
       q.userId = { $in: peers.map((p) => p._id) };
     }
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     return json({
       items: list.map((d) => boardItem(d, owners.get(d.userId.toHexString()) ?? null)),
       today,
-      topic: topicOf(today),
+      topic: (await resolveTopic(today)).text,
       year,
       more: list.length === PAGE,
     });

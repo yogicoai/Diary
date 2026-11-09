@@ -17,6 +17,7 @@ export type BoardItem = {
   body: string;
   teacher: string;
   topic: string | null;
+  topicText?: string | null;
   mode: "drawing" | "full";
   thumbUrl: string;
   cardUrl: string;

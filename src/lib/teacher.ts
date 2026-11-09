@@ -5,6 +5,21 @@ import type { WeatherId } from "./weather";
 
 type Topic = { id: string; words: string[]; lines: string[]; stickers: string[] };
 
+// 이야기 갈래 → 선생님 도장 (lib/stamps.ts). 없는 갈래는 참 잘했어요
+const STAMP_OF: Record<string, string> = {
+  sad: "cheer",
+  tired: "cheer",
+  work: "thanks",
+  move: "brave",
+  trip: "envy",
+  food: "cham",
+  friend: "great",
+  family: "great",
+  love: "best",
+  money: "cool",
+  home: "envy",
+};
+
 const TOPICS: Topic[] = [
   {
     id: "sad",
@@ -116,16 +131,16 @@ function hash(s: string): number {
   return h >>> 0;
 }
 
-export function teacherReply(text: string, weather: WeatherId | null, seed = ""): { line: string; stickers: string[] } {
+export function teacherReply(text: string, weather: WeatherId | null, seed = ""): { line: string; stickers: string[]; stamp: string } {
   const t = text.replace(/\s+/g, "");
   const key = hash(t + (weather ?? "") + seed);
   const topic = TOPICS.find((tp) => tp.words.some((w) => t.includes(w)));
   if (topic) {
     const n = 1 + (key % 2); // 스티커 2~3개
-    return { line: topic.lines[key % topic.lines.length], stickers: topic.stickers.slice(0, n + 1) };
+    return { line: topic.lines[key % topic.lines.length], stickers: topic.stickers.slice(0, n + 1), stamp: STAMP_OF[topic.id] ?? "cham" };
   }
   const w = BY_WEATHER[weather ?? "sun"] ?? BY_WEATHER.sun;
-  return { line: w.lines[key % w.lines.length], stickers: w.stickers };
+  return { line: w.lines[key % w.lines.length], stickers: w.stickers, stamp: "cham" };
 }
 
 /** 예전 호출 호환: 한 줄만 */

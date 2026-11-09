@@ -160,9 +160,8 @@
 
 /* ---------- 오늘의 숙제 알림장 ---------- */
 .topic-banner {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: grid;
+  gap: 6px;
   min-height: 46px;
   margin: 0 0 12px;
   padding: 8px 10px 8px 12px;
@@ -176,6 +175,12 @@
   border-color: var(--red);
 }
 
+.tb-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .tb-label {
   flex: none;
   padding: 2px 7px;
@@ -185,15 +190,55 @@
   font-size: 11px;
 }
 
+.tb-label.by-teacher {
+  background: var(--ink);
+}
+
 .tb-topic {
   flex: 1;
   min-width: 0;
   font-family: var(--font-kid), cursive;
   font-weight: 700;
   font-size: 17px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.25;
+  word-break: keep-all;
+}
+
+/* 과목 · 선생님 한마디 (빨간 펜) */
+.tb-sub,
+.tb-extra {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  word-break: keep-all;
+}
+
+.tb-subject {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  font-size: 11px;
   white-space: nowrap;
+}
+
+.tb-note {
+  font-family: var(--font-pen), cursive;
+  font-size: 19px;
+  line-height: 1.15;
+  color: var(--red);
+}
+
+.tb-extra {
+  padding-top: 6px;
+  border-top: 1px dashed var(--line-soft);
+}
+
+.tb-extra .linkish {
+  padding: 0 2px;
+  font-size: 12px;
 }
 
 .tb-btn {
