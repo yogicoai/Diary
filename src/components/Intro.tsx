@@ -4,7 +4,7 @@
 // 스케치북 표지 → 이렇게 써요 3장(날씨·그림·도장) → 이름표 만들기(로그인) → 그림일기 쓰기
 
 import { useEffect, useState } from "react";
-import { bgSrc, bgThumb } from "@/lib/backgrounds";
+import { bgSrc } from "@/lib/backgrounds";
 import { CRAYONS } from "@/lib/crayon";
 import { BrandMark, CrayonStick, StampSvg } from "./Icons";
 import { LoginButtons } from "./LoginBox";
@@ -29,21 +29,7 @@ export default function Intro({ onGuest }: { onGuest: () => void }) {
   if (step === 0) {
     return (
       <main className="app intro">
-        <section className="intro-cover" aria-label="그림일기장 표지">
-          <div className="intro-label">
-            <p className="intro-kicker">어른이</p>
-            <h1 className="intro-title">그림일기</h1>
-            <div className="intro-lines" aria-hidden="true">
-              <span>이름</span>
-              <span>학년 반</span>
-            </div>
-          </div>
-          <div className="intro-cover-pic" aria-hidden="true">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={bgThumb("park")} alt="" />
-          </div>
-          <StampSvg className="intro-stamp" />
-        </section>
+        <Cover90 />
         <p className="intro-lead">
           크레파스로 그리고 세 줄 쓰면,
           <br />
@@ -100,6 +86,72 @@ export default function Intro({ onGuest }: { onGuest: () => void }) {
         </div>
       )}
     </main>
+  );
+}
+
+/** 별 (5각) · 반짝이 (4각) 모양 */
+function starPath(cx: number, cy: number, R: number) {
+  const pts = Array.from({ length: 10 }, (_, i) => {
+    const r = i % 2 ? R * 0.46 : R;
+    const a = ((-90 + i * 36) * Math.PI) / 180;
+    return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;
+  });
+  return `M${pts.join("L")}Z`;
+}
+const TWINKLE = "M12 1.5Q12.9 11.1 22.5 12 12.9 12.9 12 22.5 11.1 12.9 1.5 12 11.1 11.1 12 1.5Z";
+
+function Star({ className, twinkle }: { className: string; twinkle?: boolean }) {
+  return (
+    <svg className={`c90-star ${className}`} viewBox="0 0 24 24" aria-hidden="true">
+      <path d={twinkle ? TWINKLE : starPath(12, 12.8, 11)} />
+    </svg>
+  );
+}
+
+/** 처음 표지: 90년대 그림일기장·알림장 느낌 (11-09 사용자 "90년대 일기장이나 알림장 느낌")
+ *  색 동그라미 제목 · 항공우편 줄무늬 · 크레파스 학교 운동장 · 별·반짝이 · 알림장식 이름 띠 · 천 테이프 책등 */
+function Cover90() {
+  return (
+    <section className="c90" aria-label="그림일기장 표지">
+      <span className="c90-spine" aria-hidden="true" />
+      <div className="c90-face">
+        <span className="c90-air" aria-hidden="true" />
+        <div className="c90-head">
+          <h1 className="c90-title" aria-label="그림일기">
+            {["그", "림", "일", "기"].map((ch, i) => (
+              <span key={ch} className={`c90-ball b${i}`} aria-hidden="true">
+                {ch}
+              </span>
+            ))}
+          </h1>
+          <p className="c90-en">MY PICTURE DIARY</p>
+        </div>
+        <span className="c90-air" aria-hidden="true" />
+        <div className="c90-pic">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={bgSrc("schoolyard")} alt="크레파스로 그린 학교 운동장" />
+          <Star className="s1" />
+          <Star className="s2" />
+          <Star className="s3" />
+          <Star className="t1" twinkle />
+          <Star className="t2" twinkle />
+          <StampSvg className="c90-stamp" />
+        </div>
+        <div className="c90-info">
+          <span className="c90-tag">그림일기</span>
+          <div className="c90-fields">
+            <p>
+              <b>어른이</b>&nbsp;초등학교 <span className="c90-blank" />
+              학년 <span className="c90-blank" />
+              반 <span className="c90-blank" />번
+            </p>
+            <p>
+              이름 <span className="c90-blank" />
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 

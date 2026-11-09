@@ -1577,103 +1577,231 @@ html[data-intro] .tabbar {
   min-height: 100dvh;
 }
 
-/* 스케치북 표지: 머리(.topbar)와 같은 크라프트 표지 + 스프링 */
-.intro-cover {
+/* 처음 표지: 90년대 그림일기장·알림장 (11-09 사용자: "90년대 일기장이나 알림장 느낌")
+   색 동그라미 제목 · 항공우편 줄무늬 · 별·반짝이 · 알림장식 이름 띠 · 천 테이프 책등.
+   표지는 그림이라 색을 고정한다 (스티커처럼 테마와 상관없이 같은 색). */
+.c90 {
+  --c90-red: #e8463c;
+  --c90-blue: #2f86d6;
+  --c90-yellow: #f7c843;
+  --c90-green: #3fa35b;
+  --c90-pink: #f06aa0;
+  --c90-sky: #55bde3;
+  --c90-paper: #fffbf2;
+  --c90-spine: #34437a;
   position: relative;
   display: flex;
-  flex-direction: column;
+  margin-top: 4px;
+  border: 2px solid var(--ink);
+  border-radius: 4px 10px 10px 4px;
+  background: var(--c90-paper);
+  box-shadow:
+    5px 5px 0 -1px var(--paper),
+    5px 5px 0 0 var(--line-soft),
+    0 18px 30px -18px rgba(40, 25, 10, 0.55);
+}
+/* 천 테이프 책등 */
+.c90-spine {
+  flex: none;
+  width: 18px;
+  border-right: 2px solid var(--ink);
+  border-radius: 2px 0 0 2px;
+  background-color: var(--c90-spine);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.3' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.c90-face {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 14px 14px 12px;
+  border-radius: 0 8px 8px 0;
+  box-shadow: inset 0 0 0 5px var(--c90-sky); /* 알림장 하늘색 테두리 */
+}
+/* 항공우편 봉투 줄무늬 */
+.c90-air {
+  display: block;
+  height: 9px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='9'%3E%3Cpath d='M0 9 5.5 0H10L4.5 9Z' fill='%23e8463c'/%3E%3Cpath d='M12 9 17.5 0H22l-5.5 9Z' fill='%232f86d6'/%3E%3C/svg%3E");
+  background-size: 24px 9px;
+}
+.c90-head {
+  padding: 12px 0 10px;
+  text-align: center;
+}
+.c90-title {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+}
+.c90-ball {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 22px;
-  min-height: min(66dvh, 560px);
-  margin: -14px -16px 0;
-  padding: 58px 24px 40px;
-  background-color: var(--cover);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  border-bottom: 2px solid var(--ink);
-  box-shadow: 0 6px 0 -3px var(--paper), 0 7px 0 -3px var(--line-soft);
-}
-.intro-cover::before {
-  content: "";
-  position: absolute;
-  top: 2px;
-  right: 12px;
-  left: 12px;
-  height: 28px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='28'%3E%3Ccircle cx='12' cy='21' r='3.6' fill='%23221a14' opacity='.55'/%3E%3Cpath d='M12 21 C 5 21 5 3 12 3 C 17.5 3 17.5 13 14.2 18.6' fill='none' stroke='%237d7d7d' stroke-width='2.6' stroke-linecap='round'/%3E%3Cpath d='M11.2 4.2 C 7.5 5 7.6 15 10.4 19' fill='none' stroke='%23d9d9d9' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: repeat-x;
-  background-position: center top;
-  background-size: 24px 28px;
-  pointer-events: none;
-}
-.intro-label {
-  width: min(290px, 100%);
-  padding: 16px 20px 14px;
+  width: 64px;
+  height: 64px;
+  margin: 0 -3px;
   border: 2px solid var(--ink);
-  border-radius: 12px;
-  background: #fffdf7;
-  text-align: center;
-  box-shadow: 0 10px 18px -14px rgba(0, 0, 0, 0.6);
-}
-.intro-kicker {
-  margin: 0;
+  border-radius: 50%;
+  color: #fff;
   font-family: var(--font-kid), cursive;
-  font-size: 20px;
-  color: var(--muted);
-}
-.intro-title {
-  margin: 0;
-  font-family: var(--font-kid), cursive;
-  font-size: 58px;
+  font-size: 42px;
   font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: 3px;
+  line-height: 1;
 }
-.intro-lines {
-  display: grid;
-  gap: 10px;
-  margin-top: 14px;
-  font-size: 13px;
-  text-align: left;
-  color: var(--muted);
+.c90-ball.b0 {
+  background: var(--c90-red);
+  transform: rotate(-6deg);
 }
-.intro-lines span {
-  display: block;
-  padding-bottom: 4px;
-  border-bottom: 1.5px solid var(--line-soft);
+.c90-ball.b1 {
+  background: var(--c90-blue);
+  transform: translateY(3px) rotate(4deg);
 }
-.intro-cover-pic {
-  width: min(230px, 70%);
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  border: 2px solid var(--ink);
-  border-radius: 4px;
-  background: var(--paper);
-  transform: rotate(-2.5deg);
-  box-shadow: 0 10px 16px -12px rgba(0, 0, 0, 0.6);
+.c90-ball.b2 {
+  background: var(--c90-yellow);
+  color: var(--c90-red);
+  transform: rotate(-3deg);
 }
-.intro-cover-pic img {
+.c90-ball.b3 {
+  background: var(--c90-green);
+  transform: translateY(2px) rotate(6deg);
+}
+.c90-en {
+  margin: 10px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  color: var(--c90-blue);
+}
+.c90-pic {
+  position: relative;
+  margin: 14px 2px 0;
+}
+.c90-pic img {
   display: block;
   width: 100%;
-  height: 100%;
+  aspect-ratio: 4 / 3;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: #fff;
   object-fit: cover;
 }
-.intro-stamp {
+.c90-star {
   position: absolute;
-  right: 16px;
-  bottom: 14px;
-  width: 96px;
-  height: 96px;
+  width: 34px;
+  height: 34px;
+  overflow: visible;
+}
+.c90-star path {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.c90-star.s1 {
+  top: -16px;
+  left: -12px;
+  transform: rotate(-14deg);
+}
+.c90-star.s1 path {
+  fill: var(--c90-yellow);
+}
+.c90-star.s2 {
+  top: 14px;
+  right: -14px;
+  width: 26px;
+  height: 26px;
+  transform: rotate(12deg);
+}
+.c90-star.s2 path {
+  fill: var(--c90-pink);
+}
+.c90-star.s3 {
+  bottom: 30px;
+  left: -13px;
+  width: 22px;
+  height: 22px;
+}
+.c90-star.s3 path {
+  fill: var(--c90-sky);
+}
+.c90-star.t1 {
+  top: -12px;
+  left: 34%;
+  width: 18px;
+  height: 18px;
+}
+.c90-star.t1 path {
+  fill: var(--c90-pink);
+  stroke: none;
+}
+.c90-star.t2 {
+  top: 44%;
+  right: -9px;
+  width: 14px;
+  height: 14px;
+}
+.c90-star.t2 path {
+  fill: var(--c90-yellow);
+  stroke: none;
+}
+.c90-stamp {
+  position: absolute;
+  right: -6px;
+  bottom: -30px;
+  width: 92px;
+  height: 92px;
   color: var(--red);
   transform: rotate(-14deg);
 }
-.intro-lead,
-.intro-h,
-.intro-p,
-.intro-teacher,
-.intro-guest .note {
-  word-break: keep-all;
+/* 알림장식 이름 띠 */
+.c90-info {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 10px;
+  border-top: 2px solid var(--ink);
 }
+.c90-tag {
+  display: flex;
+  flex: none;
+  align-items: center;
+  padding: 0 10px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--c90-pink);
+  color: #fff;
+  font-family: var(--font-kid), cursive;
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.c90-fields {
+  display: grid;
+  flex: 1;
+  gap: 7px;
+  min-width: 0;
+  font-size: 13px;
+}
+.c90-fields p {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  margin: 0;
+  white-space: nowrap;
+}
+.c90-fields b {
+  font-family: var(--font-kid), cursive;
+  font-size: 16px;
+  line-height: 1;
+}
+.c90-blank {
+  display: inline-block;
+  flex: 1 1 14px;
+  min-width: 12px;
+  margin: 0 2px 4px;
+  border-bottom: 1.5px solid var(--ink);
+}
+
 .intro-lead {
   margin: 24px 0 0;
   font-size: 17px;

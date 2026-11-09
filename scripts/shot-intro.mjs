@@ -28,7 +28,7 @@ const shot = async (name, full = false) => {
 await page.goto(`${B}/`, { waitUntil: "networkidle0" });
 await page.evaluate(() => localStorage.clear());
 await page.goto(`${B}/`, { waitUntil: "networkidle0" });
-await page.waitForSelector(".intro-cover", { timeout: 20000 });
+await page.waitForSelector(".c90", { timeout: 20000 });
 const tabHidden = await page.evaluate(() => !document.querySelector(".tabbar") || getComputedStyle(document.querySelector(".tabbar")).display === "none");
 await shot("1-cover");
 await click("일기장 펼치기");
@@ -47,7 +47,7 @@ await shot("7-editor");
 // 다시 와도 인트로가 안 나오나
 await page.goto(`${B}/`, { waitUntil: "networkidle0" });
 await sleep(800);
-const again = await page.evaluate(() => !!document.querySelector(".intro-cover"));
+const again = await page.evaluate(() => !!document.querySelector(".c90"));
 // 날씨 고르기: 눈
 await page.evaluate(() => document.querySelector('.weather button[aria-label="눈"]')?.click());
 await sleep(900);
