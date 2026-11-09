@@ -25,6 +25,7 @@ import { BrandMark, StampSvg } from "./Icons";
 import Manuscript, { READ_MS } from "./Manuscript";
 import LateSheet, { daysBetween } from "./LateSheet";
 import PraiseStickers from "./PraiseStickers";
+import ReadAloud from "./ReadAloud";
 import TopicBanner from "./TopicBanner";
 import WeatherPicker from "./WeatherPicker";
 
@@ -273,6 +274,7 @@ export default function DiaryEditor() {
         </>
       ) : reading ? null : (
         <>
+          <ReadAloud diary={done} />
           <button type="button" className="btn" onClick={() => setCardOf(done)}>
             카드로 만들어 자랑하기
           </button>

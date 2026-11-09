@@ -8,7 +8,9 @@
 ## 실행
 
 - `npm run dev:mem` → http://localhost:6900 (임시 Mongo + 개발용 로그인. 끄면 데이터 사라짐, 첫 실행은 Mongo 내려받기)
+- `npm run dev:mem -- --voice ../todo/.env.local` → 위와 같고 아이 목소리 읽기까지 켬 (그 파일의 TYPECAST_API_KEY 하나만 빌려 씀)
 - `npm run dev` → .env.local 의 실제 Mongo·구글·FTP·Claude 로 실행. 변수 목록은 `.env.example`
+- .env.local 현재(11-09): Claude 키·Cafe24 FTP 는 사용자 지시로 Desktop/Dong(보이스동화) .env.local 에서 옮겨 옴. **MONGODB_URI·구글 로그인은 아직 없음** (Dong 은 Supabase 라 Mongo 없음)
 - 참여 기능 화면 시험: dev:mem 켠 뒤 `node scripts/e2e-social.mjs <임시 Mongo 주소>` → shots/social
 - 화면 확인: `node scripts/shot.mjs http://localhost:6900 <출력폴더>` (390px, 테마 3종, 카드·시트·일기장 캡처)
 - 아이콘: `src/app/icon.svg` 고친 뒤 `node scripts/icons.mjs`
@@ -28,8 +30,8 @@
 - **그림칸 배경**: **원본 사이트 크레파스 화풍(시안 A)**으로 통일 (11-06 사용자: "기존 크레파스 느낌이 나와야", 파스텔은 별로). 원본 예시 그림을 잘라 만든 drafts/bg/_ref-original.png 를 매 장 참고 그림으로 보낸다. 만들기는 `node --env-file=../jp/.env scripts/gpt-bg.mjs scripts/bg-scenes.json <이름…>` (GPT gpt-image-2 중간 품질, 장당 약 0.04달러, 키는 N3 앱 .env를 빌려 씀·복사 금지). 원본은 drafts/bg(git 제외), 앱용은 public/bg + public/bg/thumb. "직접 그리기" = 배경 없음(흰 종이).
 - **선생님 한 줄 = Claude** (11-06 사용자: 이 한 줄이 앱의 포인트). `src/app/api/teacher/route.ts`, 모델은 파일 맨 위 MODEL 한 곳(지금 claude-haiku-5-5(11-06 사용자 결정), effort low, Haiku 는 서버 대체 모델 없음). 키는 `.env.local`의 ANTHROPIC_API_KEY(git 제외). 처음 낼 때 국외 이전 동의(ConsentSheet, localStorage chamjal.aiConsent)를 받은 기기만 부르고, 동의 안 함·키 없음·9초 넘김이면 `lib/teacher.ts` 기본 한 줄. 위험 신호(care)면 109 안내를 띄운다. 흐름: 선생님께 내기 → 줄마다 빨간 밑줄(읽는 중, 그동안 Claude 호출) → 도장 쾅(진동) → 한 줄.
 - **넓은 화면 배경**(760px 이상): 테마별 public/web-bg (문구점=doodle, 도화지=town, 방학 숙제=desk). 11-09 힉스필드 나노바나나 2K 16:9, 원본 예시 그림을 참고 그림으로. 휴대폰 화면은 바꾸지 않는다.
-- **아이 목소리 읽어주기**(11-09 구상, 사용자 제안): Typecast(한글나라 Desktop/todo/.env.local 의 키를 --env-file 로 빌려 씀, 복사 금지). 견본은 `scripts/typecast.mjs` → drafts/voice. 계정이 보이스동화·한글나라와 같아서 이번 달 19만 안전선을 넘기면 안 된다 — 사용자마다 실시간으로 읽히려면 이 앱 전용 요금제·키가 필요.
-- **선생님 답장 = 재치 + 칭찬 스티커** (11-09 사용자: 이게 재미의 핵심). 답장은 일기 속 구체적인 것을 짚는 농담 한 스푼 + 따뜻한 마무리(슬픈 날은 다정하게만), 1~2문장. 칭찬 스티커 16종(`lib/stickers.ts`, 순서 고정)에서 Claude 가 1~3개 고른다. 기본 답장(`lib/teacher.ts`)도 같은 결. 스티커는 원고지 위 오른쪽(화면·카드 같은 자리)에 하나씩 톡톡 붙는다.
+- **아이 목소리 읽어주기**(11-09 사용자: 여자아이 **수아**·남자아이 **태지**): 도장 받은 뒤·하루씩 보기에서 "소리 내어 읽기" + 여자아이/남자아이 고르기(나 → 기본 설정에도). `api/read`(Typecast ssfm-v30, 마음 날씨로 감정 낮게), 읽는 글은 `lib/readScript.ts`(날짜·날씨·제목·본문). 받은 소리는 기기 IndexedDB 에 두고 다시 안 부름(`lib/readAloud.ts`). 서버에 TYPECAST_API_KEY 없으면 버튼이 안 보인다. 키는 한글나라 Desktop/todo/.env.local 것을 dev-mem `--voice` 로만 빌려 씀(복사 금지). 계정이 보이스동화·한글나라와 같아서 이번 달 19만 안전선에서 잠근다 — **운영에 켜려면 이 앱 전용 요금제·키가 필요**. Typecast 는 국내 회사(처리 위탁, 국외 이전 아님).
+- **선생님 답장 = 재치 + 칭찬 스티커** (11-09 사용자: 이게 재미의 핵심). 답장은 일기 속 구체적인 것을 짚는 농담 한 스푼 + 따뜻한 마무리(슬픈 날은 다정하게만), 1~2문장. 칭찬 스티커 16종(`lib/stickers.ts`, 순서 고정)에서 Claude 가 1~3개 고른다. 기본 답장(`lib/teacher.ts`)도 같은 결. 스티커는 원고지 위 오른쪽(화면·카드 같은 자리)에 하나씩 톡톡 붙는다. 11-09 실측(12편, 한 편 약 0.4원·1~2초): 45자 안쪽, "선생님" 남발 금지, 예시 문장 베끼기 금지, 밀린 숙제 = 지난 하루 한 편(몰아 쓰기 아님)을 프롬프트에 적어 둠. 60자 넘으면 서버가 문장 끝에서 자른다(fitLine). 프롬프트 고치면 `drafts/teacher/run.mjs`(12편)로 다시 뽑아 본다.
 - **밀린 숙제**: 날짜를 눌러 최근 90일 중 지난 날 일기를 쓴다(달력 빈 날 → /?date=). `late` 표시, 그림일기 책 장수엔 들어가고 개근상에는 안 들어간다. 선생님이 밀린 숙제를 짚어 답한다.
 - **우리 반 재미 요소**(11-09): 출석부(오늘 **반에 낸** 친구만 도장, 혼자 쓴 일기는 안 드러남), 반 숙제(반장만, 그날 한 줄, `/?class=<id>`로 들어오면 쓰기 화면에 뜨고 다 쓰면 그 반에 자동으로 냄), 짝꿍 한마디(`/api/notes`, 반 친구끼리만, 40자, 공개 게시판엔 없음).
 - **크레파스 손맛**: 그림칸에서 고른 색 크레파스가 손끝을 따라다닌다(마우스는 늘, 손가락은 그릴 때). 몽당 크레파스: 색마다 칠한 길이만큼 짧아지고 뭉툭해짐(`lib/crayonWear.ts`, 이 기기 저장, 45,000px면 다 닳음) → "새 크레파스 꺼내기". 나중에 크레파스 팩 상품과 이어진다.

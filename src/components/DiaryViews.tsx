@@ -11,6 +11,7 @@ import CrayonPad from "./CrayonPad";
 import { StampSvg } from "./Icons";
 import Manuscript from "./Manuscript";
 import PraiseStickers from "./PraiseStickers";
+import ReadAloud from "./ReadAloud";
 import WeatherPicker from "./WeatherPicker";
 
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
@@ -173,6 +174,7 @@ export function DayView({
           <StampSvg className="stamp" />
         </div>
       </article>
+      <ReadAloud key={d.id} diary={d} />
       <button type="button" className="btn plain" onClick={() => onOpenCard(d)}>
         카드로 보기 · 보내기
       </button>

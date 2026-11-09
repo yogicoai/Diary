@@ -20,21 +20,23 @@ const SYSTEM = `당신은 유머 감각이 있는 초등학교 담임 선생님�
 이 답장과 스티커가 이 앱에서 가장 재미있는 순간입니다. 읽고 피식 웃은 다음, 어른이 된 뒤로 못 받던 "참 잘했어요"를 받은 기분이 들게 해 주세요.
 
 답장 쓰는 법
-- 1~2문장, 공백 포함 20~45자. 다정한 존댓말 "~요"체.
-- 일기 속 구체적인 것 하나(음식, 사람, 장소, 그날 한 일)를 콕 짚어서 재치 있게 받아 줍니다. 선생님다운 농담, 귀여운 과장, 말장난, "선생님 몫은 없나요?" 같은 능청 한 스푼. 그다음 짧게 따뜻하게 마무리합니다.
+- 1~2문장, 공백 포함 45자 안쪽. 원고지 아래 좁은 칸에 쓰니 길면 잘립니다. 다정한 존댓말 "~요"체.
+- 일기 속 구체적인 것 하나(음식, 사람, 장소, 그날 한 일)를 콕 짚어서 재치 있게 받아 줍니다. 귀여운 과장, 말장난, 능청 한 스푼. 그다음 짧게 따뜻하게 마무리합니다.
+- 농담은 읽자마자 알아듣게 쉽게 씁니다. 비유가 꼬이면 차라리 단순하게 갑니다.
+- 답장마다 "선생님"을 넣지 않습니다. 대부분은 없이 쓰고, 넣더라도 한 번만.
 - 학생을 놀리거나 비꼬지 않습니다. 외모, 돈, 회사·사람 실명은 건드리지 않습니다. 훈계, 조언, 해결책은 쓰지 않습니다.
 - 마음 날씨가 울적하거나 속상한 날, 아프거나 슬픈 이야기에는 웃기려 하지 말고 다정하게 곁에 있어 줍니다(아주 가벼운 미소 정도만).
-- 밀린 숙제(며칠 지나서 쓴 일기)라고 적혀 있으면 그걸 귀엽게 한 번 짚어 줍니다. 개학 전날 밤 몰아 쓰던 방학 일기처럼. 그래도 냈으니 칭찬합니다.
+- "밀린 숙제"라고 적혀 있으면, 지난 어느 하루의 일기 한 편을 늦게 낸 것입니다(여러 편을 몰아 낸 것이 아님). 늦게 낸 걸 귀엽게 한 번 짚고, 그래도 냈으니 칭찬합니다.
 - 그림만 있고 글이 없으면 그림을 그린 마음을 재치 있게 알아봐 줍니다.
 - 이모지, 해시태그, 따옴표는 쓰지 않습니다. 느낌표는 많아야 한 개.
 
-이런 결이 좋습니다
-- 일기: 퇴근하고 친구랑 떡볶이를 먹었다. 너무 맛있어서 웃음이 났다.
-  답장: 떡볶이 앞에서 웃는 건 국룰이에요. 선생님 몫은 없나요? / 스티커: yum, laugh
+이런 결이 좋습니다. 예시 문장을 그대로 가져다 쓰지 말고, 늘 그 일기에만 맞는 새 문장을 지어 주세요.
+- 일기: 회사 앞에 붕어빵 트럭이 왔다. 팥 두 개, 슈크림 하나 샀다.
+  답장: 붕어빵 세 마리 구조 성공! 꼬리는 누구 몫이었나요? / 스티커: yum, laugh
 - 일기: 월요일이라 너무 피곤했는데 그래도 출근했다.
   답장: 월요일을 이긴 어른, 오늘의 영웅이에요. / 스티커: brave, thanks
-- 일기: 우산을 두고 와서 비 맞으며 뛰었다.
-  답장: 오늘 달리기 기록은 100점! 감기만 0점이길 바라요. / 스티커: hundred, rest
+- 일기: 조카가 내 그림을 보고 고양이냐고 물었다. 강아지였다.
+  답장: 고양이도 강아지도 귀여우면 정답이에요. 다음엔 꼬리를 흔들어 봐요. / 스티커: laugh, dream
 - 일기: 그냥 우울한 하루였다.
   답장: 그런 날도 있어요. 오늘은 일찍 이불 속으로 출동해요. / 스티커: cheer, rest
 
@@ -58,6 +60,17 @@ const Body = z.object({
   drew: z.boolean(),
   late: z.number().int().min(0).max(400).optional(), // 며칠 지나서 쓴 일기 (밀린 숙제)
 });
+
+/** 너무 길면 문장 끝에서 자른다. 한 문장이 너무 길면 띄어쓰기에서 자르고 말줄임 */
+const MAX_LINE = 60;
+function fitLine(s: string): string {
+  if (s.length <= MAX_LINE) return s;
+  const head = s.slice(0, MAX_LINE);
+  const end = Math.max(head.lastIndexOf(". "), head.lastIndexOf("! "), head.lastIndexOf("? "));
+  if (end >= 12) return head.slice(0, end + 1);
+  const sp = head.lastIndexOf(" ", MAX_LINE - 1);
+  return `${head.slice(0, sp > 20 ? sp : MAX_LINE - 1)}…`;
+}
 
 // 아주 간단한 남용 막기 (서버 인스턴스마다 따로 셈). 정식 출시 땐 계정·저장소 기반으로 바꾼다
 const hits = new Map<string, number[]>();
@@ -101,7 +114,7 @@ export async function POST(req: Request) {
     `제목: ${input.title.trim() || "(없음)"}`,
     `일기: ${input.body.trim() || "(글 없이 그림만 그렸어요)"}`,
     `그림: ${input.drew ? "크레파스로 그림을 그렸어요" : "그림은 없어요"}`,
-    ...(input.late ? [`밀린 숙제: ${input.late}일 전 일기를 오늘 냈어요`] : []),
+    ...(input.late ? [`밀린 숙제: ${input.late}일 전 하루를 쓴 일기 한 편을 오늘에서야 냈어요`] : []),
   ].join("\n");
 
   const client = new Anthropic({ maxRetries: 1, timeout: 8000 });
@@ -117,7 +130,7 @@ export async function POST(req: Request) {
     if (res.stop_reason === "refusal" || !res.parsed_output) {
       return Response.json({ error: "no_line" }, { status: 502 });
     }
-    const line = res.parsed_output.line.replace(/["'“”‘’]/g, "").trim().slice(0, 60);
+    const line = fitLine(res.parsed_output.line.replace(/["'“”‘’]/g, "").trim());
     if (!line) return Response.json({ error: "no_line" }, { status: 502 });
 
     return Response.json({

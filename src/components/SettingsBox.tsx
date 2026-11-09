@@ -7,6 +7,8 @@ import { BACKGROUNDS, bgThumb } from "@/lib/backgrounds";
 import { preferredBg, setPreferredBg, setWebBg, WEB_BGS, webBg, type WebBgId } from "@/lib/prefs";
 import { hapticOn, setHaptic, setSound, soundOn } from "@/lib/feel";
 import { getConsent, setConsent, type Consent } from "@/lib/teacherAi";
+import { readAloudOn, readVoice, setReadVoice } from "@/lib/readAloud";
+import { READ_VOICES, type ReadVoice } from "@/lib/readScript";
 import { PencilIcon } from "./Icons";
 import ThemePicker from "./ThemePicker";
 
@@ -16,6 +18,8 @@ export default function SettingsBox() {
   const [web, setWeb] = useState<WebBgId>("theme");
   const [sound, setSnd] = useState(true);
   const [haptic, setHap] = useState(true);
+  const [voiceOn, setVoiceOn] = useState(false);
+  const [voice, setVoice] = useState<ReadVoice>("girl");
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 이 기기 설정을 한 번 읽는다
@@ -24,6 +28,12 @@ export default function SettingsBox() {
     setWeb(webBg());
     setSnd(soundOn());
     setHap(hapticOn());
+    setVoice(readVoice());
+    let alive = true;
+    void readAloudOn().then((v) => alive && setVoiceOn(v));
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const pickBg = (id: string | null) => {
@@ -104,6 +114,29 @@ export default function SettingsBox() {
           </span>
         </label>
       </div>
+
+      {voiceOn && (
+        <>
+          <h3 className="set-title">일기 읽어 주는 아이</h3>
+          <div className="ra-voices" role="radiogroup" aria-label="읽어 주는 아이">
+            {READ_VOICES.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                role="radio"
+                aria-checked={voice === v.id}
+                className="ra-voice"
+                onClick={() => {
+                  setReadVoice(v.id);
+                  setVoice(v.id);
+                }}
+              >
+                {v.name}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       <h3 className="set-title">선생님이 직접 읽기</h3>
       <label className="check set-check">

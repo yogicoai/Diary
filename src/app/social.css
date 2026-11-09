@@ -1456,3 +1456,75 @@
   font-weight: 700;
   font-size: 14px;
 }
+
+/* ── 아이 목소리로 읽기 ── */
+.read-aloud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.ra-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 2px solid var(--ink);
+  border-radius: 14px 18px 13px 19px / 18px 13px 19px 14px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-kid), cursive;
+  font-size: 18px;
+  font-weight: 700;
+}
+.ra-play svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+.ra-play.playing {
+  color: var(--red);
+  border-color: var(--red);
+}
+.ra-play .dots::after {
+  content: "";
+  animation: dots 1.2s steps(4) infinite;
+}
+.ra-voices {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1.5px solid var(--line-soft);
+  border-radius: 12px 14px 11px 15px / 14px 11px 15px 12px;
+  background: var(--paper);
+}
+.ra-voice {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-ui), sans-serif;
+  font-size: 14px;
+}
+.ra-voice[aria-checked="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+.ra-msg {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}

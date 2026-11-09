@@ -538,6 +538,7 @@ a {
   font-size: 27px;
   line-height: 1.15;
   color: var(--red);
+  word-break: keep-all; /* 낱말 중간에서 줄 바꾸지 않기 */
   transform: rotate(-1.5deg);
   transform-origin: left center;
 }
