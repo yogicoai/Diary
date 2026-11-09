@@ -10,6 +10,7 @@ import { BOOK } from "@/lib/business";
 import BookSheet from "./BookSheet";
 import CardSheet from "./CardSheet";
 import DiaryActions from "./DiaryActions";
+import { DayView, MonthView } from "./DiaryViews";
 import { BrandMark, PencilIcon, StampSvg } from "./Icons";
 
 const DAY_NAMES = ["월", "화", "수", "목", "금", "토", "일"];
@@ -49,12 +50,31 @@ export default function DiaryShelf() {
   const [open, setOpen] = useState<Diary | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [bookOpen, setBookOpen] = useState(false);
+  const [view, setView] = useState<"grid" | "month" | "day">("grid");
+  const [month, setMonth] = useState("");
+  const [dayId, setDayId] = useState<string | null>(null);
+
+  const pickView = (v: "grid" | "month" | "day") => {
+    setView(v);
+    try {
+      localStorage.setItem("chamjal.shelfView", v);
+    } catch {
+      /* 무시 */
+    }
+  };
 
   useEffect(() => {
     listDiaries().then(setList);
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 이번 주는 기기 시계 기준
     setWeek(thisWeek());
     setToday(todayKey());
+    setMonth(todayKey().slice(0, 7));
+    try {
+      const v = localStorage.getItem("chamjal.shelfView");
+      if (v === "month" || v === "day") setView(v);
+    } catch {
+      /* 기본은 모아 보기 */
+    }
   }, []);
 
   useEffect(() => {
@@ -123,7 +143,39 @@ export default function DiaryShelf() {
         </div>
       )}
 
-      <div className="shelf">
+      {!!list?.length && (
+        <div className="tabs" role="tablist" aria-label="일기장 보기" style={{ marginTop: 14 }}>
+          {(
+            [
+              ["grid", "모아 보기"],
+              ["month", "달력"],
+              ["day", "하루씩"],
+            ] as const
+          ).map(([v, n]) => (
+            <button key={v} type="button" role="tab" aria-selected={view === v} className="tab-btn" onClick={() => pickView(v)}>
+              {n}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {view === "month" && list && month && (
+        <MonthView
+          list={list}
+          month={month}
+          today={today}
+          onMonth={setMonth}
+          onPick={(d) => {
+            setDayId(d.id);
+            pickView("day");
+          }}
+        />
+      )}
+      {view === "day" && list && list.length > 0 && (
+        <DayView list={list} current={dayId} onCurrent={setDayId} onOpenCard={setOpen} />
+      )}
+
+      <div className="shelf" hidden={view !== "grid"}>
         {(list ?? []).map((d) => (
           <button key={d.id} type="button" className="mini" onClick={() => setOpen(d)}>
             <Thumb d={d} />

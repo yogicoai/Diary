@@ -2,7 +2,8 @@
 // 저장된 일기와 공유 링크가 id 로 참조하니, id 를 바꾸거나 지우지 말고 새 배경은 끝에 추가한다.
 // "직접 그리기" = 배경 없음(null) = 흰 종이.
 
-export type Background = { id: string; name: string };
+// pack: 팩 이름 (기본 / 추억 / 일상 / 계절 / 나들이) — 나중에 팩으로 팔 수 있게
+export type Background = { id: string; name: string; pack?: string };
 
 // 화풍: 원본 사이트 크레파스 (11-06 시안 A, 원본 그림을 참고 그림으로). 장면 설명은 scripts/bg-scenes.json
 export const BACKGROUNDS: Background[] = [

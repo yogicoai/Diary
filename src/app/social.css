@@ -971,3 +971,144 @@
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
+
+/* ---------- 내 일기장: 달력 / 하루씩 ---------- */
+.month {
+  margin-top: 14px;
+  padding: 12px 10px 14px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+}
+
+.month-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.month-head b {
+  font-family: var(--font-kid), cursive;
+  font-size: 22px;
+}
+
+.month-count {
+  margin: 2px 0 10px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-w {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  padding-bottom: 2px;
+}
+
+.cal-w.sun {
+  color: var(--red);
+}
+
+.cal-day {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  padding: 3px 0 0;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+.cal-day:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cal-day.has {
+  border-color: var(--ink);
+  background: var(--paper-edge);
+}
+
+.cal-day.today .cal-n {
+  background: var(--red);
+  color: #fff;
+}
+
+.cal-n {
+  min-width: 20px;
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.cal-art {
+  position: relative;
+  width: 100%;
+  flex: 1;
+}
+
+.cal-art img {
+  position: absolute;
+  inset: 2px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.cal-stamp {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 22px;
+  height: 22px;
+  color: var(--red);
+  transform: rotate(-14deg);
+}
+
+.cal-more {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 9px;
+  color: var(--red);
+  font-weight: 700;
+}
+
+.dayview {
+  margin-top: 14px;
+}
+
+.day-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.page.turn {
+  animation: page-in 0.28s ease-out;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateX(18px) rotate(0.6deg);
+  }
+}
+
+.shelf[hidden] {
+  display: none;
+}

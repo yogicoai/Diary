@@ -14,11 +14,10 @@ type Props = {
   bg?: string | null; // null = 직접 그리기(흰 종이)
   onBg?: (id: string | null) => void;
   readOnly?: boolean;
-  onAskAi: () => void;
   onPickMine?: () => void; // 내가 예전에 그린 그림 가져오기
 };
 
-export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly, onAskAi, onPickMine }: Props) {
+export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly, onPickMine }: Props) {
   const bgItem = bgById(bg);
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -228,10 +227,6 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M9 7 4.5 11.5 9 16M5 11.5h9.5a5 5 0 0 1 0 10H12" />
               </svg>
-            </button>
-            <span className="tool-spacer" />
-            <button type="button" className="tool ai" onClick={onAskAi}>
-              대신 그려 줘
             </button>
           </div>
         </>

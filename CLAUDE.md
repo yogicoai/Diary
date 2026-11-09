@@ -31,6 +31,7 @@
 - **아이 목소리 읽어주기**(11-09 구상, 사용자 제안): Typecast(한글나라 Desktop/todo/.env.local 의 키를 --env-file 로 빌려 씀, 복사 금지). 견본은 `scripts/typecast.mjs` → drafts/voice. 계정이 보이스동화·한글나라와 같아서 이번 달 19만 안전선을 넘기면 안 된다 — 사용자마다 실시간으로 읽히려면 이 앱 전용 요금제·키가 필요.
 - 일기 내용은 지금 기기(IndexedDB)에만 있다. **일기 내용을 AI 서버(국외)로 보내는 코드는 국외 이전 동의 화면과 같이** 넣는다.
 - 유료 생성(이미지·영상) 호출은 실행 전 사용자에게 장수·비용을 묻는다. 키는 서버 환경변수에만.
+- **그림은 본인이 그린다** (11-09 사용자): AI가 대신 그려 주기는 없다. 대신 배경 그림을 다양하게 제공한다 — 배경은 사용자가 `docs/배경-프롬프트.md`(= `node scripts/bg-import.mjs doc`, 목록은 scripts/bg-catalog.json)로 직접 뽑아 `drafts/bg/incoming/<id>.png` 에 넣으면 `node scripts/bg-import.mjs` 가 4:3 자르기·썸네일·목록 추가까지 한다.
 - 판매 설정은 `lib/business.ts` 한곳. `SALES_READY=false` 동안은 가격 반응만 모은다.
 
 ## 참여 기능 (11-06, 사용자: "다 가보자")

@@ -15,7 +15,6 @@ import { rowSpans } from "@/lib/manuscript";
 import { teacherLine } from "@/lib/teacher";
 import { askTeacher, getConsent, setConsent } from "@/lib/teacherAi";
 import type { WeatherId } from "@/lib/weather";
-import AiSheet from "./AiSheet";
 import CardSheet from "./CardSheet";
 import ConsentSheet from "./ConsentSheet";
 import MineSheet from "./MineSheet";
@@ -43,7 +42,6 @@ export default function DiaryEditor() {
   const [done, setDone] = useState<Diary | null>(null);
   const [reading, setReading] = useState(false); // 선생님이 읽는 중
   const [cardOf, setCardOf] = useState<Diary | null>(null);
-  const [aiOpen, setAiOpen] = useState(false);
   const [consentOpen, setConsentOpen] = useState(false);
   const [mineOpen, setMineOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -172,7 +170,6 @@ export default function DiaryEditor() {
           bg={bg}
           onBg={setBg}
           readOnly={locked}
-          onAskAi={() => setAiOpen(true)}
           onPickMine={() => setMineOpen(true)}
         />
 
@@ -253,7 +250,6 @@ export default function DiaryEditor() {
       </p>
 
 
-      <AiSheet open={aiOpen} onClose={() => setAiOpen(false)} />
       <MineSheet
         open={mineOpen}
         onClose={() => setMineOpen(false)}
