@@ -5,6 +5,7 @@
 //   그 파일에서 TYPECAST_API_KEY 하나만 읽어 이 서버에 빌려준다 (복사하지 않음, 다른 값은 안 섞임)
 import fs from "node:fs";
 import { spawn } from "node:child_process";
+import { MongoClient } from "mongodb";
 import { MongoMemoryServer } from "mongodb-memory-server";
 
 const extra = {};
@@ -20,6 +21,24 @@ if (vi > 0) {
 const mongod = await MongoMemoryServer.create({ instance: { dbName: "chamjal" } });
 const uri = mongod.getUri();
 console.log(`임시 Mongo 켜짐: ${uri}`);
+
+// 선생님 아이디(fe·yogico)는 진짜 DB 에서 이 임시 DB 로 복사해 온다 (읽기만) → 임시 DB 에서도 내 비밀번호로 교무실 시험.
+// .env.local 의 MONGODB_URI 하나만 읽어 쓴다. 못 읽으면 그냥 넘어간다.
+try {
+  const real = fs.readFileSync(".env.local", "utf8").match(/^MONGODB_URI=(.+)$/m)?.[1].trim();
+  if (real) {
+    const db = (fs.readFileSync(".env.local", "utf8").match(/^MONGODB_DB=(.+)$/m)?.[1].trim()) || "chamjal";
+    const from = await MongoClient.connect(real, { serverSelectionTimeoutMS: 8000 });
+    const to = await MongoClient.connect(uri);
+    const staff = await from.db(db).collection("users").find({ googleSub: { $in: ["id:fe", "id:yogico"] } }).toArray();
+    if (staff.length) await to.db("chamjal").collection("users").insertMany(staff.map((u) => ({ ...u, loginFails: 0, lockedUntil: undefined })));
+    console.log(`선생님 아이디 복사: ${staff.map((u) => u.loginId).join(", ") || "없음"}`);
+    await from.close();
+    await to.close();
+  }
+} catch (e) {
+  console.log("선생님 아이디를 못 가져왔어요 (진짜 DB 연결 안 됨):", e instanceof Error ? e.message.split("\n")[0] : e);
+}
 
 const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "-p", process.env.PORT || "6900"], {
   stdio: "inherit",

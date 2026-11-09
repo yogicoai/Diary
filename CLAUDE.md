@@ -7,7 +7,7 @@
 
 ## 실행
 
-- `npm run dev:mem` → http://localhost:6900 (임시 Mongo + 개발용 로그인. 끄면 데이터 사라짐, 첫 실행은 Mongo 내려받기. 그림도 진짜 카페24 대신 public/_dev-uploads 로)
+- `npm run dev:mem` → http://localhost:6900 (임시 Mongo + 개발용 로그인. 끄면 데이터 사라짐, 첫 실행은 Mongo 내려받기. 그림도 진짜 카페24 대신 public/_dev-uploads 로. 켤 때 선생님 아이디 fe·yogico 만 진짜 DB 에서 읽어 와 임시 DB 에 넣는다 → 내 비밀번호로 교무실 시험)
 - `npm run dev:mem -- --voice ../todo/.env.local` → 위와 같고 아이 목소리 읽기까지 켬 (그 파일의 TYPECAST_API_KEY 하나만 빌려 씀)
 - `npm run dev` → .env.local 의 실제 Mongo·구글·FTP·Claude 로 실행. 변수 목록은 `.env.example`
 - .env.local 현재(11-09, 사용자 지시로 옮겨 옴): Claude 키·Cafe24 FTP = Desktop/Dong(보이스동화) .env.local, **MONGODB_URI = 예산 대시보드(Dropbox …/예산설정/budget-dashboard/.local/.env)의 Atlas cluster0**. 이 앱은 그 안의 **DB chamjal 만** 쓴다 — 같은 클러스터의 yogico_budget·yogiboB2b 는 건드리지 않는다. **구글 로그인만 아직 없음**
