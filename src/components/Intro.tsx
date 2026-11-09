@@ -1,7 +1,8 @@
 "use client";
 
-// 처음 온 사람의 첫 화면 (11-09 사용자: "인트로처럼 로그인한 후에 그림일기 쓰기, 과정이 앞쪽에")
-// 스케치북 표지 → 이렇게 써요 3장(날씨·그림·도장) → 이름표 만들기(로그인) → 그림일기 쓰기
+// 첫 화면 (11-09 사용자: "인트로처럼 로그인한 후에 그림일기 쓰기", "처음 접근 시 겉표지가 나와야")
+// 처음 온 사람: 90년대 그림일기장 표지 → 이렇게 써요 3장(날씨·그림·도장) → 이름표 만들기(로그인) → 그림일기 쓰기
+// 다시 온 사람(그날 처음): 표지(이름 칸에 이름표) → 일기장 펼치기 → 그림일기 쓰기
 
 import { useEffect, useState } from "react";
 import { bgSrc } from "@/lib/backgrounds";
@@ -14,7 +15,9 @@ const HOW = 3; // 쓰는 법 장 수
 const SAMPLE_ROWS = ["오늘은 떡볶이를", "먹었다. 맛있었다."]; // 원고지 10칸씩, 낱말이 줄에서 안 잘리게
 const SAMPLE = SAMPLE_ROWS.join(" ");
 
-export default function Intro({ onGuest }: { onGuest: () => void }) {
+type Me = { nickname: string; classNo: number } | null;
+
+export default function Intro({ first, me, onOpen, onGuest }: { first: boolean; me: Me; onOpen: () => void; onGuest: () => void }) {
   const [step, setStep] = useState(0); // 0 표지 · 1~3 쓰는 법 · 4 이름표
   const [next, setNext] = useState("/");
 
@@ -29,18 +32,34 @@ export default function Intro({ onGuest }: { onGuest: () => void }) {
   if (step === 0) {
     return (
       <main className="app intro">
-        <Cover90 />
+        <Cover90 me={me} />
         <p className="intro-lead">
-          크레파스로 그리고 세 줄 쓰면,
-          <br />
-          선생님이 &ldquo;참 잘했어요&rdquo; 도장을 찍어 줘요.
+          {first || !me ? (
+            <>
+              크레파스로 그리고 세 줄 쓰면,
+              <br />
+              선생님이 &ldquo;참 잘했어요&rdquo; 도장을 찍어 줘요.
+            </>
+          ) : (
+            <>
+              {me.nickname}, 오늘도 왔네요!
+              <br />
+              오늘 그림일기를 펼쳐 볼까요?
+            </>
+          )}
         </p>
-        <button type="button" className="btn" onClick={() => setStep(1)}>
+        <button type="button" className="btn" onClick={() => (first ? setStep(1) : onOpen())}>
           일기장 펼치기
         </button>
-        <button type="button" className="linkish intro-skip" onClick={() => setStep(HOW + 1)}>
-          이미 이름표가 있어요
-        </button>
+        {first ? (
+          <button type="button" className="linkish intro-skip" onClick={() => setStep(HOW + 1)}>
+            이미 이름표가 있어요
+          </button>
+        ) : (
+          <button type="button" className="linkish intro-skip" onClick={() => setStep(1)}>
+            쓰는 법 다시 보기
+          </button>
+        )}
       </main>
     );
   }
@@ -58,7 +77,7 @@ export default function Intro({ onGuest }: { onGuest: () => void }) {
           </span>
         </span>
         {step <= HOW && (
-          <button type="button" className="toplink" onClick={() => setStep(HOW + 1)}>
+          <button type="button" className="toplink" onClick={() => (first ? setStep(HOW + 1) : onOpen())}>
             건너뛰기
           </button>
         )}
@@ -73,8 +92,8 @@ export default function Intro({ onGuest }: { onGuest: () => void }) {
               <span key={i} className={i + 1 === step ? "on" : ""} />
             ))}
           </div>
-          <button type="button" className="btn" onClick={() => setStep(step + 1)}>
-            {step < HOW ? "다음" : "이름표 만들기"}
+          <button type="button" className="btn" onClick={() => (step < HOW || first ? setStep(step + 1) : onOpen())}>
+            {step < HOW ? "다음" : first ? "이름표 만들기" : "일기 쓰러 가기"}
           </button>
           <button type="button" className="linkish" onClick={() => setStep(step - 1)}>
             이전
@@ -112,7 +131,7 @@ function Star({ className, twinkle }: { className: string; twinkle?: boolean }) 
 
 /** 처음 표지: 90년대 그림일기장·알림장 느낌 (11-09 사용자 "90년대 일기장이나 알림장 느낌")
  *  색 동그라미 제목 · 항공우편 줄무늬 · 크레파스 학교 운동장 · 별·반짝이 · 알림장식 이름 띠 · 천 테이프 책등 */
-function Cover90() {
+function Cover90({ me }: { me: Me }) {
   return (
     <section className="c90" aria-label="그림일기장 표지">
       <span className="c90-spine" aria-hidden="true" />
@@ -144,11 +163,11 @@ function Cover90() {
           <div className="c90-fields">
             <p>
               <b>어른이</b>&nbsp;초등학교 <span className="c90-blank" />
-              학년 <span className="c90-blank" />
+              학년 <span className="c90-blank">{me && <i className="c90-hand">{me.classNo}</i>}</span>
               반 <span className="c90-blank" />번
             </p>
             <p>
-              이름 <span className="c90-blank" />
+              이름 <span className="c90-blank">{me && <i className="c90-hand">{me.nickname}</i>}</span>
             </p>
           </div>
         </div>

@@ -1848,6 +1848,17 @@ html[data-intro] .tabbar {
   font-size: 16px;
   line-height: 1;
 }
+.c90-hand {
+  display: block;
+  margin-bottom: -2px;
+  font-family: var(--font-kid), cursive;
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  color: #2f5fb3;
+}
 .c90-blank {
   display: inline-block;
   flex: 1 1 14px;

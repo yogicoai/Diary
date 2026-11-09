@@ -73,3 +73,26 @@ export function setIntroSeen() {
     /* 무시 */
   }
 }
+
+// 표지(겉표지)는 그날 처음 열 때 한 번 (11-09 사용자: "처음 접근 시 겉표지가 나와야"). 같은 날 다시 오면 바로 쓰기.
+const COVER_KEY = "chamjal.coverDay";
+
+function localDay(d = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export function coverShownToday(): boolean {
+  try {
+    return localStorage.getItem(COVER_KEY) === localDay();
+  } catch {
+    return true;
+  }
+}
+
+export function markCoverToday() {
+  try {
+    localStorage.setItem(COVER_KEY, localDay());
+  } catch {
+    /* 무시 */
+  }
+}
