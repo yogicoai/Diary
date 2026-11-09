@@ -111,6 +111,8 @@ export type ClassDoc = {
 };
 // 짝꿍 한마디: 반 친구 일기에 남기는 빨간 색연필 한 줄 (반 친구끼리만 보인다)
 export type NoteDoc = { _id: ObjectId; diaryId: ObjectId; userId: ObjectId; text: string; at: Date };
+// 지운 일기의 기기 id (일기 지우기): 늦게 도착한 올리기(동기화)가 지운 일기를 되살리지 못하게 한다. 내용은 없다.
+export type GoneDiaryDoc = { _id: ObjectId; userId: ObjectId; clientId: string; at: Date };
 export type AwardDoc = {
   _id: ObjectId;
   userId: ObjectId;
@@ -152,6 +154,7 @@ export async function cols() {
     adminlog: db.collection<AdminLogDoc>("adminlog"),
     topics: db.collection<TopicDoc>("topics"),
     homework: db.collection<HomeworkDoc>("homework"),
+    goneDiaries: db.collection<GoneDiaryDoc>("goneDiaries"),
   };
 }
 
@@ -173,5 +176,6 @@ async function ensureIndexes(db: Db) {
     db.collection("topics").createIndex({ date: 1 }, { unique: true }),
     db.collection("homework").createIndex({ userId: 1, date: 1 }, { unique: true }),
     db.collection("homework").createIndex({ date: 1, share: 1, status: 1, at: -1 }),
+    db.collection("goneDiaries").createIndex({ userId: 1, clientId: 1 }, { unique: true }),
   ]);
 }

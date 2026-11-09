@@ -19,6 +19,7 @@ import { askTeacher, getConsent, setConsent } from "@/lib/teacherAi";
 import type { WeatherId } from "@/lib/weather";
 import CardSheet from "./CardSheet";
 import ConsentSheet from "./ConsentSheet";
+import DeleteSheet from "./DeleteSheet";
 import MineSheet from "./MineSheet";
 import DiaryActions from "./DiaryActions";
 import CrayonPad from "./CrayonPad";
@@ -54,6 +55,7 @@ export default function DiaryEditor() {
   const [done, setDone] = useState<Diary | null>(null);
   const [reading, setReading] = useState(false); // 선생님이 읽는 중
   const [cardOf, setCardOf] = useState<Diary | null>(null);
+  const [del, setDel] = useState<Diary | null>(null); // 다 쓴 일기 지우기 (지울까요? 묻는 중)
   const [consentOpen, setConsentOpen] = useState(false);
   const [mineOpen, setMineOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -305,6 +307,11 @@ export default function DiaryEditor() {
               새로 쓰기
             </button>
           </div>
+          <p className="erase-row">
+            <button type="button" className="linkish" onClick={() => setDel(done)}>
+              이 일기 지우기
+            </button>
+          </p>
         </>
       )}
 
@@ -347,6 +354,15 @@ export default function DiaryEditor() {
         onClose={() => setConsentOpen(false)}
       />
       <CardSheet diary={cardOf} onClose={() => setCardOf(null)} onToast={setToast} />
+      <DeleteSheet
+        diary={del}
+        onClose={() => setDel(null)}
+        onToast={setToast}
+        onDeleted={() => {
+          setDel(null);
+          restart(); // 지웠으면 빈 일기장으로 (다시 쓰고 싶을 때)
+        }}
+      />
       {toast && (
         <div className="toast" role="status">
           {toast}

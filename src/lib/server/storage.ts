@@ -2,6 +2,7 @@
 //   FTP_HOST(기본 yogibo.ftp.cafe24.com) FTP_PORT FTP_USER FTP_PASS
 //   FTP_REMOTE_DIR(기본 /web/chamjal) PUBLIC_ASSET_BASE(기본 https://yogibo.openhost.cafe24.com/web/chamjal)
 // FTP 정보가 없는 개발 환경에서는 public/_dev-uploads 에 저장한다 (git 제외).
+// 지우기(removeImages): 일기를 지우거나 게시판에서 떼면 그 카드 그림도 저장소에서 지운다.
 
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
@@ -17,6 +18,23 @@ function hasFtp() {
   return !!(process.env.FTP_USER && process.env.FTP_PASS);
 }
 
+async function withFtp<T>(work: (client: FtpClient) => Promise<T>): Promise<T> {
+  const client = new FtpClient(30_000);
+  client.ftp.verbose = false;
+  try {
+    await client.access({
+      host: process.env.FTP_HOST || "yogibo.ftp.cafe24.com",
+      port: process.env.FTP_PORT ? Number(process.env.FTP_PORT) : 21,
+      user: process.env.FTP_USER,
+      password: process.env.FTP_PASS,
+      secure: false,
+    });
+    return await work(client);
+  } finally {
+    client.close();
+  }
+}
+
 /** 추측할 수 없는 ASCII 파일 이름 (Cafe24 는 한글 파일명을 못 읽는다) */
 function fileName(ext: string) {
   return `${Date.now().toString(36)}-${crypto.randomBytes(9).toString("hex")}.${ext}`;
@@ -27,22 +45,11 @@ export async function putImage(buffer: Buffer, dir: string, ext = "webp"): Promi
   const name = fileName(ext);
 
   if (hasFtp()) {
-    const client = new FtpClient(30_000);
-    client.ftp.verbose = false;
-    try {
-      await client.access({
-        host: process.env.FTP_HOST || "yogibo.ftp.cafe24.com",
-        port: process.env.FTP_PORT ? Number(process.env.FTP_PORT) : 21,
-        user: process.env.FTP_USER,
-        password: process.env.FTP_PASS,
-        secure: false,
-      });
+    return withFtp(async (client) => {
       await client.ensureDir(`${ROOT}/${safeDir}`);
       await client.uploadFrom(Readable.from(buffer), name);
       return `${PUBLIC_BASE}/${safeDir}/${name}`;
-    } finally {
-      client.close();
-    }
+    });
   }
 
   if (process.env.NODE_ENV !== "production") {
@@ -53,4 +60,32 @@ export async function putImage(buffer: Buffer, dir: string, ext = "webp"): Promi
   }
 
   throw new HttpError(503, "no_storage", "그림 저장소(Cafe24 FTP)가 아직 연결되지 않았어요");
+}
+
+/** 그림 주소 → 저장소 안 경로. 이 앱이 만든 이름 모양만 받는다 (../ 같은 건 거절) */
+function storedPath(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const rel = url.startsWith(`${PUBLIC_BASE}/`)
+    ? url.slice(PUBLIC_BASE.length + 1)
+    : url.startsWith("/_dev-uploads/")
+      ? url.slice("/_dev-uploads/".length)
+      : null;
+  return rel && /^[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/[a-z0-9]+-[a-f0-9]+\.[a-z]+$/.test(rel) ? rel : null;
+}
+
+/** 이 앱이 올린 그림 지우기 (일기 지우기·게시판에서 떼기). 못 지워도 조용히 넘어간다 */
+export async function removeImages(urls: (string | null | undefined)[]): Promise<void> {
+  const rels = urls.map(storedPath).filter((r): r is string => !!r);
+  if (!rels.length) return;
+  try {
+    if (hasFtp()) {
+      await withFtp(async (client) => {
+        for (const r of rels) await client.remove(`${ROOT}/${r}`).catch(() => {});
+      });
+    } else if (process.env.NODE_ENV !== "production") {
+      await Promise.all(rels.map((r) => fs.unlink(path.join(process.cwd(), "public", "_dev-uploads", r)).catch(() => {})));
+    }
+  } catch (e) {
+    console.error("그림 지우기 못 함:", e instanceof Error ? e.message : e);
+  }
 }

@@ -111,19 +111,26 @@ export function MonthView({
   );
 }
 
+/** 하루씩 보기 순서 (옛날 → 최근, 같은 날은 쓴 순서) */
+export function daySorted(list: Diary[]): Diary[] {
+  return [...list].sort((a, b) => (a.date === b.date ? a.createdAt - b.createdAt : a.date < b.date ? -1 : 1));
+}
+
 /** 하루씩: 날짜 순으로 한 장씩 넘긴다 (옛날 → 최근) */
 export function DayView({
   list,
   current,
   onCurrent,
   onOpenCard,
+  onDelete,
 }: {
   list: Diary[];
   current: string | null;
   onCurrent: (id: string) => void;
   onOpenCard: (d: Diary) => void;
+  onDelete: (d: Diary) => void;
 }) {
-  const sorted = [...list].sort((a, b) => (a.date === b.date ? a.createdAt - b.createdAt : a.date < b.date ? -1 : 1));
+  const sorted = daySorted(list);
   const idx = Math.max(0, current ? sorted.findIndex((d) => d.id === current) : sorted.length - 1);
   const d = sorted[idx];
   const touch = useRef<number | null>(null);
@@ -174,10 +181,15 @@ export function DayView({
           <StampSvg className="stamp" stamp={d.stamp} />
         </div>
       </article>
-      <ReadAloud key={d.id} diary={d} />
+      <ReadAloud key={`read-${d.id}`} diary={d} />
       <button type="button" className="btn plain" onClick={() => onOpenCard(d)}>
         카드로 보기 · 보내기
       </button>
+      <p className="erase-row">
+        <button type="button" className="linkish" onClick={() => onDelete(d)}>
+          이 일기 지우기
+        </button>
+      </p>
     </section>
   );
 }

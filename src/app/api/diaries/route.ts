@@ -1,9 +1,11 @@
-// 내 일기: 목록(GET) / 저장(POST, 기기 id 로 덮어쓰기). 저장하면 개근상을 확인한다.
+// 내 일기: 목록(GET) / 저장(POST, 기기 id 로 덮어쓰기) / 지우기(DELETE ?clientId=, 기기 id 로).
+// 저장하면 개근상을 확인한다.
 
 import type { NextRequest } from "next/server";
 import { grantStreak } from "@/lib/server/awards";
 import { cols } from "@/lib/server/db";
 import { assertRate, assertSameOrigin, handle, HttpError, json, readJson } from "@/lib/server/http";
+import { removeMyDiary } from "@/lib/server/removeDiary";
 import { awardToClient, diaryToClient } from "@/lib/server/serialize";
 import { requireUser } from "@/lib/server/session";
 import type { Stroke } from "@/lib/crayon";
@@ -70,7 +72,10 @@ export async function POST(req: NextRequest) {
       updatedAt: now,
     };
 
-    const { diaries } = await cols();
+    const { diaries, goneDiaries } = await cols();
+    // 지운 일기는 다시 받지 않는다 (지우는 사이에 늦게 도착한 올리기)
+    if (await goneDiaries.findOne({ userId: user._id, clientId: d.id }, { projection: { _id: 1 } }))
+      throw new HttpError(410, "deleted", "지운 일기예요");
     const saved = await diaries.findOneAndUpdate(
       { userId: user._id, clientId: d.id },
       {
@@ -88,5 +93,20 @@ export async function POST(req: NextRequest) {
     if (!saved) throw new HttpError(500, "save");
     const awards = await grantStreak(user._id);
     return json({ diary: diaryToClient(saved), awards: awards.map(awardToClient) });
+  });
+}
+
+/** 기기 id 로 내 일기 지우기 (?clientId=). 서버에 없던 일기여도 지운 표시는 남겨서 늦게 온 올리기를 막는다 */
+export async function DELETE(req: NextRequest) {
+  return handle(async () => {
+    assertSameOrigin(req);
+    const user = await requireUser(req);
+    assertRate(`diary-del:${user._id}`, 120, 60 * 60 * 1000);
+    const clientId = req.nextUrl.searchParams.get("clientId") ?? "";
+    if (!clientId || clientId.length > 40) throw new HttpError(400, "clientId");
+    const { diaries } = await cols();
+    const d = await diaries.findOne({ userId: user._id, clientId });
+    const deleted = await removeMyDiary(user._id, clientId, d);
+    return json({ ok: true, deleted });
   });
 }

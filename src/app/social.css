@@ -2419,3 +2419,38 @@ html[data-intro] .tabbar {
 .read-aloud {
   grid-template-columns: minmax(0, 1fr);
 }
+
+/* 일기 지우기 (11-09 사용자: "이야기 지우기") */
+.erase-row {
+  margin: 12px 0 0;
+  text-align: center;
+}
+.sheet-panel .del-what {
+  margin: 10px 0 0;
+  font-family: var(--font-kid), cursive;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.sheet-panel .del-what span {
+  display: block;
+  font-size: 23px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.sheet-panel .del-list {
+  display: grid;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 12px 14px 12px 30px;
+  border: 1.5px dashed var(--line-soft);
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+  word-break: keep-all;
+}
+.btn.erase {
+  border-color: var(--red);
+  color: var(--red);
+}

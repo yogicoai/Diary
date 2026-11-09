@@ -1,14 +1,14 @@
 // 교실 뒤 게시판에 붙이기(POST, 카드·미리보기 그림 + 그림만/글까지) / 떼기(DELETE)
 // 붙이기 전에 AI 검사. 검사를 못 했으면 운영에서는 관리자 확인 대기.
 
-import type { NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 import { cols, type BoardState } from "@/lib/server/db";
 import { myDiary } from "@/lib/server/find";
 import { assertRate, assertSameOrigin, handle, HttpError, json } from "@/lib/server/http";
 import { moderate } from "@/lib/server/moderate";
 import { diaryToClient } from "@/lib/server/serialize";
 import { requireUser } from "@/lib/server/session";
-import { putImage } from "@/lib/server/storage";
+import { putImage, removeImages } from "@/lib/server/storage";
 
 type Ctx = { params: Promise<{ id: string }> };
 const MAX_CARD = 2_500_000;
@@ -58,6 +58,8 @@ export async function POST(req: NextRequest, { params }: Ctx) {
       { returnDocument: "after" },
     );
     if (!updated) throw new HttpError(404, "not_found");
+    const old = d.board; // 다시 붙였으면 예전 카드 그림은 저장소에서 지운다
+    if (old) after(() => removeImages([old.cardUrl, old.thumbUrl]));
     return json({ diary: diaryToClient(updated) });
   });
 }
@@ -74,6 +76,8 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
       { returnDocument: "after" },
     );
     if (!updated) throw new HttpError(404, "not_found");
+    const old = d.board; // 뗀 카드 그림은 저장소에서도 지운다
+    if (old) after(() => removeImages([old.cardUrl, old.thumbUrl]));
     return json({ diary: diaryToClient(updated) });
   });
 }

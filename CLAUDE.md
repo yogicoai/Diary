@@ -46,7 +46,7 @@
 - **크레파스 손맛**: 그림칸에서 고른 색 크레파스가 손끝을 따라다닌다(마우스는 늘, 손가락은 그릴 때). 몽당 크레파스: 색마다 칠한 길이만큼 짧아지고 뭉툭해짐(`lib/crayonWear.ts`, 이 기기 저장, 45,000px면 다 닳음) → "새 크레파스 꺼내기". 나중에 크레파스 팩 상품과 이어진다.
 - 일기 내용은 지금 기기(IndexedDB)에만 있다. **일기 내용을 AI 서버(국외)로 보내는 코드는 국외 이전 동의 화면과 같이** 넣는다.
 - 유료 생성(이미지·영상) 호출은 실행 전 사용자에게 장수·비용을 묻는다. 키는 서버 환경변수에만.
-- **그림은 본인이 그린다** (11-09 사용자): AI가 대신 그려 주기는 없다. 대신 배경 그림을 다양하게 제공한다 — 배경은 사용자가 `docs/배경-프롬프트.md`(= `node scripts/bg-import.mjs doc`, 목록은 scripts/bg-catalog.json)로 직접 뽑아 `drafts/bg/incoming/<id>.png` 에 넣으면 `node scripts/bg-import.mjs` 가 4:3 자르기·썸네일·목록 추가까지 한다. 그림칸 배경은 **상황별 칩**(전체·학교 추억·일상·계절·날씨·나들이, `BG_PACKS`)으로 골라서 보고, 배경마다 `pack` 이 있다(가져오기 스크립트가 bg-catalog 의 pack 을 그대로 넣는다). 다른 곳에서 뽑기용 프롬프트는 `docs/배경-프롬프트-짧게.md`(장면마다 통째로 복사).
+- **그림은 본인이 그린다** (11-09 사용자): AI가 대신 그려 주기는 없다. 대신 배경 그림을 다양하게 제공한다 — 배경은 사용자가 `docs/배경-프롬프트.md`(= `node scripts/bg-import.mjs doc`, 목록은 scripts/bg-catalog.json)로 직접 뽑아 `drafts/bg/incoming/<id>.png` 에 넣으면 `node scripts/bg-import.mjs` 가 4:3 자르기·썸네일·목록 추가까지 한다. 그림칸 배경은 **상황별 칩**(전체·학교 추억·일상·계절·날씨·나들이, `BG_PACKS`)으로 골라서 보고, 배경마다 `pack` 이 있다(가져오기 스크립트가 bg-catalog 의 pack 을 그대로 넣는다). 다른 곳에서 뽑기용 프롬프트는 `docs/배경-프롬프트-짧게.md`(장면마다 통째로 복사). 11-09 사용자가 그 24장면을 GPT Image 2.5 로 뽑아(1760×1328, Desktop/serve 에 묶음별 폴더) 넣어서 **그림칸 배경 37장**. 가져오기는 bg-catalog 순서대로 목록 끝에 붙는다.
 - 판매 설정은 `lib/business.ts` 한곳. `SALES_READY=false` 동안은 가격 반응만 모은다.
 
 ## 참여 기능 (11-06, 사용자: "다 가보자")
@@ -56,6 +56,7 @@
 - **교무실** `/admin` (11-09 사용자: "동화 앱 어드민단과 비슷한 관리자 페이지" → "교무실이라고"): 교무 일지(대시보드) · 학생 명부(이름표·로그인·들어간 반·일기 수, 정지) · 반(반장·친구·반에 낸 일기·짝꿍 한마디) · 숙제 내기 · 게시판 검사. 서버는 `lib/server/admin.ts` requireStaff 로 막고 응답은 no-store. **운영자는 남에게 보여 준 일기(게시판·반)만 펼쳐 본다 — 혼자 쓴 일기는 날짜만** (canOpen/bodyVisible). 정지하면 로그인 막고 게시판 일기도 내린다. 처리는 adminlog 에 남는다.
 - 저장 = **Mongo(DB chamjal) + Cafe24 FTP**(그림 파일, QR 스튜디오 price_Line 과 같은 FTP_* / PUBLIC_ASSET_BASE 이름). FTP 없으면 개발은 public/_dev-uploads.
 - 일기는 **이 기기가 원본(local-first)**: IndexedDB 에 먼저, 로그인하면 `lib/sync.ts` 가 서버와 합친다(기기 id = clientId 로 겹침 방지).
+- **일기 지우기** (11-09 사용자: "이야기 지우기"): 다 쓴 화면·하루씩 보기·카드 아래 '이 일기 지우기' → 확인 시트(`DeleteSheet`, 게시판·우리 반 것도 같이 사라진다고 알려 줌). `lib/sync.ts` removeDiary = 이 기기 먼저 지우고 서버도(`DELETE /api/diaries?clientId=`, `lib/server/removeDiary.ts`: 일기·반응·신고·짝꿍 한마디 + 게시판 카드 그림은 응답 뒤 `after()` 로 저장소에서). 서버에서 못 지우면(인터넷·로그인) localStorage chamjal.deleted.v1 에 적어 두고 다음 동기화 때 마저 지운다. 서버는 goneDiaries 에 지운 기기 id 를 남겨 늦게 온 올리기를 410 으로 거절 → **지운 일기가 동기화로 되살아나지 않는다**. 다른 기기에 이미 받아 둔 사본은 그 기기에 남는다. 게시판에서 떼거나 다시 붙여도 예전 카드 그림을 저장소에서 지운다(`removeImages`).
 - 이름표: 별명·초등학교 입학 연도·반. 게시판엔 이것만 보이고 구글 이메일은 안 보인다.
 - 교실 뒤 게시판: 그림만/글까지, 붙이기 전 `lib/server/moderate.ts`(Haiku 5.5, 글+미리보기 그림) 검사. 검사 못 하면 운영은 pending → 교무실 게시판 검사(/admin/board). 신고 3건 자동 숨김. 비밀 일기는 못 붙임.
 - 도장 3·스티커 3(`lib/social.ts` REACTIONS) — 순서 고정 목록.

@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { cols } from "@/lib/server/db";
 import { myDiary, oid } from "@/lib/server/find";
 import { assertSameOrigin, handle, HttpError, json, readJson } from "@/lib/server/http";
+import { removeMyDiary } from "@/lib/server/removeDiary";
 import { diaryToClient } from "@/lib/server/serialize";
 import { requireUser } from "@/lib/server/session";
 
@@ -35,12 +36,7 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
     assertSameOrigin(req);
     const user = await requireUser(req);
     const d = await myDiary((await params).id, user);
-    const { diaries, reactions, reports } = await cols();
-    await Promise.all([
-      diaries.deleteOne({ _id: d._id }),
-      reactions.deleteMany({ diaryId: d._id }),
-      reports.deleteMany({ diaryId: d._id }),
-    ]);
-    return json({ ok: true });
+    await removeMyDiary(user._id, d.clientId, d);
+    return json({ ok: true, deleted: true });
   });
 }

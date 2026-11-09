@@ -5,12 +5,13 @@ import { useEffect, useState } from "react";
 import { bgById, bgSrc } from "@/lib/backgrounds";
 import { renderStrokes } from "@/lib/crayon";
 import { shortDate, todayKey } from "@/lib/date";
-import { deleteDiary, listDiaries, type Diary } from "@/lib/store";
+import { listDiaries, type Diary } from "@/lib/store";
 import { BOOK } from "@/lib/business";
 import BookSheet from "./BookSheet";
 import CardSheet from "./CardSheet";
+import DeleteSheet from "./DeleteSheet";
 import DiaryActions from "./DiaryActions";
-import { DayView, MonthView } from "./DiaryViews";
+import { DayView, daySorted, MonthView } from "./DiaryViews";
 import { BrandMark, PencilIcon, StampSvg } from "./Icons";
 
 const DAY_NAMES = ["월", "화", "수", "목", "금", "토", "일"];
@@ -48,6 +49,7 @@ export default function DiaryShelf() {
   const [week, setWeek] = useState<string[]>([]);
   const [today, setToday] = useState("");
   const [open, setOpen] = useState<Diary | null>(null);
+  const [del, setDel] = useState<Diary | null>(null); // 지울까요? 묻는 중인 일기
   const [toast, setToast] = useState<string | null>(null);
   const [bookOpen, setBookOpen] = useState(false);
   const [view, setView] = useState<"grid" | "month" | "day">("grid");
@@ -172,7 +174,7 @@ export default function DiaryShelf() {
         />
       )}
       {view === "day" && list && list.length > 0 && (
-        <DayView list={list} current={dayId} onCurrent={setDayId} onOpenCard={setOpen} />
+        <DayView list={list} current={dayId} onCurrent={setDayId} onOpenCard={setOpen} onDelete={setDel} />
       )}
 
       <div className="shelf" hidden={view !== "grid"}>
@@ -204,12 +206,22 @@ export default function DiaryShelf() {
             />
           ) : null
         }
-        onDelete={async () => {
-          if (!open || !confirm("이 일기를 지울까요? 되돌릴 수 없어요.")) return;
-          if (open.serverId) await fetch(`/api/diaries/${open.serverId}`, { method: "DELETE" }).catch(() => {});
-          await deleteDiary(open.id);
-          setList((l) => (l ?? []).filter((x) => x.id !== open.id));
-          setOpen(null);
+        onDelete={() => open && setDel(open)}
+      />
+      <DeleteSheet
+        diary={del}
+        onClose={() => setDel(null)}
+        onToast={setToast}
+        onDeleted={(d) => {
+          // 하루씩 보던 중이면 옆 장(다음, 없으면 이전)으로
+          if (view === "day" && list) {
+            const sorted = daySorted(list);
+            const i = sorted.findIndex((x) => x.id === d.id);
+            setDayId((sorted[i + 1] ?? sorted[i - 1])?.id ?? null);
+          }
+          setList((l) => (l ?? []).filter((x) => x.id !== d.id));
+          setOpen((o) => (o?.id === d.id ? null : o));
+          setDel(null);
         }}
       />
       <BookSheet open={bookOpen} onClose={() => setBookOpen(false)} count={list?.length ?? 0} />
