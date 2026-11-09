@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { pencilTick } from "@/lib/feel";
 import { COLS, MAX_CHARS, ROWS, clampText, layoutCells, rowSpans, usedCells } from "@/lib/manuscript";
 
 const PLACEHOLDER = "퇴근하고 친구랑 떡볶이를 먹었다. 너무 맛있어서 웃음이 났다.";
@@ -42,7 +43,9 @@ export default function Manuscript({
           aria-label="오늘 있었던 일 (원고지 60칸)"
           value={value}
           onChange={(e) => {
-            onChange(clampText(e.target.value));
+            const next = clampText(e.target.value);
+            if (next.length > value.length) pencilTick();
+            onChange(next);
             requestAnimationFrame(syncCaret);
           }}
           onSelect={syncCaret}

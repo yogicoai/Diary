@@ -10,6 +10,7 @@ import { renderCertificate } from "@/lib/certificate";
 import { useMe } from "@/lib/me";
 import { BrandMark, StampSvg } from "./Icons";
 import { LoginButtons } from "./LoginBox";
+import SettingsBox from "./SettingsBox";
 import Sheet from "./Sheet";
 
 type Award = { id: string; kind: string; label: string; detail: string; rank: number | null; at: number };
@@ -174,6 +175,8 @@ export default function MePage() {
           </div>
         </>
       )}
+
+      {!loading && <SettingsBox />}
 
       <Sheet open={edit} onClose={() => setEdit(false)} label="이름표 고치기">
         <h2>이름표 고치기</h2>

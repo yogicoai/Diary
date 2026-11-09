@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { api } from "@/lib/api";
+import { buzz, pencilTick, stampThump } from "@/lib/feel";
 import { REACTIONS, type ReactionKind } from "@/lib/social";
 
 export function ReactionIcon({ kind, size = 30 }: { kind: ReactionKind; size?: number }) {
@@ -81,7 +82,13 @@ export default function Reactions({
     // 먼저 화면에 보이고, 서버 답으로 맞춘다
     setMine((m) => (on ? m.filter((k) => k !== kind) : [...m, kind]));
     setCounts((c) => ({ ...c, [kind]: Math.max(0, (c[kind] ?? 0) + (on ? -1 : 1)) }));
-    if (!on) navigator.vibrate?.(12);
+    if (!on) {
+      if (kind === "cham" || kind === "best" || kind === "cheer") stampThump();
+      else {
+        pencilTick();
+        buzz(12);
+      }
+    }
     try {
       const res = await api<{ reactions: Record<string, number>; mine: string[] }>(`/api/board/${diaryId}/react`, {
         method: "POST",

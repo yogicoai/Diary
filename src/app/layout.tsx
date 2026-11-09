@@ -3,6 +3,7 @@ import { Gaegu, Gowun_Dodum, Nanum_Pen_Script } from "next/font/google";
 import "./globals.css";
 import "./social.css";
 import TabBar from "@/components/TabBar";
+import WebBackdrop from "@/components/WebBackdrop";
 import { MeProvider } from "@/lib/me";
 
 // 아이 글씨(일기 본문) · 선생님 글씨(빨간 색연필) · 화면 글씨
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <MeProvider>
           {children}
           <TabBar />
+          <WebBackdrop />
         </MeProvider>
       </body>
     </html>

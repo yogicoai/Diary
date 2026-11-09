@@ -6,6 +6,8 @@ import { defaultBg } from "@/lib/backgrounds";
 import type { Stroke } from "@/lib/crayon";
 import { koreanDate, todayKey } from "@/lib/date";
 import { useMe } from "@/lib/me";
+import { stampThump, underlineSwish } from "@/lib/feel";
+import { preferredBg } from "@/lib/prefs";
 import { topicOf } from "@/lib/social";
 import { pushDiary } from "@/lib/sync";
 import { saveDiary, track, type Diary } from "@/lib/store";
@@ -21,7 +23,6 @@ import DiaryActions from "./DiaryActions";
 import CrayonPad from "./CrayonPad";
 import { BrandMark, StampSvg } from "./Icons";
 import Manuscript, { READ_MS } from "./Manuscript";
-import ThemePicker from "./ThemePicker";
 import TopicBanner from "./TopicBanner";
 import WeatherPicker from "./WeatherPicker";
 
@@ -51,6 +52,8 @@ export default function DiaryEditor() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 오늘 날짜는 기기 시계 기준
     setDate(todayKey());
+    // 처음 배경은 "나 → 기본 설정"에서 고른 것
+    setBg(preferredBg());
   }, []);
 
   useEffect(() => {
@@ -94,6 +97,7 @@ export default function DiaryEditor() {
       document.querySelector(".manuscript")?.scrollIntoView({ behavior: "smooth", block: "center" }),
     );
     const lines = rowSpans(draft.body).filter((n) => n > 0).length;
+    for (let i = 0; i < lines; i++) setTimeout(() => underlineSwish(), i * READ_MS + 40);
     const readFor = Math.max(1100, lines * READ_MS + 600);
     const [, ai] = await Promise.all([
       new Promise((r) => setTimeout(r, readFor)),
@@ -118,7 +122,7 @@ export default function DiaryEditor() {
     // 2) 다 읽으면 도장 쾅 (도장이 종이에 닿는 0.3초쯤 짧게 진동)
     setDone(d);
     setReading(false);
-    setTimeout(() => navigator.vibrate?.([14, 50, 26]), 280);
+    setTimeout(stampThump, 280);
     requestAnimationFrame(() =>
       document.getElementById("teacher")?.scrollIntoView({ behavior: "smooth", block: "center" }),
     );
@@ -129,7 +133,7 @@ export default function DiaryEditor() {
     setTitle("");
     setBody("");
     setStrokes([]);
-    setBg(defaultBg());
+    setBg(preferredBg());
     setSecret(false);
     setTopicOn(false);
     setDone(null);
@@ -248,8 +252,6 @@ export default function DiaryEditor() {
           : "일기는 이 기기에만 저장돼요. 이름표를 만들면 게시판에 붙이고 우리 반과 나눌 수 있어요."}
       </p>
 
-      <h2 className="section-title">일기장 바꾸기</h2>
-      <ThemePicker />
 
       <AiSheet open={aiOpen} onClose={() => setAiOpen(false)} />
       <MineSheet

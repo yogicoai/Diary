@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BACKGROUNDS, bgById, bgSrc, bgThumb } from "@/lib/backgrounds";
 import { CRAYONS, drawStroke, type Point, type Stroke } from "@/lib/crayon";
+import { crayonStroke } from "@/lib/feel";
 import { CrayonStick, PencilIcon } from "./Icons";
 
 const SIZES = [0.012, 0.022, 0.04]; // 그림칸 너비 대비 굵기
@@ -23,6 +24,8 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef<Stroke | null>(null);
   const strokesRef = useRef(strokes);
+  const feelRef = useRef<ReturnType<typeof crayonStroke> | null>(null);
+  const lastMove = useRef({ x: 0, y: 0, t: 0 });
   const [color, setColor] = useState<string>(CRAYONS[0].hex);
   const [size, setSize] = useState(1);
   const [erase, setErase] = useState(false);
@@ -71,6 +74,8 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
     e.preventDefault();
     (e.target as Element).setPointerCapture(e.pointerId);
     drawing.current = { color, size: SIZES[size] * (erase ? 1.6 : 1), points: [toPoint(e)], erase };
+    feelRef.current = crayonStroke(erase);
+    lastMove.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
     paintLive();
   };
 
@@ -81,6 +86,11 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
     const last = s.points[s.points.length - 1];
     if (Math.hypot(p.x - last.x, p.y - last.y) < 0.003) return;
     s.points.push(p);
+    // 긋는 속도만큼 사각사각 + 짧은 진동
+    const lm = lastMove.current;
+    const step = Math.hypot(e.clientX - lm.x, e.clientY - lm.y);
+    feelRef.current?.move(step / Math.max(8, e.timeStamp - lm.t), step);
+    lastMove.current = { x: e.clientX, y: e.clientY, t: e.timeStamp };
     paintLive();
   };
 
@@ -88,6 +98,8 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
     const s = drawing.current;
     if (!s) return;
     drawing.current = null;
+    feelRef.current?.end();
+    feelRef.current = null;
     onChange([...strokesRef.current, s]);
   };
 

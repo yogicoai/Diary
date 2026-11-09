@@ -799,3 +799,175 @@
       0 30px 60px -28px rgba(40, 25, 10, 0.55);
   }
 }
+
+/* ---------- 스케치북 표지 머리 (모든 화면의 .topbar) ---------- */
+:root,
+[data-theme="stationery"] {
+  --cover: #b98d60; /* 크라프트 표지 */
+}
+[data-theme="drawing"] {
+  --cover: #4a82cf; /* 파란 스케치북 */
+}
+[data-theme="vacation"] {
+  --cover: #4a9d74; /* 초록 표지 */
+}
+
+.app > .topbar {
+  position: relative;
+  margin: -14px -16px 16px;
+  padding: 34px 14px 16px;
+  background-color: var(--cover);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  border-bottom: 2px solid var(--ink);
+  box-shadow: 0 6px 0 -3px var(--paper), 0 7px 0 -3px var(--line-soft);
+}
+
+/* 스프링 고리: 구멍 + 철사 */
+.app > .topbar::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 2px;
+  height: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='28'%3E%3Ccircle cx='12' cy='21' r='3.6' fill='%23221a14' opacity='.55'/%3E%3Cpath d='M12 21 C 5 21 5 3 12 3 C 17.5 3 17.5 13 14.2 18.6' fill='none' stroke='%237d7d7d' stroke-width='2.6' stroke-linecap='round'/%3E%3Cpath d='M11.2 4.2 C 7.5 5 7.6 15 10.4 19' fill='none' stroke='%23d9d9d9' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: 24px 28px;
+  background-repeat: repeat-x;
+  background-position: center top;
+  pointer-events: none;
+}
+
+/* 표지 이름 칸 */
+.app > .topbar .brand {
+  padding: 7px 14px 7px 8px;
+  background: #fffdf7;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+}
+
+.app > .topbar .toplink {
+  background: #fffdf7;
+  border: 2px solid var(--ink);
+}
+
+.app > .topbar > b {
+  color: #fff;
+}
+
+/* 기본 설정 */
+.settings {
+  margin-top: 8px;
+}
+
+.set-title {
+  margin: 18px 2px 8px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.bg-tray.wrap {
+  flex-wrap: wrap;
+  overflow: visible;
+  gap: 10px 8px;
+}
+
+.set-check {
+  align-items: flex-start;
+  padding: 12px;
+  background: var(--paper);
+  border: 1.5px solid var(--line-soft);
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.set-check .box {
+  flex: none;
+  margin-top: 2px;
+}
+
+.set-check small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 넓은 화면 배경 고르기 */
+@media (min-width: 760px) {
+  html[data-webbg="doodle"] body {
+    background: var(--desk) url("/web-bg/doodle.webp") center / cover fixed no-repeat;
+  }
+  html[data-webbg="town"] body {
+    background: var(--desk) url("/web-bg/town.webp") center / cover fixed no-repeat;
+  }
+  html[data-webbg="desk"] body {
+    background: var(--desk) url("/web-bg/desk.webp") center / cover fixed no-repeat;
+  }
+  html[data-webbg="mine"] body {
+    background-color: var(--desk);
+    background-position: center;
+    background-size: cover;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+}
+
+.web-bgs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 8px;
+}
+
+.web-bg {
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: center;
+}
+
+.wb-thumb {
+  display: block;
+  aspect-ratio: 16 / 9;
+  border: 1.5px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--paper-edge) center / cover no-repeat;
+}
+
+.web-bg[aria-checked="true"] .wb-thumb {
+  border: 2.5px solid var(--red);
+}
+
+.web-bg.doodle .wb-thumb {
+  background-image: url("/web-bg/thumb/doodle.webp");
+}
+.web-bg.town .wb-thumb {
+  background-image: url("/web-bg/thumb/town.webp");
+}
+.web-bg.desk .wb-thumb {
+  background-image: url("/web-bg/thumb/desk.webp");
+}
+.web-bg.theme .wb-thumb {
+  background-image: url("/web-bg/thumb/doodle.webp"), url("/web-bg/thumb/town.webp");
+  background-size: 50% 100%, 50% 100%;
+  background-position: left, right;
+  background-repeat: no-repeat;
+}
+.web-bg.random .wb-thumb {
+  background-image: url("/web-bg/thumb/doodle.webp"), url("/web-bg/thumb/town.webp"), url("/web-bg/thumb/desk.webp");
+  background-size: 34% 100%, 33% 100%, 34% 100%;
+  background-position: left, center, right;
+  background-repeat: no-repeat;
+}
+.web-bg.mine .wb-thumb {
+  background: var(--desk);
+  border-style: dashed;
+  border-color: var(--line);
+}
+
+.set-toggles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
