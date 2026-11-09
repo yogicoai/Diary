@@ -27,6 +27,8 @@
 - **순서 고정 목록**: `lib/weather.ts` WEATHERS, `lib/crayon.ts` CRAYONS, `lib/themes.ts` THEMES, `lib/backgrounds.ts` BACKGROUNDS 는 저장된 일기·공유 링크가 id로 참조한다. id를 바꾸거나 지우지 말고 새 항목은 끝에 추가.
 - **그림칸 배경**: **원본 사이트 크레파스 화풍(시안 A)**으로 통일 (11-06 사용자: "기존 크레파스 느낌이 나와야", 파스텔은 별로). 원본 예시 그림을 잘라 만든 drafts/bg/_ref-original.png 를 매 장 참고 그림으로 보낸다. 만들기는 `node --env-file=../jp/.env scripts/gpt-bg.mjs scripts/bg-scenes.json <이름…>` (GPT gpt-image-2 중간 품질, 장당 약 0.04달러, 키는 N3 앱 .env를 빌려 씀·복사 금지). 원본은 drafts/bg(git 제외), 앱용은 public/bg + public/bg/thumb. "직접 그리기" = 배경 없음(흰 종이).
 - **선생님 한 줄 = Claude** (11-06 사용자: 이 한 줄이 앱의 포인트). `src/app/api/teacher/route.ts`, 모델은 파일 맨 위 MODEL 한 곳(지금 claude-haiku-5-5(11-06 사용자 결정), effort low, Haiku 는 서버 대체 모델 없음). 키는 `.env.local`의 ANTHROPIC_API_KEY(git 제외). 처음 낼 때 국외 이전 동의(ConsentSheet, localStorage chamjal.aiConsent)를 받은 기기만 부르고, 동의 안 함·키 없음·9초 넘김이면 `lib/teacher.ts` 기본 한 줄. 위험 신호(care)면 109 안내를 띄운다. 흐름: 선생님께 내기 → 줄마다 빨간 밑줄(읽는 중, 그동안 Claude 호출) → 도장 쾅(진동) → 한 줄.
+- **넓은 화면 배경**(760px 이상): 테마별 public/web-bg (문구점=doodle, 도화지=town, 방학 숙제=desk). 11-09 힉스필드 나노바나나 2K 16:9, 원본 예시 그림을 참고 그림으로. 휴대폰 화면은 바꾸지 않는다.
+- **아이 목소리 읽어주기**(11-09 구상, 사용자 제안): Typecast(한글나라 Desktop/todo/.env.local 의 키를 --env-file 로 빌려 씀, 복사 금지). 견본은 `scripts/typecast.mjs` → drafts/voice. 계정이 보이스동화·한글나라와 같아서 이번 달 19만 안전선을 넘기면 안 된다 — 사용자마다 실시간으로 읽히려면 이 앱 전용 요금제·키가 필요.
 - 일기 내용은 지금 기기(IndexedDB)에만 있다. **일기 내용을 AI 서버(국외)로 보내는 코드는 국외 이전 동의 화면과 같이** 넣는다.
 - 유료 생성(이미지·영상) 호출은 실행 전 사용자에게 장수·비용을 묻는다. 키는 서버 환경변수에만.
 - 판매 설정은 `lib/business.ts` 한곳. `SALES_READY=false` 동안은 가격 반응만 모은다.
