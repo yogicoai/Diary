@@ -7,7 +7,7 @@ import { readShared } from "@/lib/share";
 import type { Diary } from "@/lib/store";
 import { track } from "@/lib/store";
 import CrayonPad from "./CrayonPad";
-import { BrandMark, StampSvg } from "./Icons";
+import { BrandMark, StampSvg, ColorWord } from "./Icons";
 import Manuscript from "./Manuscript";
 import PraiseStickers from "./PraiseStickers";
 import WeatherPicker from "./WeatherPicker";
@@ -29,7 +29,9 @@ export default function SharedDiary() {
         <Link href="/" className="brand" aria-label="참 잘했어요 처음으로">
           <BrandMark className="brand-mark" />
           <span>
-            <span className="brand-name">참 잘했어요</span>
+            <span className="brand-name">
+              <ColorWord text="참 잘했어요" />
+            </span>
             <span className="brand-sub">어른이 그림일기</span>
           </span>
         </Link>

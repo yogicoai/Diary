@@ -21,7 +21,7 @@ import ConsentSheet from "./ConsentSheet";
 import MineSheet from "./MineSheet";
 import DiaryActions from "./DiaryActions";
 import CrayonPad from "./CrayonPad";
-import { BrandMark, StampSvg } from "./Icons";
+import { BrandMark, StampSvg, ColorWord } from "./Icons";
 import Manuscript, { READ_MS } from "./Manuscript";
 import LateSheet, { daysBetween } from "./LateSheet";
 import PraiseStickers from "./PraiseStickers";
@@ -179,7 +179,9 @@ export default function DiaryEditor() {
         <Link href="/" className="brand" aria-label="참 잘했어요 처음으로">
           <BrandMark className="brand-mark" />
           <span>
-            <span className="brand-name">참 잘했어요</span>
+            <span className="brand-name">
+              <ColorWord text="참 잘했어요" />
+            </span>
             <span className="brand-sub">어른이 그림일기</span>
           </span>
         </Link>

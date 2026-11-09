@@ -114,3 +114,21 @@ export function CrayonStick({ color, selected, wear = 0 }: { color: string; sele
     </svg>
   );
 }
+
+/** 90년대 공책 제목처럼 글자마다 다른 색 (띄어쓰기는 건너뛰고 빨강·파랑·주황·초록·분홍 순서) */
+export function ColorWord({ text }: { text: string }) {
+  let n = 0;
+  return (
+    <span className="color-word">
+      {[...text].map((ch, i) =>
+        ch === " " ? (
+          " "
+        ) : (
+          <span key={i} className={`cw${n++ % 5}`}>
+            {ch}
+          </span>
+        ),
+      )}
+    </span>
+  );
+}

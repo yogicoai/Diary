@@ -5,7 +5,7 @@
 // - Typecast(네오사피엔스)는 국내 회사라 국외 이전이 아니다. 개인정보 처리방침의 처리 위탁에 적는다.
 
 import { z } from "zod";
-import { readScript } from "@/lib/readScript";
+import { readScript, READ_TEMPO } from "@/lib/readScript";
 
 const API = "https://api.typecast.ai";
 const MODEL = "ssfm-v30";
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
       text,
       model: MODEL,
       language: "kor",
-      output: { audio_format: "mp3" },
+      output: { audio_format: "mp3", audio_tempo: READ_TEMPO[input.voice] }, // 빠르기는 output 안에만 먹는다 (보이스동화 실측)
     }),
   });
   if (!res.ok) {

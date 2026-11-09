@@ -2,7 +2,7 @@
 // → 같은 일기를 몇 번 들어도 크레딧은 한 번만.
 
 import { get, set } from "idb-keyval";
-import { readScript, type ReadVoice } from "./readScript";
+import { readScript, type ReadVoice, READ_TEMPO } from "./readScript";
 
 const VOICE_KEY = "chamjal.readVoice";
 
@@ -42,7 +42,7 @@ export type ReadInput = { date: string; weather: string | null; title: string; b
 
 /** 실패하면 Error(message = 서버 error 코드) */
 export async function getReading(d: ReadInput, voice: ReadVoice): Promise<Blob> {
-  const key = `read:${voice}:${hash(readScript(d))}`;
+  const key = `read:${voice}:t${READ_TEMPO[voice]}:${hash(readScript(d))}`; // 빠르기가 바뀌면 새로 받는다
   try {
     const hit = await get<Blob>(key);
     if (hit) return hit;

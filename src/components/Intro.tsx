@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { bgSrc } from "@/lib/backgrounds";
 import { CRAYONS } from "@/lib/crayon";
-import { BrandMark, CrayonStick, StampSvg } from "./Icons";
+import { BrandMark, CrayonStick, StampSvg, ColorWord } from "./Icons";
 import { LoginButtons } from "./LoginBox";
 import WeatherPicker from "./WeatherPicker";
 
@@ -51,7 +51,9 @@ export default function Intro({ onGuest }: { onGuest: () => void }) {
         <span className="brand">
           <BrandMark className="brand-mark" />
           <span>
-            <span className="brand-name">참 잘했어요</span>
+            <span className="brand-name">
+              <ColorWord text="참 잘했어요" />
+            </span>
             <span className="brand-sub">어른이 그림일기</span>
           </span>
         </span>

@@ -837,45 +837,64 @@
   }
 }
 
-/* ---------- 스케치북 표지 머리 (모든 화면의 .topbar) ---------- */
+/* ---------- 90년대 공책 표지 머리 (모든 화면의 .topbar) ----------
+   11-09 사용자: 처음 표지처럼 90년대 그림일기장·알림장 느낌으로 (예전 갈색 크라프트 + 스프링은 올드해 보여서 바꿈).
+   위는 천 테이프, 표지엔 하얀 물방울·반짝이 무늬, 아래는 항공우편 줄무늬. */
 :root,
 [data-theme="stationery"] {
-  --cover: #b98d60; /* 크라프트 표지 */
+  --cover: #55bde3; /* 알림장 하늘색 */
 }
 [data-theme="drawing"] {
-  --cover: #4a82cf; /* 파란 스케치북 */
+  --cover: #2f86d6; /* 파란 공책 */
 }
 [data-theme="vacation"] {
-  --cover: #4a9d74; /* 초록 표지 */
+  --cover: #3fa35b; /* 초록 공책 */
 }
 
 .app > .topbar {
   position: relative;
   margin: -14px -16px 16px;
-  padding: 34px 14px 16px;
+  padding: 24px 14px 25px;
   background-color: var(--cover);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='38' height='38'%3E%3Cg fill='white' fill-opacity='.42'%3E%3Ccircle cx='6' cy='8' r='2.4'/%3E%3Ccircle cx='25' cy='27' r='2.4'/%3E%3Cpath d='M28 3.5q.4 3.1 3.5 3.5-3.1.4-3.5 3.5-.4-3.1-3.5-3.5 3.1-.4 3.5-3.5Z'/%3E%3Cpath d='M9 22.5q.3 2.2 2.5 2.5-2.2.3-2.5 2.5-.3-2.2-2.5-2.5 2.2-.3 2.5-2.5Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 38px 38px;
   border-bottom: 2px solid var(--ink);
   box-shadow: 0 6px 0 -3px var(--paper), 0 7px 0 -3px var(--line-soft);
 }
 
-/* 스프링 고리: 구멍 + 철사 */
+/* 위: 천 테이프 */
 .app > .topbar::before {
   content: "";
   position: absolute;
-  left: 12px;
-  right: 12px;
-  top: 2px;
-  height: 28px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='28'%3E%3Ccircle cx='12' cy='21' r='3.6' fill='%23221a14' opacity='.55'/%3E%3Cpath d='M12 21 C 5 21 5 3 12 3 C 17.5 3 17.5 13 14.2 18.6' fill='none' stroke='%237d7d7d' stroke-width='2.6' stroke-linecap='round'/%3E%3Cpath d='M11.2 4.2 C 7.5 5 7.6 15 10.4 19' fill='none' stroke='%23d9d9d9' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-size: 24px 28px;
-  background-repeat: repeat-x;
-  background-position: center top;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 10px;
+  border-bottom: 2px solid var(--ink);
+  background-color: #34437a;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.3' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* 아래: 항공우편 줄무늬 */
+.app > .topbar::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 9px;
+  border-top: 2px solid var(--ink);
+  background-color: #fffbf2;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='9'%3E%3Cpath d='M0 9 5.5 0H10L4.5 9Z' fill='%23e8463c'/%3E%3Cpath d='M12 9 17.5 0H22l-5.5 9Z' fill='%232f86d6'/%3E%3C/svg%3E");
+  background-size: 24px 9px;
   pointer-events: none;
 }
 
 /* 표지 이름 칸 */
 .app > .topbar .brand {
+  position: relative;
+  z-index: 1;
   padding: 7px 14px 7px 8px;
   background: #fffdf7;
   border: 2px solid var(--ink);
@@ -883,12 +902,31 @@
 }
 
 .app > .topbar .toplink {
+  position: relative;
+  z-index: 1;
   background: #fffdf7;
   border: 2px solid var(--ink);
 }
 
 .app > .topbar > b {
   color: #fff;
+}
+
+/* 90년대 공책 제목처럼 글자마다 다른 색 ("참 잘했어요") */
+.color-word .cw0 {
+  color: #e8463c;
+}
+.color-word .cw1 {
+  color: #2f86d6;
+}
+.color-word .cw2 {
+  color: #e07b00;
+}
+.color-word .cw3 {
+  color: #3a9a54;
+}
+.color-word .cw4 {
+  color: #e0558f;
 }
 
 /* 기본 설정 */
@@ -1802,6 +1840,13 @@ html[data-intro] .tabbar {
   border-bottom: 1.5px solid var(--ink);
 }
 
+.intro-lead,
+.intro-h,
+.intro-p,
+.intro-teacher,
+.intro-guest .note {
+  word-break: keep-all;
+}
 .intro-lead {
   margin: 24px 0 0;
   font-size: 17px;
