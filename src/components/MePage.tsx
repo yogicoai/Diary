@@ -8,7 +8,9 @@ import { api } from "@/lib/api";
 import { canvasToBlob } from "@/lib/card";
 import { renderCertificate } from "@/lib/certificate";
 import { useMe } from "@/lib/me";
+import { setReadVoice } from "@/lib/readAloud";
 import { BrandMark, StampSvg } from "./Icons";
+import StickerBoard from "./StickerBoard";
 import { LoginButtons } from "./LoginBox";
 import SettingsBox from "./SettingsBox";
 import Sheet from "./Sheet";
@@ -23,6 +25,7 @@ export default function MePage() {
   const [nickname, setNickname] = useState("");
   const [entryYear, setEntryYear] = useState<string>("");
   const [classNo, setClassNo] = useState(1);
+  const [kid, setKid] = useState<"girl" | "boy" | "">("");
   const [error, setError] = useState<string | null>(null);
   const [awards, setAwards] = useState<Award[]>([]);
   const [cert, setCert] = useState<{ award: Award; url: string; blob: Blob } | null>(null);
@@ -39,6 +42,7 @@ export default function MePage() {
     setNickname(me.nickname);
     setEntryYear(me.entryYear ? String(me.entryYear) : "");
     setClassNo(me.classNo);
+    setKid(me.kid ?? "");
     setError(null);
     setEdit(true);
   };
@@ -46,7 +50,8 @@ export default function MePage() {
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api("/api/me", { method: "PATCH", json: { nickname, entryYear: entryYear ? Number(entryYear) : null, classNo } });
+      await api("/api/me", { method: "PATCH", json: { nickname, entryYear: entryYear ? Number(entryYear) : null, classNo, ...(kid ? { kid } : {}) } });
+      if (kid) setReadVoice(kid);
       await refresh();
       setEdit(false);
     } catch (err) {
@@ -152,9 +157,11 @@ export default function MePage() {
             </div>
           )}
 
+          <StickerBoard />
+
           <h2 className="section-title">상장함</h2>
           {awards.length === 0 ? (
-            <p className="note">7일 동안 빠짐없이 쓰면 첫 개근상을 받아요. 게시판에서 도장을 많이 받으면 &quot;참 잘한 일기&quot; 상도 받아요.</p>
+            <p className="note">7일 동안 빠짐없이 쓰면 첫 개근상을 받아요. 오늘의 숙제를 10번 하면 숙제 상장, 게시판에서 도장을 많이 받으면 &quot;참 잘한 일기&quot; 상도 받아요.</p>
           ) : (
             <div className="award-grid">
               {awards.map((a) => (
@@ -204,6 +211,14 @@ export default function MePage() {
                   {n}반
                 </option>
               ))}
+            </select>
+          </label>
+          <label>
+            나는 (일기를 이 아이 목소리로 읽어 줘요)
+            <select value={kid} onChange={(e) => setKid(e.target.value as "girl" | "boy" | "")}>
+              {!kid && <option value="">골라 주세요</option>}
+              <option value="girl">여자아이</option>
+              <option value="boy">남자아이</option>
             </select>
           </label>
           {error && <p className="form-error">{error}</p>}

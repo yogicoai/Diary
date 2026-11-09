@@ -9,6 +9,7 @@ export function meToClient(u: UserDoc, admin: boolean) {
     nickname: u.nickname,
     entryYear: u.entryYear,
     classNo: u.classNo,
+    kid: u.kid ?? null,
     email: u.email,
     nameTag: nameTag(u),
     admin,

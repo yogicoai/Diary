@@ -6,7 +6,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
-import { cleanStamp, STAMP_IDS, STAMPS } from "@/lib/stamps";
+import { cleanStamp, DIARY_STAMPS, STAMP_IDS } from "@/lib/stamps";
 import { cleanStickers, STICKER_IDS, STICKERS } from "@/lib/stickers";
 import { weatherById } from "@/lib/weather";
 
@@ -15,7 +15,7 @@ import { weatherById } from "@/lib/weather";
 const MODEL = "claude-haiku-5-5";
 
 const STICKER_GUIDE = STICKERS.map((s) => `- ${s.id}: 「${s.text}」 ${s.meaning}`).join("\n");
-const STAMP_GUIDE = STAMPS.map((s) => `- ${s.id}: 「${s.label}」 ${s.meaning}`).join("\n");
+const STAMP_GUIDE = DIARY_STAMPS.map((s) => `- ${s.id}: 「${s.label}」 ${s.meaning}`).join("\n");
 
 const SYSTEM = `당신은 유머 감각이 있는 초등학교 담임 선생님입니다. 학생은 사실 20~40대 어른인데, 어린 시절처럼 크레파스 그림일기를 써서 냈습니다. 일기를 읽고 빨간 색연필로 답장을 쓰고, 이야기에 맞는 칭찬 스티커를 골라 붙여 줍니다.
 

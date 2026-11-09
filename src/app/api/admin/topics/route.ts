@@ -1,5 +1,5 @@
 // 관리자: 오늘의 숙제 (선생님이 날짜별로 숙제 걸기)
-//  GET    앞으로 3주 숙제(누가 정했나) + 지난 30일 숙제별 참여 수 + 반응 좋은 숙제
+//  GET    앞으로 3주 숙제(누가 정했나) + 지난 30일 숙제별 인증 수 + 반응 좋은 숙제 + 보여 주기 인증(검사)
 //  POST   { date, text, note } 그날 숙제 걸기 (오늘부터 1년 안)
 //  DELETE ?date=  건 숙제 되돌리기 (요일 숙제로)
 
@@ -10,6 +10,8 @@ import { cols } from "@/lib/server/db";
 import { assertSameOrigin, handle, HttpError, readJson } from "@/lib/server/http";
 import { DATE_KEY, resolveTopics } from "@/lib/server/topics";
 import { weekdayOf } from "@/lib/topics";
+import { homeworkToClient } from "@/lib/server/homework";
+import { nameTag } from "@/lib/social";
 
 const DAY = 86400000;
 function addDays(key: string, n: number): string {
@@ -23,26 +25,34 @@ export async function GET(req: NextRequest) {
     const today = kstKey();
     const ahead = Array.from({ length: 21 }, (_, i) => addDays(today, i));
     const back = Array.from({ length: 30 }, (_, i) => addDays(today, -1 - i));
-    const { diaries } = await cols();
-    const [upcoming, past, counts] = await Promise.all([
+    const { homework, users } = await cols();
+    const [upcoming, past, counts, recent] = await Promise.all([
       resolveTopics(ahead),
       resolveTopics(back),
-      diaries
+      homework
         .aggregate<{ _id: string; n: number; board: number; texts: (string | null)[] }>([
-          { $match: { topic: { $in: [today, ...back] } } },
+          { $match: { date: { $in: [today, ...back] } } },
           {
             $group: {
-              _id: "$topic",
+              _id: "$date",
               n: { $sum: 1 },
-              board: { $sum: { $cond: [{ $eq: ["$board.status", "visible"] }, 1, 0] } },
-              texts: { $push: "$topicText" },
+              board: { $sum: { $cond: [{ $and: ["$share", { $eq: ["$status", "visible"] }] }, 1, 0] } },
+              texts: { $push: "$mission" },
             },
           },
         ])
         .toArray(),
+      homework.find({ share: true }).sort({ updatedAt: -1 }).limit(30).toArray(),
     ]);
+    const owners = await users
+      .find({ _id: { $in: recent.map((h) => h.userId) } }, { projection: { nickname: 1, entryYear: 1, classNo: 1 } })
+      .toArray();
+    const tagOf = (id: (typeof recent)[number]["userId"]) => {
+      const o = owners.find((u) => u._id.equals(id));
+      return o ? nameTag(o) : "전학 간 친구";
+    };
     const count = (date: string) => counts.find((c) => c._id === date);
-    /** 그날 실제로 일기에 적힌 숙제 글 (선생님이 나중에 바꿨어도 쓴 사람들이 본 글) */
+    /** 그날 실제로 낸 숙제 글 (선생님이 나중에 바꿨어도 낸 사람들이 본 글) */
     const writtenText = (date: string, fallback: string) => {
       const texts = (count(date)?.texts ?? []).filter((t): t is string => !!t);
       if (!texts.length) return fallback;
@@ -62,6 +72,7 @@ export async function GET(req: NextRequest) {
       upcoming: ahead.map((date) => ({ ...upcoming.get(date)!, weekday: weekdayOf(date) })),
       past: pastRows,
       best: [...pastRows].filter((r) => r.written > 0).sort((a, b) => b.written - a.written || b.board - a.board).slice(0, 5),
+      shared: recent.map((h) => ({ ...homeworkToClient(h, tagOf(h.userId)), userId: h.userId.toHexString(), checked: h.checked })),
     });
   });
 }

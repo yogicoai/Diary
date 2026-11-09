@@ -7,19 +7,27 @@ export type Background = { id: string; name: string; pack?: string };
 
 // 화풍: 원본 사이트 크레파스 (11-06 시안 A, 원본 그림을 참고 그림으로). 장면 설명은 scripts/bg-scenes.json
 export const BACKGROUNDS: Background[] = [
-  { id: "office", name: "회사 책상" },
-  { id: "cafe", name: "카페 창가" },
-  { id: "snack-bar", name: "분식집" },
-  { id: "living-room", name: "우리 집 거실" },
-  { id: "bedroom", name: "이불 속" },
-  { id: "park", name: "공원 벤치" },
-  { id: "beach", name: "바닷가" },
-  { id: "rainy-street", name: "비 오는 거리" },
-  { id: "night-sky", name: "밤하늘" },
-  { id: "schoolyard", name: "학교 운동장" },
-  { id: "classroom", name: "교실" },
-  { id: "snow-day", name: "눈 오는 날" },
-  { id: "christmas", name: "크리스마스" },
+  { id: "office", name: "회사 책상", pack: "일상" },
+  { id: "cafe", name: "카페 창가", pack: "일상" },
+  { id: "snack-bar", name: "분식집", pack: "일상" },
+  { id: "living-room", name: "우리 집 거실", pack: "일상" },
+  { id: "bedroom", name: "이불 속", pack: "일상" },
+  { id: "park", name: "공원 벤치", pack: "나들이" },
+  { id: "beach", name: "바닷가", pack: "나들이" },
+  { id: "rainy-street", name: "비 오는 거리", pack: "계절" },
+  { id: "night-sky", name: "밤하늘", pack: "계절" },
+  { id: "schoolyard", name: "학교 운동장", pack: "추억" },
+  { id: "classroom", name: "교실", pack: "추억" },
+  { id: "snow-day", name: "눈 오는 날", pack: "계절" },
+  { id: "christmas", name: "크리스마스", pack: "계절" },
+];
+
+/** 상황별로 고르기 (11-09 사용자: "상황에 맞는 배경을 고르게"). 배경이 하나라도 있는 묶음만 칩으로 보인다 */
+export const BG_PACKS: { id: string; name: string }[] = [
+  { id: "추억", name: "학교 추억" },
+  { id: "일상", name: "일상" },
+  { id: "계절", name: "계절·날씨" },
+  { id: "나들이", name: "나들이" },
 ];
 
 export function bgSrc(id: string): string {

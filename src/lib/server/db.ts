@@ -18,6 +18,7 @@ export type UserDoc = {
   nickname: string;
   entryYear: number | null; // 초등학교 입학 연도 (이름표)
   classNo: number; // 반
+  kid?: "girl" | "boy"; // 가입할 때 고른 나 — 일기를 이 아이 목소리로 읽어 준다 (11-09 사용자)
   createdAt: Date;
   lastSeenAt: Date;
   banned?: boolean;
@@ -26,6 +27,24 @@ export type UserDoc = {
   passHash?: string;
   loginFails?: number;
   lockedUntil?: Date;
+};
+
+// 오늘의 숙제(어른이 미션) 검사: 사진 한 장이나 한 줄로 낸 인증. 한 사람 하루 하나 (일기와 따로).
+export type HomeworkDoc = {
+  _id: ObjectId;
+  userId: ObjectId;
+  date: string; // 숙제 날짜 (한국 시각 YYYY-MM-DD)
+  mission: string; // 그때 숙제 글 (선생님이 나중에 바꿔도 그대로)
+  text: string; // 한 줄 인증 (없으면 "")
+  photoUrl: string | null;
+  thumbUrl: string | null;
+  sticker: string; // 받은 숙제 스티커 (lib/stickers.ts) — 칭찬 스티커판에 모인다
+  share: boolean; // 게시판 '오늘의 숙제'에 보여 주기
+  status: "visible" | "pending" | "hidden"; // 보여 주기 검사 결과 (안 보여 주면 늘 visible)
+  checked: boolean; // AI 검사를 거쳤나
+  note?: string; // 숨긴 이유
+  at: Date; // 처음 낸 시각
+  updatedAt: Date;
 };
 
 // 선생님(운영자)이 날짜별로 미리 걸어 둔 오늘의 숙제. 없는 날은 lib/topics.ts 의 요일 숙제가 나간다.
@@ -95,7 +114,7 @@ export type NoteDoc = { _id: ObjectId; diaryId: ObjectId; userId: ObjectId; text
 export type AwardDoc = {
   _id: ObjectId;
   userId: ObjectId;
-  kind: "streak7" | "streak30" | "streak100" | "weekly";
+  kind: "streak7" | "streak30" | "streak100" | "weekly" | "homework10" | "homework30" | "homework100";
   key: string; // 사람마다 한 번만 (예: streak7:2026-11-01, weekly:2026-W45)
   rank?: number; // 주간 1~3등
   diaryId?: ObjectId;
@@ -132,6 +151,7 @@ export async function cols() {
     notes: db.collection<NoteDoc>("notes"),
     adminlog: db.collection<AdminLogDoc>("adminlog"),
     topics: db.collection<TopicDoc>("topics"),
+    homework: db.collection<HomeworkDoc>("homework"),
   };
 }
 
@@ -151,5 +171,7 @@ async function ensureIndexes(db: Db) {
     db.collection("notes").createIndex({ diaryId: 1, at: 1 }),
     db.collection("adminlog").createIndex({ at: -1 }),
     db.collection("topics").createIndex({ date: 1 }, { unique: true }),
+    db.collection("homework").createIndex({ userId: 1, date: 1 }, { unique: true }),
+    db.collection("homework").createIndex({ date: 1, share: 1, status: 1, at: -1 }),
   ]);
 }

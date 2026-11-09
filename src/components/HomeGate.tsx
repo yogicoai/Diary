@@ -7,13 +7,15 @@
 //  · 주소에 ?cover=1 이면 언제든 표지 (시험·시연용)
 
 import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 import { useMe } from "@/lib/me";
+import { kidChoice, setReadVoice } from "@/lib/readAloud";
 import { coverShownToday, introSeen, markCoverToday, setIntroSeen } from "@/lib/prefs";
 import DiaryEditor from "./DiaryEditor";
 import Intro from "./Intro";
 
 export default function HomeGate() {
-  const { me, loading } = useMe();
+  const { me, loading, refresh } = useMe();
   const [boot, setBoot] = useState<{ seen: boolean; today: boolean; force: boolean } | null>(null);
   const [opened, setOpened] = useState(false);
 
@@ -22,8 +24,17 @@ export default function HomeGate() {
     setBoot({ seen: introSeen(), today: coverShownToday(), force: new URLSearchParams(location.search).get("cover") === "1" });
   }, []);
   useEffect(() => {
-    if (me) setIntroSeen();
-  }, [me]);
+    if (!me) return;
+    setIntroSeen();
+    const local = kidChoice();
+    if (me.kid) {
+      if (local !== me.kid) setReadVoice(me.kid);
+    } else if (local) {
+      void api("/api/me", { method: "PATCH", json: { kid: local } })
+        .then(() => refresh())
+        .catch(() => {});
+    }
+  }, [me, refresh]);
 
   const first = !!boot && !boot.seen && !loading && !me;
   const cover = !!boot && !opened && (boot.force || !boot.today || first);

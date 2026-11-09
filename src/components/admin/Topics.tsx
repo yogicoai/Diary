@@ -3,6 +3,7 @@
 // 관리자: 오늘의 숙제 — 선생님(운영자)이 날짜별로 숙제·한마디를 걸고, 숙제마다 몇 명이 썼는지 본다.
 // 안 걸어 둔 날은 lib/topics.ts 의 그날만의 숙제·요일 숙제가 자동으로 나간다.
 
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { api } from "@/lib/api";
 import { WEEKDAY_NAMES, WEEKDAY_TOPICS, type TopicKind } from "@/lib/topics";
@@ -11,7 +12,19 @@ import { Badge, Card, Confirm, ErrorBox, fmtDateKey, Loading, PageHead, Stat, us
 
 type Up = { date: string; weekday: number; text: string; kind: TopicKind; subject: string | null; note: string | null };
 type Past = { date: string; weekday: number; text: string; kind: TopicKind; written: number; board: number };
-type Data = { today: string; todayWritten: number; upcoming: Up[]; past: Past[]; best: Past[] };
+type Shared = {
+  id: string;
+  userId: string;
+  nameTag?: string;
+  date: string;
+  mission: string;
+  text: string;
+  thumbUrl: string | null;
+  photoUrl: string | null;
+  status: "visible" | "pending" | "hidden";
+  checked: boolean;
+};
+type Data = { today: string; todayWritten: number; upcoming: Up[]; past: Past[]; best: Past[]; shared: Shared[] };
 
 const KIND: Record<TopicKind, { tone: "blue" | "amber" | "gray"; word: string }> = {
   teacher: { tone: "blue", word: "선생님" },
@@ -23,7 +36,22 @@ const KIND: Record<TopicKind, { tone: "blue" | "amber" | "gray"; word: string }>
 const day = (d: string, w: number) => `${fmtDateKey(d)} (${WEEKDAY_NAMES[w]})`;
 
 export default function Topics() {
-  const { say } = useAdmin();
+  const { say, refreshMe } = useAdmin();
+  const [judging, setJudging] = useState<string | null>(null);
+
+  const judge = async (id: string, action: "approve" | "hide") => {
+    setJudging(id);
+    try {
+      await api(`/api/admin/homework/${id}`, { method: "POST", json: { action } });
+      say(action === "approve" ? "게시판에 보이게 했어요" : "게시판에서 내렸어요");
+      reload();
+      refreshMe();
+    } catch (x) {
+      say(x instanceof Error ? x.message : "처리하지 못했어요", "error");
+    } finally {
+      setJudging(null);
+    }
+  };
   const { data, error, reload } = useAdminGet<Data>("/api/admin/topics");
   const [form, setForm] = useState<{ date: string; text: string; note: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -68,7 +96,7 @@ export default function Topics() {
     <>
       <PageHead
         title="숙제 내기"
-        desc="선생님이 날짜별로 숙제를 걸어 둘 수 있어요. 안 걸어 둔 날은 그날만의 숙제·요일 숙제가 자동으로 나가요. 숙제 글은 일기와 함께 저장돼서 나중에 바꿔도 이미 낸 일기는 그대로예요."
+        desc="오늘의 숙제는 그날의 어른이 미션이에요. 학생들은 사진 한 장이나 한 줄로 숙제 검사를 받고 칭찬 스티커를 모아요. 선생님이 날짜별로 숙제를 걸어 둘 수 있고, 안 걸어 둔 날은 그날만의 숙제·요일 숙제가 나가요."
       />
       {error && <ErrorBox msg={error} retry={reload} />}
       {!data && !error && <Loading rows={3} />}
@@ -76,11 +104,11 @@ export default function Topics() {
         <>
           <div className="adm-stats">
             <Stat label="오늘 숙제" value={today.text} sub={today.note ?? KIND[today.kind].word} />
-            <Stat label="오늘 숙제로 쓴 사람" value={`${data.todayWritten}명`} sub="서버에 올라온 일기 기준" />
+            <Stat label="오늘 숙제 한 사람" value={`${data.todayWritten}명`} sub="숙제 검사를 받은 학생" />
             <Stat
               label="최근 30일 가장 반응 좋은 숙제"
               value={data.best[0] ? `${data.best[0].written}명` : "—"}
-              sub={data.best[0] ? `${data.best[0].text} · ${fmtDateKey(data.best[0].date)}` : "아직 숙제로 쓴 일기가 없어요"}
+              sub={data.best[0] ? `${data.best[0].text} · ${fmtDateKey(data.best[0].date)}` : "아직 숙제를 한 학생이 없어요"}
             />
           </div>
 
@@ -155,10 +183,10 @@ export default function Topics() {
           </Card>
 
           <div className="adm-grid2">
-            <Card title="반응 좋은 숙제" aside="최근 30일, 숙제로 쓴 사람 수">
+            <Card title="반응 좋은 숙제" aside="최근 30일, 숙제 한 사람 수">
               {data.best.length === 0 ? (
                 <p className="adm-empty" style={{ padding: "16px 0" }}>
-                  아직 숙제로 쓴 일기가 없어요
+                  아직 숙제를 한 학생이 없어요
                 </p>
               ) : (
                 <ul className="adm-list">
@@ -190,6 +218,52 @@ export default function Topics() {
               </ul>
             </Card>
           </div>
+
+          <Card title="보여 주기 숙제 검사" aside="게시판 '오늘의 숙제'에 보여 주기로 낸 것 (최근 30개)" className="adm-section">
+            {data.shared.length === 0 ? (
+              <p className="adm-empty" style={{ padding: "16px 0" }}>
+                아직 보여 주기로 낸 숙제가 없어요
+              </p>
+            ) : (
+              <div className="adm-posts">
+                {data.shared.map((h) => (
+                  <article key={h.id} className="adm-post">
+                    {h.thumbUrl ? (
+                      <a href={h.photoUrl ?? h.thumbUrl} target="_blank" rel="noreferrer" className="adm-post-open">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img className="adm-post-thumb" src={h.thumbUrl} alt="" loading="lazy" />
+                      </a>
+                    ) : null}
+                    <div className="adm-post-body">
+                      <span className="adm-badges">
+                        <Badge tone={h.status === "visible" ? "green" : h.status === "pending" ? "amber" : "red"}>
+                          {h.status === "visible" ? "보이는 중" : h.status === "pending" ? "검사 대기" : "숨김"}
+                        </Badge>
+                        {!h.checked && <Badge tone="amber">AI 검사 못 함</Badge>}
+                      </span>
+                      <span className="adm-post-title">{h.mission}</span>
+                      {h.text && <p className="adm-post-text">{h.text}</p>}
+                      <span className="adm-sub">
+                        <Link href={`/admin/members/${h.userId}`}>{h.nameTag}</Link> · {fmtDateKey(h.date)}
+                      </span>
+                      <div className="adm-post-actions">
+                        {h.status !== "visible" && (
+                          <button type="button" className="adm-btn sm primary" disabled={judging === h.id} onClick={() => void judge(h.id, "approve")}>
+                            보이기
+                          </button>
+                        )}
+                        {h.status !== "hidden" && (
+                          <button type="button" className="adm-btn sm danger" disabled={judging === h.id} onClick={() => void judge(h.id, "hide")}>
+                            내리기
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </Card>
 
           <Card title="요일별 숙제 묶음" aside="안 걸어 둔 날 자동으로 나가는 숙제 (주마다 돌아가요)" className="adm-section">
             <ul className="adm-list">

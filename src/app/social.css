@@ -2044,3 +2044,378 @@ html[data-intro] .tabbar {
     animation: none;
   }
 }
+
+/* ---------- 오늘의 숙제 = 어른이 미션 (숙제 하기 · 검사 끝 · 칭찬 스티커판 · 숙제 벽) ---------- */
+.tb-btn.done {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tb-check {
+  width: 22px;
+  height: 22px;
+  color: var(--red);
+}
+
+/* 숙제 하기 시트 */
+.hw-head {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.hw-mission {
+  margin: 0;
+  font-family: var(--font-kid), cursive;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+.hw-head .tb-note,
+.hw-wall-head .tb-note {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.2;
+  color: var(--red);
+}
+.hw-lead {
+  margin: 0 0 4px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+  word-break: keep-all;
+}
+.hw-form {
+  display: grid;
+  gap: 10px;
+}
+.hw-photo {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  overflow: hidden;
+  border: 2px dashed var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--muted);
+}
+.hw-photo.has {
+  border: 2px solid var(--ink);
+  background: #fff;
+}
+.hw-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hw-photo span {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+}
+.hw-photo b {
+  font-family: var(--font-kid), cursive;
+  font-size: 20px;
+  color: var(--ink);
+}
+.hw-photo small {
+  font-size: 12px;
+}
+.hw-text {
+  min-width: 0;
+  height: 50px;
+  padding: 0 12px;
+  border: 1.5px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-kid), cursive;
+  font-size: 18px;
+  font-weight: 700;
+}
+.hw-share {
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.hw-share small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.hw-err {
+  margin: 0;
+  color: var(--red);
+}
+.hw-form .btn {
+  margin-top: 4px;
+}
+
+/* 검사 끝 */
+.hw-done {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.hw-stamp {
+  width: 120px;
+  height: 120px;
+  color: var(--red);
+  transform: rotate(-10deg);
+  animation: hw-thump 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+@keyframes hw-thump {
+  from {
+    opacity: 0;
+    transform: rotate(-10deg) scale(1.6);
+  }
+}
+.hw-done .hw-done-title {
+  margin: 0;
+  font-family: var(--font-pen), cursive;
+  font-size: 34px;
+  color: var(--red);
+}
+.hw-got {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.hw-got-sticker {
+  animation: hw-pop 0.5s 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+@keyframes hw-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.3) rotate(-30deg);
+  }
+}
+.hw-award {
+  margin: 0;
+  padding: 6px 12px;
+  border: 1.5px solid var(--red);
+  border-radius: 10px;
+  color: var(--red);
+  font-size: 14px;
+}
+.hw-done .btn-row {
+  width: 100%;
+}
+
+/* 낸 숙제 보기 */
+.hw-proof {
+  position: relative;
+  padding: 10px 10px 14px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 10px 18px -14px rgba(0, 0, 0, 0.6);
+}
+.hw-proof img {
+  display: block;
+  width: 100%;
+  border-radius: 2px;
+}
+.hw-proof-text {
+  margin: 10px 4px 0;
+  font-family: var(--font-kid), cursive;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+.hw-proof-stamp {
+  position: absolute;
+  right: -10px;
+  bottom: -18px;
+  width: 84px;
+  height: 84px;
+  color: var(--red);
+  transform: rotate(-12deg);
+}
+
+/* 칭찬 스티커판 (나) */
+.sb-card {
+  padding: 14px 14px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--paper);
+}
+.sb-title {
+  margin: 0 0 10px;
+  font-family: var(--font-kid), cursive;
+  font-size: 19px;
+  font-weight: 700;
+}
+.sb-title b {
+  color: var(--red);
+}
+.sb-title small {
+  font-family: var(--font-ui), sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.sb-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.sb-grid li {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border: 1.5px dashed var(--line-soft);
+  border-radius: 50%;
+}
+.sb-grid li.on {
+  border-style: solid;
+  border-color: transparent;
+}
+.sb-grid svg {
+  width: 100%;
+  height: auto;
+}
+.sb-num {
+  font-family: var(--font-kid), cursive;
+  font-size: 15px;
+  color: var(--line-soft);
+}
+
+/* 교실 뒤 게시판 '오늘의 숙제' 벽 */
+.hw-wall-head {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+}
+.hw-wall-head p {
+  margin: 0;
+}
+.hw-wall-head .btn {
+  margin-top: 6px;
+}
+.hw-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 12px;
+}
+.hw-card {
+  position: relative;
+  margin: 0;
+  padding: 8px 8px 10px;
+  border: 1.5px solid var(--line-soft);
+  border-radius: 3px;
+  background: #fff;
+  box-shadow: 0 10px 16px -12px rgba(60, 40, 20, 0.55);
+}
+.hw-card .tape {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 46px;
+  height: 16px;
+  background: rgba(246, 201, 69, 0.55);
+  transform: translateX(-50%) rotate(-3deg);
+}
+.hw-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+.hw-card-text {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 8px;
+  background: var(--paper);
+  font-family: var(--font-kid), cursive;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  word-break: keep-all;
+}
+.hw-card figcaption {
+  display: grid;
+  gap: 2px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.hw-card-line {
+  font-family: var(--font-kid), cursive;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  word-break: keep-all;
+}
+.hw-card-sticker {
+  position: absolute;
+  right: -8px;
+  bottom: -10px;
+  transform: rotate(10deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-stamp,
+  .hw-got-sticker {
+    animation: none;
+  }
+}
+
+/* 가입할 때 '나는 여자아이·남자아이' (읽어 주는 목소리) */
+.kid-pick {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 0;
+}
+.kid-pick-label {
+  font-family: var(--font-kid), cursive;
+  font-size: 19px;
+  font-weight: 700;
+}
+.kid-pick button {
+  min-height: 46px;
+  border: 1.5px solid var(--line-soft);
+  border-radius: 14px;
+  background: var(--paper);
+  font-family: var(--font-kid), cursive;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.kid-pick button[aria-checked="true"] {
+  border: 2px solid var(--ink);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.kid-pick-note {
+  margin: 6px 0 0;
+}
+.kid-gate {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.read-aloud {
+  grid-template-columns: minmax(0, 1fr);
+}

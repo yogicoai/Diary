@@ -6,6 +6,21 @@ import { readScript, type ReadVoice, READ_TEMPO } from "./readScript";
 
 const VOICE_KEY = "chamjal.readVoice";
 
+/** 이 기기에서 (인트로 이름표 단계에서) 고른 나. 안 골랐으면 null */
+export function kidChoice(): ReadVoice | null {
+  try {
+    const v = localStorage.getItem(VOICE_KEY);
+    return v === "boy" || v === "girl" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/** 읽어 줄 목소리: 이름표의 나 → 이 기기에서 고른 나 → 여자아이 */
+export function voiceFor(kid: ReadVoice | null | undefined): ReadVoice {
+  return kid ?? kidChoice() ?? "girl";
+}
+
 export function readVoice(): ReadVoice {
   try {
     return localStorage.getItem(VOICE_KEY) === "boy" ? "boy" : "girl";

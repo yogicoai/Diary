@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 import { bgSrc } from "@/lib/backgrounds";
 import { CRAYONS } from "@/lib/crayon";
 import { BrandMark, CrayonStick, StampSvg, ColorWord } from "./Icons";
+import { kidChoice, setReadVoice } from "@/lib/readAloud";
+import { READ_VOICES, type ReadVoice } from "@/lib/readScript";
 import { LoginButtons } from "./LoginBox";
 import WeatherPicker from "./WeatherPicker";
 
@@ -238,15 +240,40 @@ function HowTo({ step }: { step: number }) {
 }
 
 function Join({ next, onGuest }: { next: string; onGuest: () => void }) {
+  const [kid, setKid] = useState<ReadVoice | null>(null);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 이 기기에서 전에 고른 나
+    setKid(kidChoice());
+  }, []);
   return (
     <section className="page intro-step">
       <h2 className="intro-h">이름표를 만들어요</h2>
       <p className="intro-p" style={{ marginTop: 0 }}>
         가입하면 일기가 서버에도 보관돼서 휴대폰을 바꿔도 그대로예요. 우리 반, 교실 뒤 게시판도 같이 쓸 수 있어요.
       </p>
-      <LoginButtons next={next} />
-      <div className="intro-guest">
-        <button type="button" className="linkish" onClick={onGuest}>
+      <div className="kid-pick" role="radiogroup" aria-label="나는">
+        <span className="kid-pick-label">나는</span>
+        {READ_VOICES.map((v) => (
+          <button
+            key={v.id}
+            type="button"
+            role="radio"
+            aria-checked={kid === v.id}
+            onClick={() => {
+              setReadVoice(v.id);
+              setKid(v.id);
+            }}
+          >
+            {v.name}
+          </button>
+        ))}
+      </div>
+      <p className="note kid-pick-note">{kid ? "일기를 소리 내어 읽어 줄 때 이 아이 목소리로 읽어요." : "먼저 남자아이·여자아이를 골라 주세요. 일기를 읽어 줄 목소리가 돼요."}</p>
+      <div className={kid ? "" : "kid-gate"} aria-disabled={kid ? undefined : true}>
+        <LoginButtons next={next} />
+      </div>
+      <div className={`intro-guest${kid ? "" : " kid-gate"}`} aria-disabled={kid ? undefined : true}>
+        <button type="button" className="linkish" onClick={onGuest} disabled={!kid}>
           로그인 없이 먼저 써 볼게요
         </button>
         <p className="note">로그인 없이 쓴 일기는 이 기기에만 저장돼요. 나중에 이름표를 만들면 그대로 합쳐져요.</p>

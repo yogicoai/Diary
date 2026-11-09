@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { shortDate } from "@/lib/date";
 import { useMe } from "@/lib/me";
 import { BrandMark } from "./Icons";
+import HomeworkWall from "./HomeworkWall";
 import { ReactionIcon, totalReactions } from "./Reactions";
 
 export type BoardItem = {
@@ -34,7 +35,6 @@ export default function BoardPage() {
   const [tab, setTab] = useState<Tab>("all");
   const [items, setItems] = useState<BoardItem[] | null>(null);
   const [more, setMore] = useState(false);
-  const [topic, setTopic] = useState("");
   const [needYear, setNeedYear] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [winners, setWinners] = useState<{ rank: number; item: BoardItem }[]>([]);
@@ -44,7 +44,6 @@ export default function BoardPage() {
       const res = await api<{ items: BoardItem[]; topic: string; more?: boolean; needYear?: boolean }>(
         `/api/board?tab=${t}${before ? `&before=${before}` : ""}`,
       );
-      setTopic(res.topic);
       setNeedYear(!!res.needYear);
       setMore(!!res.more);
       setItems((prev) => (before && prev ? [...prev, ...res.items] : res.items));
@@ -58,7 +57,7 @@ export default function BoardPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 탭이 바뀌면 처음부터 다시
     setItems(null);
-    void load(tab);
+    if (tab !== "topic") void load(tab); // 오늘의 숙제 칸은 숙제 검사 벽(HomeworkWall)이 따로 부른다
   }, [tab, load]);
 
   useEffect(() => {
@@ -104,11 +103,7 @@ export default function BoardPage() {
           </button>
         ))}
       </div>
-      {tab === "topic" && topic && (
-        <p className="topic-line">
-          오늘의 숙제 <b>{topic}</b>
-        </p>
-      )}
+      {tab === "topic" && <HomeworkWall />}
 
       {error && <div className="empty">{error}</div>}
       {tab === "year" && needYear && (
@@ -119,8 +114,8 @@ export default function BoardPage() {
           </Link>
         </div>
       )}
-      {items === null && <div className="empty">게시판을 보는 중…</div>}
-      {items && items.length === 0 && !needYear && !error && (
+      {tab !== "topic" && items === null && <div className="empty">게시판을 보는 중…</div>}
+      {tab !== "topic" && items && items.length === 0 && !needYear && !error && (
         <div className="empty">
           아직 붙은 일기가 없어요.
           <br />첫 번째로 붙여 볼까요?
@@ -131,7 +126,7 @@ export default function BoardPage() {
       )}
 
       <div className="pinboard">
-        {items?.map((it, i) => (
+        {tab !== "topic" && items?.map((it, i) => (
           <Link key={it.id} href={`/board/${it.id}`} className="pinned" style={{ rotate: `${((i * 37) % 5) - 2}deg` }}>
             <span className="pin" aria-hidden="true" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -149,7 +144,7 @@ export default function BoardPage() {
           </Link>
         ))}
       </div>
-      {more && items && (
+      {tab !== "topic" && more && items && (
         <button type="button" className="btn plain" onClick={() => load(tab, items[items.length - 1]?.at)}>
           더 보기
         </button>

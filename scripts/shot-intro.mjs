@@ -39,8 +39,8 @@ await click("다음");
 await shot("4-stamp");
 await click("이름표 만들기");
 await shot("5-join");
-await click("받은 아이디로 들어가기");
-await shot("6-join-id", true);
+await click("여자아이"); // 나는 여자아이 (고르기 전엔 로그인·둘러보기가 잠겨 있다)
+await shot("6-join-kid", true);
 await click("로그인 없이 먼저 써 볼게요");
 await page.waitForSelector(".page-head", { timeout: 20000 });
 await shot("7-editor");

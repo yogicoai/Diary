@@ -11,6 +11,7 @@ export type Me = {
   nickname: string;
   entryYear: number | null;
   classNo: number;
+  kid: "girl" | "boy" | null; // 가입할 때 고른 나 (읽어 주는 목소리)
   email: string;
   nameTag: string;
   admin: boolean;

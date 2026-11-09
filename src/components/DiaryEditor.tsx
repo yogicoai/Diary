@@ -8,6 +8,7 @@ import { koreanDate, todayKey } from "@/lib/date";
 import { useMe } from "@/lib/me";
 import { stampThump, underlineSwish } from "@/lib/feel";
 import { preferredBg } from "@/lib/prefs";
+import { useHomework } from "@/lib/homework";
 import { useTopic } from "@/lib/useTopic";
 import { pushDiary } from "@/lib/sync";
 import { api } from "@/lib/api";
@@ -26,6 +27,7 @@ import Manuscript, { READ_MS } from "./Manuscript";
 import LateSheet, { daysBetween } from "./LateSheet";
 import PraiseStickers from "./PraiseStickers";
 import ReadAloud from "./ReadAloud";
+import HomeworkSheet from "./HomeworkSheet";
 import TopicBanner from "./TopicBanner";
 import WeatherPicker from "./WeatherPicker";
 
@@ -35,7 +37,7 @@ function newId() {
 
 export default function DiaryEditor() {
   const { me } = useMe();
-  const [topicOn, setTopicOn] = useState(false); // 오늘의 숙제로 쓰기
+  const [hwOpen, setHwOpen] = useState(false); // 오늘의 숙제(어른이 미션) 검사 시트
   const [date, setDate] = useState<string | null>(null);
   const [today, setToday] = useState<string | null>(null);
   const [lateOpen, setLateOpen] = useState(false);
@@ -43,6 +45,7 @@ export default function DiaryEditor() {
   const [classCtx, setClassCtx] = useState<{ id: string; name: string; homework: string | null } | null>(null);
   const [weather, setWeather] = useState<WeatherId | null>(null);
   const topic = useTopic(date); // 그날 숙제 (선생님이 건 숙제 → 그날만의 숙제 → 요일 숙제)
+  const hw = useHomework(date && date === today ? date : null, !!date && date === today); // 오늘 숙제 검사 (내가 냈나·몇 명이 했나)
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [strokes, setStrokes] = useState<Stroke[]>([]);
@@ -111,8 +114,6 @@ export default function DiaryEditor() {
       late: lateDays > 0,
       teacherBy: "rule",
       secret,
-      topic: topicOn ? date : null,
-      topicText: topicOn ? (topic?.text ?? null) : null, // 그때 숙제 글 (선생님이 나중에 바꿔도 그대로)
       createdAt: Date.now(),
     };
     setDone(draft);
@@ -168,7 +169,6 @@ export default function DiaryEditor() {
     setStrokes([]);
     setBg(preferredBg());
     setSecret(false);
-    setTopicOn(false);
     setDone(null);
     setReading(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -200,17 +200,21 @@ export default function DiaryEditor() {
           <span className="tb-btn done">{locked ? "반에 냄" : "다 쓰면 반에 내요"}</span>
         </div>
       ) : (
-        <TopicBanner
-          date={date}
-          topic={topic}
-          today={today}
-          weather={weather}
-          on={topicOn}
-          onToggle={() => setTopicOn((v) => !v)}
-          onPickDay={() => setLateOpen(true)}
-          locked={locked}
-        />
+        date &&
+        today &&
+        date === today && (
+          <TopicBanner
+            date={date}
+            topic={hw.data?.mission ?? topic}
+            weather={weather}
+            done={!!hw.data?.mine}
+            count={hw.data?.count}
+            onOpen={() => setHwOpen(true)}
+            onPickDay={locked ? undefined : () => setLateOpen(true)}
+          />
+        )
       )}
+      <HomeworkSheet open={hwOpen} onClose={() => setHwOpen(false)} day={hw.data} onDone={hw.reload} />
 
       <article className={`page${done && !reading ? " stamped" : ""}`} aria-label="오늘의 그림일기">
         <div className="page-head">
@@ -236,7 +240,7 @@ export default function DiaryEditor() {
             id="title"
             value={title}
             maxLength={16}
-            placeholder={classCtx?.homework ?? (topicOn && topic ? topic.text : "드디어 금요일")}
+            placeholder={classCtx?.homework ?? "드디어 금요일"}
             onChange={(e) => setTitle(e.target.value)}
             readOnly={locked}
             autoComplete="off"

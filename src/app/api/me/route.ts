@@ -62,12 +62,12 @@ export async function GET(req: NextRequest) {
   });
 }
 
-/** 이름표 고치기: 닉네임 2~8자, 입학 연도, 반 */
+/** 이름표 고치기: 닉네임 2~8자, 입학 연도, 반, 나(남자아이·여자아이 = 읽어 주는 목소리) */
 export async function PATCH(req: NextRequest) {
   return handle(async () => {
     assertSameOrigin(req);
     const user = await requireUser(req);
-    const body = await readJson<{ nickname?: string; entryYear?: number | null; classNo?: number }>(req);
+    const body = await readJson<{ nickname?: string; entryYear?: number | null; classNo?: number; kid?: string }>(req);
     const set: Record<string, unknown> = {};
     if (body.nickname !== undefined) {
       const nick = String(body.nickname).trim();
@@ -83,6 +83,10 @@ export async function PATCH(req: NextRequest) {
       const c = Number(body.classNo);
       if (!(c >= 1 && c <= 15)) throw new HttpError(400, "classNo", "반은 1~15반 중에 골라 주세요");
       set.classNo = c;
+    }
+    if (body.kid !== undefined) {
+      if (body.kid !== "girl" && body.kid !== "boy") throw new HttpError(400, "kid", "남자아이·여자아이 중에 골라 주세요");
+      set.kid = body.kid;
     }
     const { users } = await cols();
     const updated = await users.findOneAndUpdate({ _id: user._id }, { $set: set }, { returnDocument: "after" });

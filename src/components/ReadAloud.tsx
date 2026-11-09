@@ -1,12 +1,12 @@
 "use client";
 
 // 다 쓴 일기를 아이 목소리로 소리 내어 읽기 (여자아이 수아 · 남자아이 태지, Typecast)
+// 목소리는 가입할 때 고른 나(이름표의 남자아이·여자아이)로만 읽는다 — 따로 고르는 단추 없음 (11-09 사용자).
 // 서버에 목소리 키가 없으면 아무것도 안 보인다.
 
 import { useEffect, useRef, useState } from "react";
-import { getReading, readAloudOn, readVoice, setReadVoice, type ReadInput } from "@/lib/readAloud";
-import { READ_VOICES, type ReadVoice } from "@/lib/readScript";
-import { pencilTick } from "@/lib/feel";
+import { getReading, readAloudOn, voiceFor, type ReadInput } from "@/lib/readAloud";
+import { useMe } from "@/lib/me";
 
 const SORRY: Record<string, string> = {
   too_many: "목이 조금 쉬었어요. 잠시 뒤에 다시 읽어 볼게요",
@@ -15,8 +15,8 @@ const SORRY: Record<string, string> = {
 };
 
 export default function ReadAloud({ diary }: { diary: ReadInput }) {
+  const { me } = useMe();
   const [on, setOn] = useState(false);
-  const [voice, setVoice] = useState<ReadVoice>("girl");
   const [state, setState] = useState<"idle" | "loading" | "playing">("idle");
   const [msg, setMsg] = useState<string | null>(null);
   const audio = useRef<HTMLAudioElement | null>(null);
@@ -31,8 +31,6 @@ export default function ReadAloud({ diary }: { diary: ReadInput }) {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- 이 기기에서 고른 목소리
-    setVoice(readVoice());
     let alive = true;
     void readAloudOn().then((v) => alive && setOn(v));
     return () => {
@@ -44,12 +42,12 @@ export default function ReadAloud({ diary }: { diary: ReadInput }) {
 
   if (!on || (!diary.title.trim() && !diary.body.trim())) return null;
 
-  const play = async (v: ReadVoice = voice) => {
+  const play = async () => {
     if (state === "playing" || state === "loading") return stop();
     setMsg(null);
     setState("loading");
     try {
-      const blob = await getReading(diary, v);
+      const blob = await getReading(diary, voiceFor(me?.kid));
       const u = URL.createObjectURL(blob);
       const a = new Audio(u);
       url.current = u;
@@ -60,17 +58,6 @@ export default function ReadAloud({ diary }: { diary: ReadInput }) {
     } catch (e) {
       stop();
       setMsg(SORRY[(e as Error).message] ?? "목소리를 못 불러왔어요. 잠시 뒤에 다시 눌러 주세요");
-    }
-  };
-
-  const pick = (v: ReadVoice) => {
-    if (v === voice) return;
-    pencilTick();
-    setReadVoice(v);
-    setVoice(v);
-    if (state !== "idle") {
-      stop();
-      void play(v);
     }
   };
 
@@ -90,13 +77,6 @@ export default function ReadAloud({ diary }: { diary: ReadInput }) {
         {state === "loading" ? "목소리 고르는 중" : state === "playing" ? "그만 읽기" : "소리 내어 읽기"}
         {state === "loading" && <span className="dots" />}
       </button>
-      <div className="ra-voices" role="radiogroup" aria-label="읽어 줄 아이">
-        {READ_VOICES.map((v) => (
-          <button key={v.id} type="button" role="radio" aria-checked={voice === v.id} className="ra-voice" onClick={() => pick(v.id)}>
-            {v.name}
-          </button>
-        ))}
-      </div>
       {msg && (
         <p className="ra-msg" role="status">
           {msg}

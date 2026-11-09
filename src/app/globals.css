@@ -1060,6 +1060,32 @@ a {
   pointer-events: none;
 }
 
+/* 상황별 배경 칩 (전체 · 학교 추억 · 일상 · 계절·날씨 · 나들이) */
+.bg-packs {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.bg-packs::-webkit-scrollbar {
+  display: none;
+}
+.bg-packs button {
+  flex: none;
+  padding: 4px 10px;
+  border: 1.5px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 12px;
+}
+.bg-packs button[aria-pressed="true"] {
+  border-color: var(--ink);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
 .bg-tray {
   display: flex;
   gap: 8px;

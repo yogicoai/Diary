@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BACKGROUNDS, bgById, bgSrc, bgThumb } from "@/lib/backgrounds";
+import { BACKGROUNDS, bgById, bgSrc, bgThumb, BG_PACKS } from "@/lib/backgrounds";
 import { CRAYONS, drawStroke, type Point, type Stroke } from "@/lib/crayon";
 import { addWear, newCrayon, wearMap } from "@/lib/crayonWear";
 import { crayonStroke, pencilTick } from "@/lib/feel";
@@ -29,6 +29,7 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
   const [color, setColor] = useState<string>(CRAYONS[0].hex);
   const [size, setSize] = useState(1);
   const [erase, setErase] = useState(false);
+  const [pack, setPack] = useState(""); // 상황별 배경 묶음 ("" = 전체)
   // 몽당 크레파스: 색마다 닳은 정도 (0~1)
   const [wear, setWear] = useState<Record<string, number>>({});
   const drawnPx = useRef(0);
@@ -193,6 +194,15 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
       </div>
 
       {!readOnly && BACKGROUNDS.length > 0 && (
+        <div className="bg-packs" role="group" aria-label="상황별 배경">
+          {[{ id: "", name: "전체" }, ...BG_PACKS.filter((p) => BACKGROUNDS.some((b) => b.pack === p.id))].map((p) => (
+            <button key={p.id || "all"} type="button" aria-pressed={pack === p.id} onClick={() => setPack(p.id)}>
+              {p.name}
+            </button>
+          ))}
+        </div>
+      )}
+      {!readOnly && BACKGROUNDS.length > 0 && (
         <div className="bg-tray" role="radiogroup" aria-label="배경 고르기">
           <button
             type="button"
@@ -216,7 +226,7 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
               <span className="bg-name">내 그림</span>
             </button>
           )}
-          {BACKGROUNDS.map((b) => (
+          {BACKGROUNDS.filter((b) => !pack || b.pack === pack).map((b) => (
             <button
               key={b.id}
               type="button"

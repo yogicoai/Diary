@@ -10,10 +10,12 @@ import { nameTag } from "@/lib/social";
 export async function GET(req: NextRequest) {
   return handle(async () => {
     const { user, role } = await requireStaff(req);
-    const { diaries } = await cols();
-    const todo = await diaries.countDocuments({
-      $or: [{ "board.status": "pending" }, { "board.status": "visible", "board.reports": { $gt: 0 } }],
-    });
+    const { diaries, homework } = await cols();
+    const [board, hw] = await Promise.all([
+      diaries.countDocuments({ $or: [{ "board.status": "pending" }, { "board.status": "visible", "board.reports": { $gt: 0 } }] }),
+      homework.countDocuments({ share: true, status: "pending" }),
+    ]);
+    const todo = board + hw;
     return adminJson({
       name: user.loginId ?? nameTag(user),
       role,

@@ -3,7 +3,7 @@
 // 저장된 일기·공유 링크가 id 로 찾으니 id 를 바꾸거나 지우지 말고 새 도장은 끝에 추가한다. 모르는 id 는 "참 잘했어요".
 // 모양은 100×100 칸(가운데 50,50) 안의 SVG path — 화면(StampSvg)과 카드(Canvas Path2D)가 같이 쓴다.
 
-export type StampId = "cham" | "great" | "best" | "cheer" | "thanks" | "brave" | "cool" | "envy";
+export type StampId = "cham" | "great" | "best" | "cheer" | "thanks" | "brave" | "cool" | "envy" | "checked";
 type Shape = "circle" | "double" | "scallop" | "square";
 type Motif = "star" | "heart";
 
@@ -25,9 +25,14 @@ export const STAMPS: Stamp[] = [
   { id: "brave", label: "용감해요", lines: ["용감", "해요"], shape: "double", meaning: "무섭거나 귀찮은 일을 이겨 낸 날, 처음 해 본 도전" },
   { id: "cool", label: "멋져요", lines: ["멋져요"], shape: "scallop", meaning: "멋진 선택, 남을 도운 일, 새로운 시도" },
   { id: "envy", label: "부러워요", lines: ["부러워요"], shape: "circle", meaning: "여행·맛집·늦잠·쉬는 날처럼 선생님이 부러운 날" },
+  // 숙제 검사 도장 — 어른이 미션을 내면 찍는다 (일기 도장으로는 안 고른다)
+  { id: "checked", label: "숙제 검사 끝", lines: ["검사", "끝"], shape: "square", meaning: "숙제 검사 도장" },
 ];
 
-export const STAMP_IDS = STAMPS.map((s) => s.id) as [StampId, ...StampId[]];
+/** 선생님(Claude)이 일기에 고를 수 있는 도장 (숙제 검사 도장은 빼고) */
+export const DIARY_STAMPS = STAMPS.filter((s) => s.id !== "checked");
+
+export const STAMP_IDS = DIARY_STAMPS.map((s) => s.id) as [StampId, ...StampId[]];
 
 export function stampById(id?: string | null): Stamp {
   return STAMPS.find((s) => s.id === id) ?? STAMPS[0];
