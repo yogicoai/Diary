@@ -1,4 +1,4 @@
-// 아이디로 들어가기 (운영자 fe·yogico 처럼 scripts/account.mjs 로 만든 계정만). 운영 서버에서도 쓴다.
+// 아이디로 들어가기 — 교무실 선생님(fe·yogico)만. 일반 사용자는 구글로만 들어온다 (11-09 사용자).
 // 막는 것: 다른 사이트에서 보내기, 한 곳에서 10분에 10번 넘게, 한 아이디 5번 틀리면 15분 잠금.
 
 import { NextResponse, type NextRequest } from "next/server";
@@ -6,6 +6,7 @@ import { cols } from "@/lib/server/db";
 import { assertRate, assertSameOrigin, clientIp, handle, HttpError, readJson } from "@/lib/server/http";
 import { verifyPassword } from "@/lib/server/password";
 import { setSession } from "@/lib/server/session";
+import { staffOfLoginId } from "@/lib/staff";
 
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60_000;
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
     const body = await readJson<{ id?: unknown; password?: unknown }>(req);
     const loginId = String(body.id ?? "").trim().toLowerCase();
     const pw = String(body.password ?? "");
-    if (!/^[a-z0-9][a-z0-9_.-]{1,19}$/.test(loginId) || !pw || pw.length > 200) {
+    if (!/^[a-z0-9][a-z0-9_.-]{1,19}$/.test(loginId) || !staffOfLoginId(loginId) || !pw || pw.length > 200) {
       await verifyPassword(pw.slice(0, 200), undefined);
       throw new HttpError(401, "wrong", WRONG);
     }

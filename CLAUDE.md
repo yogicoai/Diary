@@ -50,8 +50,8 @@
 
 ## 참여 기능 (11-06, 사용자: "다 가보자")
 
-- 로그인 = **구글** (OAuth 직접 구현 `api/auth/google`, jose 세션 쿠키 `cj_session`) + **기본 로그인** (11-09 사용자: "구글로 시작하기 아래 기본 로그인, 거기서 가입"): 아이디·비밀번호로 가입(`api/auth/signup`, 한 곳 1시간 5번)·들어가기(`api/auth/password`, scrypt, 5번 틀리면 15분 잠금), googleSub `id:아이디`. 이메일이 없어 비밀번호를 잊으면 스스로 못 찾는다(가입 화면에 안내, scripts/account.mjs reset). admin·root 같은 아이디는 막음(`lib/staff.ts` BLOCKED_IDS). 개발용 로그인은 DEV_LOGIN=1 + 운영 아님일 때만.
-- **선생님 아이디 = fe(전산 선생님, 개발)·yogico(교장 선생님, 회사)** 두 개만 교무실에 들어온다 (11-09 사용자: "fe·yogico 두 아이디만 접근"). 권한은 아이디 이름으로 정한다(`lib/staff.ts`) — 그래서 실제 서버에서는 이 두 아이디를 **선생님 가입 코드(STAFF_SIGNUP_CODE)** 가 있어야만 가입할 수 있다(개발 서버는 코드 없이). 사용자가 직접 가입하기로 해서 11-09 에 미리 만들어 둔 계정은 지웠다. 전산 선생님만 교무 일지의 '시설 점검·교무 기록'을 본다. 관리자 이메일·개발용 로그인으로는 교무실에 못 들어온다.
+- 로그인 = **구글만** (11-09 사용자: "이후는 모두 구글 가입만, 덜 헷갈리게"). OAuth 직접 구현 `api/auth/google`, jose 세션 쿠키 `cj_session`. 아이디 가입 길은 없다. 개발용 로그인은 DEV_LOGIN=1 + 운영 아님일 때만.
+- **선생님 아이디 = fe(개발 → 전산 선생님)·yogico(클라이언트 → 교장 선생님)** 두 개만 교무실에 들어온다 (11-09 사용자). 이 둘만 교무실 문에서 아이디·비밀번호로 들어온다(`api/auth/password`, scrypt, 5번 틀리면 15분 잠금, 그 밖의 아이디는 거절). 사용자가 직접 정한 비밀번호로 만들어 진짜 Atlas 에 있다(임시 DB 에서 가입한 것을 11-09 에 비밀번호 값 그대로 옮김). 잊으면 `scripts/account.mjs reset`. 권한은 아이디 이름으로(`lib/staff.ts`). 전산 선생님만 교무 일지의 '시설 점검·교무 기록'을 본다.
 - **교무실** `/admin` (11-09 사용자: "동화 앱 어드민단과 비슷한 관리자 페이지" → "교무실이라고"): 교무 일지(대시보드) · 학생 명부(이름표·로그인·들어간 반·일기 수, 정지) · 반(반장·친구·반에 낸 일기·짝꿍 한마디) · 숙제 내기 · 게시판 검사. 서버는 `lib/server/admin.ts` requireStaff 로 막고 응답은 no-store. **운영자는 남에게 보여 준 일기(게시판·반)만 펼쳐 본다 — 혼자 쓴 일기는 날짜만** (canOpen/bodyVisible). 정지하면 로그인 막고 게시판 일기도 내린다. 처리는 adminlog 에 남는다.
 - 저장 = **Mongo(DB chamjal) + Cafe24 FTP**(그림 파일, QR 스튜디오 price_Line 과 같은 FTP_* / PUBLIC_ASSET_BASE 이름). FTP 없으면 개발은 public/_dev-uploads.
 - 일기는 **이 기기가 원본(local-first)**: IndexedDB 에 먼저, 로그인하면 `lib/sync.ts` 가 서버와 합친다(기기 id = clientId 로 겹침 방지).

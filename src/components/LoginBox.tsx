@@ -1,101 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
-import { api, ApiError } from "@/lib/api";
+// 일기장 로그인: 구글로만 가입·로그인한다 (11-09 사용자: "이후는 모두 구글 가입만, 덜 헷갈리게").
+// 아이디 로그인은 선생님(fe·yogico) 전용이라 교무실(/admin) 들어가는 곳에만 있다.
+
+import { useState } from "react";
 import { useMe } from "@/lib/me";
 import Sheet from "./Sheet";
 
-/** 기본 로그인: 아이디로 들어가기 / 가입하기 (구글 아래). 선생님 아이디(fe·yogico)는 실제 서버에서 가입 코드가 필요하다 */
-function IdLogin({ next }: { next: string }) {
-  const { refresh } = useMe();
-  const router = useRouter();
-  const [mode, setMode] = useState<"in" | "up">("in");
-  const [id, setId] = useState("");
-  const [pw, setPw] = useState("");
-  const [pw2, setPw2] = useState("");
-  const [code, setCode] = useState("");
-  const [needCode, setNeedCode] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (busy) return;
-    if (mode === "up" && pw !== pw2) return setErr("비밀번호 두 칸이 서로 달라요");
-    setBusy(true);
-    setErr(null);
-    try {
-      if (mode === "up") await api("/api/auth/signup", { method: "POST", json: { id, password: pw, code } });
-      else await api("/api/auth/password", { method: "POST", json: { id, password: pw } });
-      await refresh();
-      router.replace(next);
-    } catch (x) {
-      if (x instanceof ApiError && x.code === "need_code") setNeedCode(true);
-      setErr(x instanceof Error ? x.message : "들어가지 못했어요");
-      setBusy(false);
-    }
-  };
-
-  const pick = (m: "in" | "up") => {
-    setMode(m);
-    setErr(null);
-  };
-
-  return (
-    <div className="basic-login">
-      <p className="or-line">
-        <span>또는 아이디로</span>
-      </p>
-      <div className="login-seg" role="tablist" aria-label="아이디로">
-        <button type="button" role="tab" aria-selected={mode === "in"} onClick={() => pick("in")}>
-          들어가기
-        </button>
-        <button type="button" role="tab" aria-selected={mode === "up"} onClick={() => pick("up")}>
-          가입하기
-        </button>
-      </div>
-      <form className="id-login" onSubmit={(e) => void submit(e)}>
-        <input
-          value={id}
-          onChange={(e) => setId(e.target.value.toLowerCase())}
-          placeholder={mode === "up" ? "아이디 (영문 소문자·숫자 2~20자)" : "아이디"}
-          aria-label="아이디"
-          autoComplete="username"
-          autoCapitalize="none"
-          spellCheck={false}
-          required
-        />
-        <input
-          value={pw}
-          onChange={(e) => setPw(e.target.value)}
-          type="password"
-          placeholder={mode === "up" ? "비밀번호 (8자 이상)" : "비밀번호"}
-          aria-label="비밀번호"
-          autoComplete={mode === "up" ? "new-password" : "current-password"}
-          required
-        />
-        {mode === "up" && (
-          <input value={pw2} onChange={(e) => setPw2(e.target.value)} type="password" placeholder="비밀번호 한 번 더" aria-label="비밀번호 한 번 더" autoComplete="new-password" required />
-        )}
-        {mode === "up" && needCode && (
-          <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="선생님 가입 코드" aria-label="선생님 가입 코드" autoComplete="off" required />
-        )}
-        {err && (
-          <p className="note id-login-err" role="alert">
-            {err}
-          </p>
-        )}
-        <button type="submit" className="btn plain" disabled={busy || !id || !pw || (mode === "up" && !pw2)}>
-          {busy ? "확인하는 중…" : mode === "up" ? "가입하고 시작하기" : "아이디로 들어가기"}
-        </button>
-        {mode === "up" && <p className="note">이메일 없이 만드는 아이디라 비밀번호를 잊으면 찾을 수 없어요. 꼭 기억해 두세요.</p>}
-      </form>
-    </div>
-  );
-}
-
-/** 로그인 버튼 묶음 (구글 + 기본 로그인(아이디 들어가기·가입) + 개발 중엔 개발용 로그인) */
+/** 로그인 버튼 묶음 (구글 + 개발 중엔 개발용 로그인) */
 export function LoginButtons({ next }: { next: string }) {
   const { flags } = useMe();
   const [name, setName] = useState("");
@@ -116,7 +28,6 @@ export function LoginButtons({ next }: { next: string }) {
         구글로 시작하기
       </a>
       {flags && !flags.google && <p className="note">구글 로그인은 준비 중이에요.</p>}
-      <IdLogin next={next} />
       {flags?.devLogin && (
         <form
           className="dev-login"

@@ -241,7 +241,6 @@ function LoginCard({ onDone }: { onDone: () => void }) {
         {busy ? "확인하는 중…" : "들어가기"}
       </button>
       <div className="adm-login-foot">
-        <Link href="/login?next=/admin">아이디 만들기 (가입)</Link>
         <Link href="/">일기장으로 돌아가기</Link>
       </div>
     </form>

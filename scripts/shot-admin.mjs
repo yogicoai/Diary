@@ -93,13 +93,9 @@ const mOverflow = await m.evaluate(() => document.documentElement.scrollWidth > 
 
 // ── 일기장 쪽: 받은 아이디로 들어가기 (yogico) → 나 화면에 관리자 페이지 링크
 const y = await open(390, 844, true);
-await y.goto(`${B}/login?next=/me`, { waitUntil: "networkidle0" });
-await clickText(y, "받은 아이디로 들어가기");
-await y.waitForSelector(".id-login", { timeout: 10000 });
-await y.type(".id-login input[autocomplete=username]", "yogico");
-await y.type(".id-login input[type=password]", process.argv[4] || "test-yogico-1234");
-await y.click(".id-login button[type=submit]");
-await y.waitForFunction(() => location.pathname === "/me", { timeout: 20000 });
+await login(y, "yogico", process.argv[4] || "test-yogico-1234");
+await y.waitForSelector(".adm-stats", { timeout: 20000 });
+await y.goto(`${B}/me`, { waitUntil: "networkidle0" });
 await sleep(1500);
 const adminLink = await y.evaluate(() => !![...document.querySelectorAll("a")].find((a) => a.getAttribute("href") === "/admin"));
 await shot(y, "y1-me-yogico");
