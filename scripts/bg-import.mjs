@@ -47,7 +47,15 @@ if (cmd === "doc") {
 const inDir = "drafts/bg/incoming";
 fs.mkdirSync(inDir, { recursive: true });
 fs.mkdirSync("public/bg/thumb", { recursive: true });
-const files = fs.readdirSync(inDir).filter((f) => /\.(png|jpe?g|webp)$/i.test(f));
+// 목록(bg-catalog.json) 순서대로 넣는다 → 그림칸 배경 고르는 줄에도 장면 목록 순서로 보인다
+const order = (f) => {
+  const i = catalog.items.findIndex((it) => it.id === path.parse(f).name.toLowerCase());
+  return i < 0 ? Infinity : i;
+};
+const files = fs
+  .readdirSync(inDir)
+  .filter((f) => /\.(png|jpe?g|webp)$/i.test(f))
+  .sort((a, b) => order(a) - order(b));
 if (!files.length) {
   console.log(`${inDir} 에 그림이 없어요`);
   process.exit(0);
