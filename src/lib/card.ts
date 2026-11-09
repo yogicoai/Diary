@@ -6,7 +6,7 @@ import { crayonPattern, renderStrokes } from "./crayon";
 import { drawSticker, STICKERS } from "./stickers";
 import { COLS, ROWS, layoutCells, rowSpans } from "./manuscript";
 import { koreanDate } from "./date";
-import { WEATHERS } from "./weather";
+import { weatherChoices } from "./weather";
 import type { Diary } from "./store";
 
 export const CARD_W = 1080;
@@ -83,16 +83,17 @@ export async function renderCard(d: Diary): Promise<HTMLCanvasElement> {
   ctx.fillText(koreanDate(d.date), x0, y + 40);
 
   // 날씨
-  const iconSize = 46;
-  const gap = 58;
-  const iconsW = gap * WEATHERS.length - (gap - iconSize);
+  const skies = weatherChoices(d.weather);
+  const iconSize = 42;
+  const gap = 52;
+  const iconsW = gap * skies.length - (gap - iconSize);
   let ix = x0 + cw - iconsW;
   ctx.font = `30px ${ui}`;
   ctx.fillStyle = color.line;
   ctx.textAlign = "right";
   ctx.fillText("날씨", ix - 34, y + 40);
   ctx.textAlign = "left";
-  for (const w of WEATHERS) {
+  for (const w of skies) {
     ctx.save();
     ctx.translate(ix, y + 40 - iconSize / 2);
     ctx.scale(iconSize / 24, iconSize / 24);
@@ -108,7 +109,7 @@ export async function renderCard(d: Diary): Promise<HTMLCanvasElement> {
       ctx.lineWidth = 7;
       ctx.lineCap = "round";
       ctx.beginPath();
-      ctx.ellipse(ix + iconSize / 2, y + 40, iconSize * 0.78, iconSize * 0.68, -0.15, 0.2, Math.PI * 2 + 0.45);
+      ctx.ellipse(ix + iconSize / 2, y + 40, iconSize * 0.7, iconSize * 0.62, -0.15, 0.2, Math.PI * 2 + 0.45);
       ctx.stroke();
       ctx.restore();
     }

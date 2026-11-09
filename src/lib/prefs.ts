@@ -54,3 +54,22 @@ export function setWebBg(id: WebBgId) {
   }
   window.dispatchEvent(new Event("chamjal:webbg"));
 }
+
+// 처음 온 사람 인트로(표지 → 쓰는 법 → 이름표)를 이 기기에서 봤나. 로그인했거나 "로그인 없이 써 볼게요"를 누르면 봤다고 적는다.
+const INTRO_KEY = "chamjal.intro";
+
+export function introSeen(): boolean {
+  try {
+    return localStorage.getItem(INTRO_KEY) === "1";
+  } catch {
+    return true; // 저장소를 못 쓰는 브라우저는 인트로를 매번 보여 주지 않는다
+  }
+}
+
+export function setIntroSeen() {
+  try {
+    localStorage.setItem(INTRO_KEY, "1");
+  } catch {
+    /* 무시 */
+  }
+}

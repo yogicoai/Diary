@@ -21,6 +21,23 @@ export type UserDoc = {
   createdAt: Date;
   lastSeenAt: Date;
   banned?: boolean;
+  // 아이디로 들어오는 계정 (scripts/account.mjs 로만 만든다). googleSub 는 "id:아이디"
+  loginId?: string;
+  passHash?: string;
+  staff?: "developer" | "company"; // 운영자: 개발자(fe) · 회사(yogico) — 관리자 페이지에 들어온다
+  loginFails?: number;
+  lockedUntil?: Date;
+};
+
+// 관리자 페이지에서 한 일 (정지·게시판 처리). 개발자 계정 대시보드에서만 보인다.
+export type AdminLogDoc = {
+  _id: ObjectId;
+  at: Date;
+  by: ObjectId;
+  byName: string;
+  action: "ban" | "unban" | "approve" | "hide";
+  target: string; // 회원 id 또는 일기 id
+  note?: string;
 };
 
 export type BoardState = {
@@ -109,6 +126,7 @@ export async function cols() {
     classes: db.collection<ClassDoc>("classes"),
     awards: db.collection<AwardDoc>("awards"),
     notes: db.collection<NoteDoc>("notes"),
+    adminlog: db.collection<AdminLogDoc>("adminlog"),
   };
 }
 
@@ -126,5 +144,6 @@ async function ensureIndexes(db: Db) {
     db.collection("awards").createIndex({ userId: 1, key: 1 }, { unique: true }),
     db.collection("awards").createIndex({ kind: 1, key: 1 }),
     db.collection("notes").createIndex({ diaryId: 1, at: 1 }),
+    db.collection("adminlog").createIndex({ at: -1 }),
   ]);
 }

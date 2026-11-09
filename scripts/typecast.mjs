@@ -12,7 +12,7 @@ const KEY = process.env.TYPECAST_API_KEY;
 if (!KEY) throw new Error("TYPECAST_API_KEY 가 없어요 (--env-file 확인)");
 
 const DIARY =
-  "2026년 11월 9일 월요일. 날씨, 좋았어. 제목, 떡볶이 먹은 날. 퇴근하고 친구랑 떡볶이를 먹었다. 너무 맛있어서 웃음이 났다.";
+  "2026년 11월 9일 월요일. 날씨, 맑음. 제목, 떡볶이 먹은 날. 퇴근하고 친구랑 떡볶이를 먹었다. 너무 맛있어서 웃음이 났다.";
 const TEACHER = "배부르면 마음도 든든해요. 참 잘했어요!";
 
 async function voices() {

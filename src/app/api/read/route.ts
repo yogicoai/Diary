@@ -15,8 +15,6 @@ const VOICES = {
 } as const;
 const SAFE_LIMIT = 190_000; // 같은 계정 전체(이번 달) 안전선
 
-// 마음 날씨 → 읽는 느낌. 세게 주면 목소리 결까지 바뀌어서 낮게만
-const EMOTION: Record<string, string> = { sun: "happy", rainbow: "happy", rain: "sad", storm: "sad" };
 
 const Body = z.object({
   voice: z.enum(["girl", "boy"]),
@@ -84,7 +82,6 @@ export async function POST(req: Request) {
     return Response.json({ error: "month_limit" }, { status: 429 });
   }
 
-  const emotion = input.weather ? EMOTION[input.weather] : undefined;
   const res = await fetch(`${API}/v1/text-to-speech`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-API-KEY": key },
@@ -94,7 +91,6 @@ export async function POST(req: Request) {
       model: MODEL,
       language: "kor",
       output: { audio_format: "mp3" },
-      ...(emotion ? { prompt: { emotion_preset: emotion, emotion_intensity: 0.4 } } : {}),
     }),
   });
   if (!res.ok) {

@@ -7,6 +7,16 @@ type Topic = { id: string; words: string[]; lines: string[]; stickers: string[] 
 
 const TOPICS: Topic[] = [
   {
+    id: "sad",
+    words: ["슬펐", "슬프", "울었", "눈물", "우울", "속상", "외로", "서운", "화났", "짜증", "힘들었", "괴로"],
+    lines: [
+      "속상한 마음, 여기다 다 내려놓고 가요. 선생님이 맡아 둘게요.",
+      "그런 날도 있어요. 오늘은 따뜻한 거 한 잔 하고 일찍 쉬어요.",
+      "꾹 참지 않고 써 줘서 고마워요. 잘 썼어요.",
+    ],
+    stickers: ["cheer", "rest", "proud"],
+  },
+  {
     id: "food",
     words: ["먹", "밥", "떡볶이", "라면", "치킨", "피자", "커피", "빵", "케이크", "맛있", "배불", "고기", "술", "맥주", "간식", "디저트"],
     lines: [
@@ -86,12 +96,15 @@ const TOPICS: Topic[] = [
   },
 ];
 
+// 이야기에 맞는 주제가 없을 때: 그날 진짜 날씨로 한 줄 (날씨는 기분이 아니다)
 const BY_WEATHER: Record<WeatherId, { lines: string[]; stickers: string[] }> = {
-  sun: { lines: ["오늘 웃은 얼굴, 일기장에 다 묻어 있어요.", "기분 좋은 하루, 선생님이 도장 두 번 찍고 싶어요."], stickers: ["best", "laugh"] },
-  cloud: { lines: ["별일 없는 날이 사실 제일 귀한 날이에요.", "그저 그런 날도 일기를 쓴 당신은 그저 그렇지 않아요."], stickers: ["proud", "cozy"] },
-  rain: { lines: ["울적한 마음, 여기다 다 내려놓고 가요. 선생님이 맡아 둘게요.", "오늘은 따뜻한 거 한 잔 하고 일찍 쉬어요."], stickers: ["cheer", "rest"] },
-  storm: { lines: ["속상한 마음 꾹 참지 말고 여기 써요. 잘 썼어요.", "그런 날도 있어요. 내일은 갤 거예요."], stickers: ["cheer", "brave"] },
-  rainbow: { lines: ["설레는 일이 있었군요. 선생님도 궁금해서 잠이 안 와요.", "두근거림은 오래 기억해 둬요."], stickers: ["dream", "envy"] },
+  sun: { lines: ["햇볕 좋은 날 쓴 일기라 글자도 반짝반짝해요.", "맑은 날엔 일기도 맑아지나 봐요. 참 잘했어요."], stickers: ["best", "laugh"] },
+  partly: { lines: ["구름 사이로 해 나오듯 일기 속에 웃음이 보여요.", "구름 조금 낀 날도 오늘 숙제는 완벽해요."], stickers: ["proud", "laugh"] },
+  cloud: { lines: ["하늘은 흐려도 일기장은 맑음이에요.", "흐린 날에도 꼬박꼬박 쓴 당신이 오늘의 해님이에요."], stickers: ["proud", "cozy"] },
+  rain: { lines: ["빗소리 들으며 쓴 일기는 더 오래 남아요. 우산 잘 챙겼죠?", "비 오는 날 일기라 원고지가 촉촉한 것 같아요."], stickers: ["cozy", "rest"] },
+  snow: { lines: ["눈 오는 날 일기라니, 선생님도 눈사람 만들러 가고 싶어요.", "하얀 눈처럼 깨끗하게 잘 썼어요. 감기 조심해요."], stickers: ["dream", "cozy"] },
+  storm: { lines: ["천둥이 쳐도 일기는 끝까지 썼네요. 용감해요!", "번개보다 빠르게 숙제 끝! 참 잘했어요."], stickers: ["brave", "cool"] },
+  rainbow: { lines: ["무지개 뜬 날 일기라 일곱 빛깔로 반짝여요.", "무지개처럼 고운 하루였네요."], stickers: ["dream", "envy"] },
 };
 
 function hash(s: string): number {
@@ -107,16 +120,11 @@ export function teacherReply(text: string, weather: WeatherId | null, seed = "")
   const t = text.replace(/\s+/g, "");
   const key = hash(t + (weather ?? "") + seed);
   const topic = TOPICS.find((tp) => tp.words.some((w) => t.includes(w)));
-  // 비·천둥 날은 웃기기보다 마음을 먼저 받아 준다
-  if (weather === "rain" || weather === "storm") {
-    const w = BY_WEATHER[weather];
-    return { line: w.lines[key % w.lines.length], stickers: [w.stickers[0], ...(topic ? [topic.stickers[0]] : [w.stickers[1]])].filter((v, i, a) => a.indexOf(v) === i) };
-  }
   if (topic) {
     const n = 1 + (key % 2); // 스티커 2~3개
     return { line: topic.lines[key % topic.lines.length], stickers: topic.stickers.slice(0, n + 1) };
   }
-  const w = BY_WEATHER[weather ?? "sun"];
+  const w = BY_WEATHER[weather ?? "sun"] ?? BY_WEATHER.sun;
   return { line: w.lines[key % w.lines.length], stickers: w.stickers };
 }
 

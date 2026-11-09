@@ -60,15 +60,27 @@ export async function requireUser(req: NextRequest): Promise<UserDoc> {
   return user;
 }
 
-export function isAdmin(user: UserDoc | null): boolean {
-  if (!user) return false;
+/**
+ * 관리자 페이지에 들어오는 사람
+ *  developer = 개발자 아이디(fe) · company = 회사 아이디(yogico) — scripts/account.mjs 로 만든 운영자
+ *  teacher = ADMIN_EMAILS 의 구글 계정 · dev = 개발 중 개발용 로그인
+ */
+export type StaffRole = "developer" | "company" | "teacher" | "dev";
+
+export function staffRole(user: UserDoc | null): StaffRole | null {
+  if (!user) return null;
+  if (user.staff === "developer" || user.staff === "company") return user.staff;
   if (process.env.NODE_ENV !== "production" && process.env.DEV_LOGIN === "1" && user.googleSub.startsWith("dev:"))
-    return true;
+    return "dev";
   const admins = (process.env.ADMIN_EMAILS ?? "")
     .split(",")
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
-  return admins.includes(user.email.toLowerCase());
+  return user.email && admins.includes(user.email.toLowerCase()) ? "teacher" : null;
+}
+
+export function isAdmin(user: UserDoc | null): boolean {
+  return staffRole(user) !== null;
 }
 
 /** 처음 들어온 사람: 이름표 기본값 (닉네임은 구글 이름 앞 두 글자 + 숫자로 가려서) */

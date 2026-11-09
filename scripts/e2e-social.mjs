@@ -39,7 +39,7 @@ await shot(a, "02-me");
 await a.goto(`${B}/`, { waitUntil: "networkidle0" });
 await click(a, "숙제로 쓰기");
 await a.evaluate(() => [...document.querySelectorAll(".bg-tile")].find((x) => x.textContent?.includes("공원"))?.click());
-await a.click('.weather button[aria-label="좋았어"]');
+await a.click('.weather button[aria-label="맑음"]');
 const draw = async (pts, color) => {
   await a.evaluate((c) => document.querySelector(`.crayon[aria-label="${c}"]`)?.click(), color);
   const r = await a.$eval(".draw-box", (el) => el.getBoundingClientRect().toJSON());

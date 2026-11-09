@@ -1,8 +1,8 @@
 "use client";
 
-import { WEATHERS, type WeatherId } from "@/lib/weather";
+import { weatherById, weatherChoices, type WeatherId } from "@/lib/weather";
 
-// 날씨는 크레파스로 동그라미 치기
+// 그날 진짜 날씨에 크레파스로 동그라미 치기
 const CIRCLE = "M23 6.5c-9.5-1.2-18.6 4.6-18.8 12.6C4 27.6 13 31.4 22.6 30.5c9.3-.9 15.4-6.6 14.4-14C36.2 9.8 29.5 5.4 20 6.9";
 
 export default function WeatherPicker({
@@ -16,9 +16,9 @@ export default function WeatherPicker({
 }) {
   return (
     <div className="weather-row">
-      <div className="weather" role="radiogroup" aria-label="오늘 마음 날씨">
+      <div className="weather" role="radiogroup" aria-label="그날 날씨">
         <span className="weather-label">날씨</span>
-        {WEATHERS.map((w) => (
+        {weatherChoices(value).map((w) => (
           <button
             key={w.id}
             type="button"
@@ -40,7 +40,7 @@ export default function WeatherPicker({
           </button>
         ))}
       </div>
-      <div className="mood-word">{WEATHERS.find((w) => w.id === value)?.label ?? ""}</div>
+      <div className="weather-word">{weatherById(value)?.label ?? ""}</div>
     </div>
   );
 }

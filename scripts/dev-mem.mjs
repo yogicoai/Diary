@@ -23,7 +23,8 @@ console.log(`임시 Mongo 켜짐: ${uri}`);
 
 const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "-p", process.env.PORT || "6900"], {
   stdio: "inherit",
-  env: { ...process.env, ...extra, MONGODB_URI: uri, DEV_LOGIN: "1" },
+  // 임시 DB 로 시험할 땐 그림도 임시로 (public/_dev-uploads). 빈 값을 주면 Next 가 .env.local 의 진짜 FTP 로 채우지 않는다
+  env: { ...process.env, ...extra, MONGODB_URI: uri, DEV_LOGIN: "1", FTP_USER: "", FTP_PASS: "" },
 });
 
 let stopping = false;

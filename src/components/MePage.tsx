@@ -168,7 +168,7 @@ export default function MePage() {
           )}
 
           <div className="me-links">
-            {me.admin && <Link href="/admin">선생님 확인함 (관리)</Link>}
+            {me.admin && <Link href="/admin">관리자 페이지</Link>}
             <button type="button" className="linkish" onClick={() => logout()}>
               로그아웃
             </button>

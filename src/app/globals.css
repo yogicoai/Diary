@@ -183,6 +183,7 @@ a {
 }
 
 .weather-label {
+  white-space: nowrap;
   font-size: 12px;
   color: var(--muted);
   margin-right: 6px;
@@ -241,7 +242,7 @@ a {
   }
 }
 
-.mood-word {
+.weather-word {
   font-family: var(--font-kid), cursive;
   font-weight: 700;
   font-size: 17px;

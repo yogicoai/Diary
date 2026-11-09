@@ -1,7 +1,7 @@
 // 아이 목소리가 읽을 글. 서버(api/read)와 화면(기기 저장 열쇠)이 같은 글을 쓴다.
 
 import { koreanDate } from "./date";
-import { WEATHERS } from "./weather";
+import { weatherById } from "./weather";
 
 export type ReadVoice = "girl" | "boy";
 export const READ_VOICES: { id: ReadVoice; name: string }[] = [
@@ -10,7 +10,7 @@ export const READ_VOICES: { id: ReadVoice; name: string }[] = [
 ];
 
 export function readScript(input: { date: string; weather: string | null; title: string; body: string }): string {
-  const w = WEATHERS.find((x) => x.id === input.weather);
+  const w = weatherById(input.weather);
   const parts = [`${koreanDate(input.date)}.`];
   if (w) parts.push(`날씨, ${w.label}.`);
   if (input.title.trim()) parts.push(`제목, ${input.title.trim()}.`);

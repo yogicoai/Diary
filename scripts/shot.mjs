@@ -26,6 +26,7 @@ try {
     await page.evaluate((t) => {
       localStorage.setItem("chamjal.theme", t);
       localStorage.setItem("chamjal.aiConsent", "no"); // 캡처는 기본 한 줄로
+      localStorage.setItem("chamjal.intro", "1"); // 처음 온 사람 인트로는 건너뜀 (인트로 캡처는 shot-intro.mjs)
     }, theme);
     await page.goto(base + "/", { waitUntil: "networkidle0" });
     await page.evaluate(() => document.fonts.ready);
@@ -36,7 +37,7 @@ try {
     }
 
     // 날씨, 그림, 제목, 글
-    await page.click('.weather button[aria-label="좋았어"]');
+    await page.click('.weather button[aria-label="맑음"]');
     const box = await page.$eval(".draw-box", (el) => {
       const r = el.getBoundingClientRect();
       return { x: r.left, y: r.top + window.scrollY, w: r.width, h: r.height };

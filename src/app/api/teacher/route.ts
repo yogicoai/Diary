@@ -7,7 +7,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import { cleanStickers, STICKER_IDS, STICKERS } from "@/lib/stickers";
-import { WEATHERS } from "@/lib/weather";
+import { weatherById } from "@/lib/weather";
 
 // 모델은 여기 한 곳 (11-06 사용자: Haiku 5.5 정도면 충분). 비용은 docs/revenue/수익구조.md
 // Haiku 5.5 는 서버 대체 모델(fallbacks)이 없어서 거절되면 기본 답장으로 간다
@@ -25,7 +25,8 @@ const SYSTEM = `당신은 유머 감각이 있는 초등학교 담임 선생님�
 - 농담은 읽자마자 알아듣게 쉽게 씁니다. 비유가 꼬이면 차라리 단순하게 갑니다.
 - 답장마다 "선생님"을 넣지 않습니다. 대부분은 없이 쓰고, 넣더라도 한 번만.
 - 학생을 놀리거나 비꼬지 않습니다. 외모, 돈, 회사·사람 실명은 건드리지 않습니다. 훈계, 조언, 해결책은 쓰지 않습니다.
-- 마음 날씨가 울적하거나 속상한 날, 아프거나 슬픈 이야기에는 웃기려 하지 말고 다정하게 곁에 있어 줍니다(아주 가벼운 미소 정도만).
+- 아프거나 슬프거나 속상한 이야기에는 웃기려 하지 말고 다정하게 곁에 있어 줍니다(아주 가벼운 미소 정도만). 기분은 날씨가 아니라 일기 글로 알아봅니다.
+- "날씨"는 그날 바깥의 진짜 날씨입니다(맑음·비·눈 같은). 기분으로 읽지 않고, 일기에 꼭 필요할 때만 짧게 짚습니다.
 - "밀린 숙제"라고 적혀 있으면, 지난 어느 하루의 일기 한 편을 늦게 낸 것입니다(여러 편을 몰아 낸 것이 아님). 늦게 낸 걸 귀엽게 한 번 짚고, 그래도 냈으니 칭찬합니다.
 - 그림만 있고 글이 없으면 그림을 그린 마음을 재치 있게 알아봐 줍니다.
 - 이모지, 해시태그, 따옴표는 쓰지 않습니다. 느낌표는 많아야 한 개.
@@ -108,9 +109,9 @@ export async function POST(req: Request) {
   }
   if (!input.body.trim() && !input.drew) return Response.json({ error: "empty" }, { status: 400 });
 
-  const mood = WEATHERS.find((w) => w.id === input.weather)?.label ?? "고르지 않음";
+  const sky = weatherById(input.weather)?.label ?? "안 적음";
   const diary = [
-    `마음 날씨: ${mood}`,
+    `날씨: ${sky}`,
     `제목: ${input.title.trim() || "(없음)"}`,
     `일기: ${input.body.trim() || "(글 없이 그림만 그렸어요)"}`,
     `그림: ${input.drew ? "크레파스로 그림을 그렸어요" : "그림은 없어요"}`,
