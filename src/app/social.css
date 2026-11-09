@@ -727,3 +727,75 @@
   top: 34px;
   background: var(--line);
 }
+
+/* 내 그림 가져오기 */
+.bg-tile.mine .bg-thumb {
+  border-style: dashed;
+  border-color: var(--line);
+}
+
+.mine-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.mine-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+}
+
+.mine-thumb {
+  display: block;
+  aspect-ratio: 4 / 3;
+  border: 1.5px solid var(--ink);
+  background: var(--paper-edge);
+  overflow: hidden;
+}
+
+.mine-thumb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mine-title {
+  margin-top: 4px;
+  font-family: var(--font-kid), cursive;
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mine-date {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* ---------- 넓은 화면: 일기장 뒤 크레파스 배경 (힉스필드 생성, public/web-bg) ---------- */
+@media (min-width: 760px) {
+  html[data-theme="stationery"] body {
+    background: var(--desk) url("/web-bg/doodle.webp") center / cover fixed no-repeat;
+  }
+  html[data-theme="drawing"] body {
+    background: var(--desk) url("/web-bg/town.webp") center / cover fixed no-repeat;
+  }
+  html[data-theme="vacation"] body {
+    background: var(--desk) url("/web-bg/desk.webp") center / cover fixed no-repeat;
+  }
+  .app {
+    min-height: 100dvh;
+    background-color: var(--desk);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.06),
+      0 30px 60px -28px rgba(40, 25, 10, 0.55);
+  }
+}

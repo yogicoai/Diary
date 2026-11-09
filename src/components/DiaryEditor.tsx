@@ -16,6 +16,7 @@ import type { WeatherId } from "@/lib/weather";
 import AiSheet from "./AiSheet";
 import CardSheet from "./CardSheet";
 import ConsentSheet from "./ConsentSheet";
+import MineSheet from "./MineSheet";
 import DiaryActions from "./DiaryActions";
 import CrayonPad from "./CrayonPad";
 import { BrandMark, StampSvg } from "./Icons";
@@ -43,6 +44,7 @@ export default function DiaryEditor() {
   const [cardOf, setCardOf] = useState<Diary | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
   const [consentOpen, setConsentOpen] = useState(false);
+  const [mineOpen, setMineOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   // 날짜는 브라우저에서만 정한다 (서버 시간과 어긋나지 않게)
@@ -167,6 +169,7 @@ export default function DiaryEditor() {
           onBg={setBg}
           readOnly={locked}
           onAskAi={() => setAiOpen(true)}
+          onPickMine={() => setMineOpen(true)}
         />
 
         <div className="title-row">
@@ -249,6 +252,17 @@ export default function DiaryEditor() {
       <ThemePicker />
 
       <AiSheet open={aiOpen} onClose={() => setAiOpen(false)} />
+      <MineSheet
+        open={mineOpen}
+        onClose={() => setMineOpen(false)}
+        onPick={(d) => {
+          if (strokes.length && !confirm("지금 그린 그림 대신 이 그림을 가져올까요?")) return;
+          setBg(d.bg ?? null);
+          setStrokes(d.strokes.map((st) => ({ ...st, points: [...st.points] })));
+          setMineOpen(false);
+          track("mine_reuse");
+        }}
+      />
       <ConsentSheet
         open={consentOpen}
         onAnswer={(yes) => {

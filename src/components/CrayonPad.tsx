@@ -14,9 +14,10 @@ type Props = {
   onBg?: (id: string | null) => void;
   readOnly?: boolean;
   onAskAi: () => void;
+  onPickMine?: () => void; // 내가 예전에 그린 그림 가져오기
 };
 
-export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly, onAskAi }: Props) {
+export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly, onAskAi, onPickMine }: Props) {
   const bgItem = bgById(bg);
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -142,6 +143,16 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
             </span>
             <span className="bg-name">직접 그리기</span>
           </button>
+          {onPickMine && (
+            <button type="button" className="bg-tile blank mine" onClick={onPickMine}>
+              <span className="bg-thumb">
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 3.5h11.5a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6 M6 3.5v17 M3.5 7h4M3.5 12h4M3.5 17h4 M10.5 8h5M10.5 11h4" />
+                </svg>
+              </span>
+              <span className="bg-name">내 그림</span>
+            </button>
+          )}
           {BACKGROUNDS.map((b) => (
             <button
               key={b.id}
