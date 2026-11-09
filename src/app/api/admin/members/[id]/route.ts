@@ -6,6 +6,7 @@ import { cols } from "@/lib/server/db";
 import { oid } from "@/lib/server/find";
 import { assertSameOrigin, handle, HttpError, readJson } from "@/lib/server/http";
 import { nameTag } from "@/lib/social";
+import { staffOfLoginId } from "@/lib/staff";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -68,13 +69,13 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     const { users, diaries } = await cols();
     const u = await users.findOne({ _id: id }, { projection: USER_SAFE });
     if (!u) throw new HttpError(404, "not_found", "없는 회원이에요");
-    if (u.staff || u._id.equals(me._id)) throw new HttpError(400, "staff", "운영자 계정은 정지할 수 없어요");
+    if (staffOfLoginId(u.loginId) || u._id.equals(me._id)) throw new HttpError(400, "staff", "선생님 계정은 정지할 수 없어요");
 
     if (action === "ban") {
       await users.updateOne({ _id: u._id }, { $set: { banned: true } });
       const r = await diaries.updateMany(
         { userId: u._id, "board.status": "visible" },
-        { $set: { "board.status": "hidden", "board.note": "운영자가 내렸어요" } },
+        { $set: { "board.status": "hidden", "board.note": "선생님이 내렸어요" } },
       );
       await logAction(me, "ban", u._id, `${nameTag(u)} · 게시판 ${r.modifiedCount}장 내림`);
       return adminJson({ ok: true, hidden: r.modifiedCount });

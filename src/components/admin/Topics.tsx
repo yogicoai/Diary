@@ -67,8 +67,8 @@ export default function Topics() {
   return (
     <>
       <PageHead
-        title="오늘의 숙제"
-        desc="선생님(운영자)이 날짜별로 숙제를 걸어 둘 수 있어요. 안 걸어 둔 날은 그날만의 숙제·요일 숙제가 자동으로 나가요. 숙제 글은 일기와 함께 저장돼서 나중에 바꿔도 이미 낸 일기는 그대로예요."
+        title="숙제 내기"
+        desc="선생님이 날짜별로 숙제를 걸어 둘 수 있어요. 안 걸어 둔 날은 그날만의 숙제·요일 숙제가 자동으로 나가요. 숙제 글은 일기와 함께 저장돼서 나중에 바꿔도 이미 낸 일기는 그대로예요."
       />
       {error && <ErrorBox msg={error} retry={reload} />}
       {!data && !error && <Loading rows={3} />}

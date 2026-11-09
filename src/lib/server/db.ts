@@ -21,10 +21,9 @@ export type UserDoc = {
   createdAt: Date;
   lastSeenAt: Date;
   banned?: boolean;
-  // 아이디로 들어오는 계정 (scripts/account.mjs 로만 만든다). googleSub 는 "id:아이디"
+  // 아이디로 들어오는 계정 (기본 로그인 가입 · scripts/account.mjs). googleSub 는 "id:아이디". fe·yogico 는 교무실 선생님
   loginId?: string;
   passHash?: string;
-  staff?: "developer" | "company"; // 운영자: 개발자(fe) · 회사(yogico) — 관리자 페이지에 들어온다
   loginFails?: number;
   lockedUntil?: Date;
 };

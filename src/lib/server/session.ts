@@ -5,6 +5,9 @@ import { ObjectId } from "mongodb";
 import type { NextRequest, NextResponse } from "next/server";
 import { cols, type UserDoc } from "./db";
 import { HttpError } from "./http";
+import { staffOfLoginId, type StaffRole } from "@/lib/staff";
+
+export type { StaffRole };
 
 export const SESSION_COOKIE = "cj_session";
 const MAX_AGE = 60 * 60 * 24 * 60; // 60일
@@ -60,23 +63,10 @@ export async function requireUser(req: NextRequest): Promise<UserDoc> {
   return user;
 }
 
-/**
- * 관리자 페이지에 들어오는 사람
- *  developer = 개발자 아이디(fe) · company = 회사 아이디(yogico) — scripts/account.mjs 로 만든 운영자
- *  teacher = ADMIN_EMAILS 의 구글 계정 · dev = 개발 중 개발용 로그인
- */
-export type StaffRole = "developer" | "company" | "teacher" | "dev";
-
+/** 교무실(/admin)에 들어오는 선생님: fe(전산 선생님)·yogico(교장 선생님) 아이디 계정뿐 (lib/staff.ts) */
 export function staffRole(user: UserDoc | null): StaffRole | null {
-  if (!user) return null;
-  if (user.staff === "developer" || user.staff === "company") return user.staff;
-  if (process.env.NODE_ENV !== "production" && process.env.DEV_LOGIN === "1" && user.googleSub.startsWith("dev:"))
-    return "dev";
-  const admins = (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-  return user.email && admins.includes(user.email.toLowerCase()) ? "teacher" : null;
+  if (!user || !user.googleSub.startsWith("id:")) return null;
+  return staffOfLoginId(user.loginId);
 }
 
 export function isAdmin(user: UserDoc | null): boolean {

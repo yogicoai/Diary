@@ -5,8 +5,9 @@ import type { NextRequest } from "next/server";
 import { adminJson, kstDateExpr, kstDayStart, kstDays, requireStaff, seesSystem } from "@/lib/server/admin";
 import { cols } from "@/lib/server/db";
 import { handle } from "@/lib/server/http";
+import { STAFF_LOGIN_IDS } from "@/lib/staff";
 
-const MEMBER = { staff: { $exists: false } };
+const MEMBER = { loginId: { $nin: STAFF_LOGIN_IDS } }; // 학생 수에서 선생님(fe·yogico) 빼기
 
 export async function GET(req: NextRequest) {
   return handle(async () => {
@@ -81,7 +82,7 @@ export async function GET(req: NextRequest) {
     const system = seesSystem(role)
       ? {
           checks: [
-            { key: "db", label: "회원 저장소 (MongoDB)", on: true, note: process.env.MONGODB_DB || "chamjal" },
+            { key: "db", label: "학생 명부 저장소 (MongoDB)", on: true, note: process.env.MONGODB_DB || "chamjal" },
             { key: "ftp", label: "그림 저장 (Cafe24 FTP)", on: !!process.env.FTP_USER && !!process.env.FTP_PASS, note: "게시판 카드 그림" },
             { key: "claude", label: "선생님 답장·게시판 검사 (Claude)", on: !!process.env.ANTHROPIC_API_KEY, note: "꺼지면 기본 한 줄" },
             { key: "typecast", label: "아이 목소리 (Typecast)", on: !!process.env.TYPECAST_API_KEY, note: "전용 키 필요" },

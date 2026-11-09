@@ -14,8 +14,8 @@
 - `npm run dev` 는 실제 Atlas·FTP 에 쓴다 → 개발용 로그인으로 시험하면 실제 DB 에 dev: 사용자가 생긴다. 평소 시험은 dev:mem, 실제 DB 로 시험했으면 dev: 사용자·FTP 시험 그림을 지운다
 - 참여 기능 화면 시험: dev:mem 켠 뒤 `node scripts/e2e-social.mjs <임시 Mongo 주소>` → shots/social
 - 인트로·날씨 캡처: `node scripts/shot-intro.mjs` → shots/intro
-- 관리자 페이지 캡처: e2e-social 로 시험 데이터 → `node scripts/account.mjs add fe --staff developer --password <시험 비번> --uri <임시 Mongo 주소>` → `node scripts/shot-admin.mjs fe <시험 비번>` → shots/admin
-- **운영자 아이디 만들기·비밀번호 다시 만들기**: `node --env-file=.env.local scripts/account.mjs add|reset|list` (화면에서 가입하는 길은 없음, 비밀번호는 한 번만 출력)
+- 교무실 캡처: e2e-social 로 시험 데이터 → `node scripts/account.mjs add fe --password <시험 비번> --uri <임시 Mongo 주소>` (또는 로그인 화면에서 fe 가입) → `node scripts/shot-admin.mjs fe <시험 비번>` → shots/admin
+- **아이디 비밀번호 다시 만들기·목록**: `node --env-file=.env.local scripts/account.mjs reset|list` (아이디 가입은 화면의 기본 로그인에서. 이메일이 없어서 비밀번호를 잊으면 이걸로 새로 만들어 준다)
 - 화면 확인: `node scripts/shot.mjs http://localhost:6900 <출력폴더>` (390px, 테마 3종, 카드·시트·일기장 캡처)
 - 아이콘: `src/app/icon.svg` 고친 뒤 `node scripts/icons.mjs`
 - 커밋 전: `npx eslint src scripts` + `npx next build`
@@ -27,7 +27,7 @@
 - 글꼴: 아이 글씨 Gaegu(`--font-kid`), 선생님 글씨 Nanum Pen Script(`--font-pen`), 화면 글씨 Gowun Dodum(`--font-ui`). 이 앱은 요기보 브랜드가 아니라 프리텐다드 규칙을 따르지 않는다.
 - 색은 `globals.css`의 `[data-theme]` 변수로만. 카드(`lib/card.ts`)도 같은 변수를 읽는다.
 - 화면을 바꾸면 390px 캡처로 확인한다.
-- **예외: 관리자 페이지(/admin)** 는 보이스 동화 관리실과 같은 토스풍 밝은 관리 색(`src/app/admin/admin.css`, 모든 규칙 `.adm` 안). 일기장 테마·크레파스 글꼴을 따르지 않는다. 넓은 화면은 왼쪽 메뉴, 1024px 아래는 위 알약 줄.
+- **예외: 교무실(/admin, 관리자 페이지)** 은 보이스 동화 관리실과 같은 토스풍 밝은 관리 색(`src/app/admin/admin.css`, 모든 규칙 `.adm` 안). 일기장 테마·크레파스 글꼴을 따르지 않는다. 넓은 화면은 왼쪽 메뉴, 1024px 아래는 위 알약 줄.
 
 ## 지켜야 할 것
 
@@ -50,13 +50,13 @@
 
 ## 참여 기능 (11-06, 사용자: "다 가보자")
 
-- 로그인 = **구글** (OAuth 직접 구현 `api/auth/google`, jose 세션 쿠키 `cj_session`) + **받은 아이디** (`api/auth/password`, scrypt, 5번 틀리면 15분 잠금, googleSub `id:아이디`). 아이디 계정은 scripts/account.mjs 로만 만든다. 개발용 로그인은 DEV_LOGIN=1 + 운영 아님일 때만.
-- **운영자 아이디** (11-09 사용자): **fe = 개발자**, **yogico = 회사(클라이언트)** — 보이스 동화 관리실과 같은 두 계정. 진짜 Atlas(chamjal)에 만들어 둠. 둘 다 /admin 에 들어오고, 개발자만 대시보드 '연결 상태·처리 기록'을 본다. ADMIN_EMAILS 구글 계정은 '선생님'으로 같이 들어온다.
-- **관리자 페이지** `/admin` (11-09 사용자: "동화 앱 어드민단과 비슷한 관리자 페이지, 회원·회원별 반 묶음 파악"): 대시보드 · 회원(이름표·로그인·들어간 반·일기 수, 정지) · 반(반장·친구·반에 낸 일기·짝꿍 한마디) · 게시판 검사. 서버는 `lib/server/admin.ts` requireStaff 로 막고 응답은 no-store. **운영자는 남에게 보여 준 일기(게시판·반)만 펼쳐 본다 — 혼자 쓴 일기는 날짜만** (canOpen/bodyVisible). 정지하면 로그인 막고 게시판 일기도 내린다. 처리는 adminlog 에 남는다.
+- 로그인 = **구글** (OAuth 직접 구현 `api/auth/google`, jose 세션 쿠키 `cj_session`) + **기본 로그인** (11-09 사용자: "구글로 시작하기 아래 기본 로그인, 거기서 가입"): 아이디·비밀번호로 가입(`api/auth/signup`, 한 곳 1시간 5번)·들어가기(`api/auth/password`, scrypt, 5번 틀리면 15분 잠금), googleSub `id:아이디`. 이메일이 없어 비밀번호를 잊으면 스스로 못 찾는다(가입 화면에 안내, scripts/account.mjs reset). admin·root 같은 아이디는 막음(`lib/staff.ts` BLOCKED_IDS). 개발용 로그인은 DEV_LOGIN=1 + 운영 아님일 때만.
+- **선생님 아이디 = fe(전산 선생님, 개발)·yogico(교장 선생님, 회사)** 두 개만 교무실에 들어온다 (11-09 사용자: "fe·yogico 두 아이디만 접근"). 권한은 아이디 이름으로 정한다(`lib/staff.ts`) — 그래서 실제 서버에서는 이 두 아이디를 **선생님 가입 코드(STAFF_SIGNUP_CODE)** 가 있어야만 가입할 수 있다(개발 서버는 코드 없이). 사용자가 직접 가입하기로 해서 11-09 에 미리 만들어 둔 계정은 지웠다. 전산 선생님만 교무 일지의 '시설 점검·교무 기록'을 본다. 관리자 이메일·개발용 로그인으로는 교무실에 못 들어온다.
+- **교무실** `/admin` (11-09 사용자: "동화 앱 어드민단과 비슷한 관리자 페이지" → "교무실이라고"): 교무 일지(대시보드) · 학생 명부(이름표·로그인·들어간 반·일기 수, 정지) · 반(반장·친구·반에 낸 일기·짝꿍 한마디) · 숙제 내기 · 게시판 검사. 서버는 `lib/server/admin.ts` requireStaff 로 막고 응답은 no-store. **운영자는 남에게 보여 준 일기(게시판·반)만 펼쳐 본다 — 혼자 쓴 일기는 날짜만** (canOpen/bodyVisible). 정지하면 로그인 막고 게시판 일기도 내린다. 처리는 adminlog 에 남는다.
 - 저장 = **Mongo(DB chamjal) + Cafe24 FTP**(그림 파일, QR 스튜디오 price_Line 과 같은 FTP_* / PUBLIC_ASSET_BASE 이름). FTP 없으면 개발은 public/_dev-uploads.
 - 일기는 **이 기기가 원본(local-first)**: IndexedDB 에 먼저, 로그인하면 `lib/sync.ts` 가 서버와 합친다(기기 id = clientId 로 겹침 방지).
 - 이름표: 별명·초등학교 입학 연도·반. 게시판엔 이것만 보이고 구글 이메일은 안 보인다.
-- 교실 뒤 게시판: 그림만/글까지, 붙이기 전 `lib/server/moderate.ts`(Haiku 5.5, 글+미리보기 그림) 검사. 검사 못 하면 운영은 pending → /admin(ADMIN_EMAILS). 신고 3건 자동 숨김. 비밀 일기는 못 붙임.
+- 교실 뒤 게시판: 그림만/글까지, 붙이기 전 `lib/server/moderate.ts`(Haiku 5.5, 글+미리보기 그림) 검사. 검사 못 하면 운영은 pending → 교무실 게시판 검사(/admin/board). 신고 3건 자동 숨김. 비밀 일기는 못 붙임.
 - 도장 3·스티커 3(`lib/social.ts` REACTIONS) — 순서 고정 목록.
 - **오늘의 숙제 = 그날의 미션** (11-09 사용자: "요일 시간표 + 그날만의 숙제", "관리자가 선생님이 되어 관리"): `lib/topics.ts`. 정하는 순서 = 선생님(운영자)이 `/admin/topics` 에서 건 숙제(DB topics) → 그날만의 숙제(양력 MM-DD) → 요일 숙제 묶음(일 밀린 일기·월 어른의 월요일·화 그때 그 시절·수 급식 시간·목 친구 시간·금 칭찬 시간·토 나들이, 주마다 돌아감). 숙제마다 선생님 한마디(빨간 펜, 재치 있게)가 붙는다. 2026-11-09 이전 날짜는 예전 TOPICS(`lib/social.ts`, 순서 고정) 돌림. 일기를 숙제로 내면 그때 숙제 글을 `topicText` 로 같이 저장한다 → 나중에 숙제를 바꿔도 낸 일기는 그대로. 화면은 `useTopic`(기본 숙제를 바로 보여 주고 서버 숙제로 바꿔 끼움), 비·눈·천둥이면 날씨 덤 숙제, 일요일엔 '밀린 일기 하는 날' 안내. 숙제는 14자 안쪽(숙제 칸에서 안 잘리게).
 - **선생님 도장 8종** (11-09 사용자: "참 잘했어요 말고도 그때그때 다양하게, 글을 분석해서"): `lib/stamps.ts` — 참 잘했어요·아주 잘했어요·최고예요·힘내요·수고했어요·용감해요·멋져요·부러워요. 선생님(Claude)이 답장·스티커와 같이 고르고, 못 부르면 기본 답장의 이야기 갈래로 고른다(`lib/teacher.ts` STAMP_OF). 모양 path 하나를 화면(StampSvg)·카드(drawStamp)가 같이 쓴다. 일기에 `stamp` 로 저장, 예전 일기·모르는 id 는 참 잘했어요.

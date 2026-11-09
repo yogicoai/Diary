@@ -11,25 +11,21 @@ import { nameTag } from "@/lib/social";
 import { cols, type DiaryDoc, type UserDoc, type AdminLogDoc } from "./db";
 import { HttpError } from "./http";
 import { currentUser, staffRole, type StaffRole } from "./session";
+import { ROLE_LABEL, staffOfLoginId } from "@/lib/staff";
 
-export const ROLE_LABEL: Record<StaffRole, string> = {
-  developer: "개발자",
-  company: "회사",
-  teacher: "선생님",
-  dev: "개발용",
-};
+export { ROLE_LABEL };
 
 export async function requireStaff(req: NextRequest): Promise<{ user: UserDoc; role: StaffRole }> {
   const user = await currentUser(req);
   if (!user) throw new HttpError(401, "login", "로그인이 필요해요");
   const role = staffRole(user);
-  if (!role) throw new HttpError(403, "staff", "운영자만 들어올 수 있어요");
+  if (!role) throw new HttpError(403, "staff", "선생님만 들어올 수 있어요");
   return { user, role };
 }
 
-/** 개발자만 보는 것 (연결 상태·처리 기록) */
+/** 전산 선생님(fe)만 보는 것 (시설 점검·교무 기록) */
 export function seesSystem(role: StaffRole) {
-  return role === "developer" || role === "dev";
+  return role === "developer";
 }
 
 /** 회원 정보가 브라우저·중간 캐시에 남지 않게 */
@@ -70,7 +66,7 @@ export function personBrief(u: UserDoc) {
     login: loginKind(u),
     email: loginKind(u) === "google" ? u.email : null,
     loginId: u.loginId ?? null,
-    staff: u.staff ?? null,
+    staff: staffOfLoginId(u.loginId),
     banned: !!u.banned,
     createdAt: u.createdAt.getTime(),
     lastSeenAt: u.lastSeenAt.getTime(),

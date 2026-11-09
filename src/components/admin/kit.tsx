@@ -73,7 +73,7 @@ export function PersonBadges({ p }: { p: Pick<Person, "staff" | "banned"> }) {
   if (!p.staff && !p.banned) return null;
   return (
     <span className="adm-badges">
-      {p.staff && <Badge tone="blue">운영자 · {p.staff === "developer" ? "개발자" : "회사"}</Badge>}
+      {p.staff && <Badge tone="blue">{p.staff === "developer" ? "전산 선생님" : "교장 선생님"}</Badge>}
       {p.banned && <Badge tone="red">정지</Badge>}
     </span>
   );

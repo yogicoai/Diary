@@ -24,10 +24,10 @@ export function useAdmin(): Ctx {
 }
 
 const NAV: { href: string; label: string; icon: IconName; todo?: boolean }[] = [
-  { href: "/admin", label: "대시보드", icon: "dashboard" },
-  { href: "/admin/members", label: "회원", icon: "users" },
+  { href: "/admin", label: "교무 일지", icon: "dashboard" },
+  { href: "/admin/members", label: "학생 명부", icon: "users" },
   { href: "/admin/classes", label: "반", icon: "class" },
-  { href: "/admin/topics", label: "오늘의 숙제", icon: "pencil" },
+  { href: "/admin/topics", label: "숙제 내기", icon: "pencil" },
   { href: "/admin/board", label: "게시판 검사", icon: "board", todo: true },
 ];
 
@@ -46,7 +46,7 @@ function Brand() {
       <span className="adm-mark" aria-hidden="true">
         참
       </span>
-      참 잘했어요 관리
+      참 잘했어요 교무실
     </span>
   );
 }
@@ -111,8 +111,8 @@ export default function AdminShell({ children }: { children: ReactNode }) {
         {gate === "forbidden" && (
           <div className="adm-login">
             <Brand />
-            <h1>운영자만 들어올 수 있어요</h1>
-            <p>지금 들어온 계정은 운영자가 아니에요. 운영자 아이디(fe·yogico)로 다시 들어가 주세요.</p>
+            <h1>선생님만 들어올 수 있어요</h1>
+            <p>지금 들어온 계정은 학생 계정이에요. 선생님 아이디(fe·yogico)로 다시 들어가 주세요.</p>
             <button type="button" className="adm-btn primary block" onClick={() => void logout()}>
               다른 아이디로 들어가기
             </button>
@@ -141,12 +141,12 @@ export default function AdminShell({ children }: { children: ReactNode }) {
   return (
     <AdminCtx.Provider value={ctx}>
       <div className="adm">
-        <nav className="adm-side" aria-label="관리 메뉴">
+        <nav className="adm-side" aria-label="교무실 메뉴">
           <Link href="/admin">
             <Brand />
           </Link>
           <div className="adm-navgroup">
-            <p>운영</p>
+            <p>교무실</p>
             {NAV.map((n) => (
               <Link key={n.href} href={n.href} className="adm-navlink" aria-current={active === n.href ? "page" : undefined}>
                 <Icon name={n.icon} />
@@ -176,7 +176,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
               </Link>
               <Account me={me} onLogout={() => void logout()} onSaid={say} />
             </div>
-            <nav className="adm-pills" aria-label="관리 메뉴">
+            <nav className="adm-pills" aria-label="교무실 메뉴">
               {NAV.map((n) => (
                 <Link key={n.href} href={n.href} className="adm-pill" aria-current={active === n.href ? "page" : undefined}>
                   {n.label}
@@ -222,8 +222,8 @@ function LoginCard({ onDone }: { onDone: () => void }) {
   return (
     <form className="adm-login" onSubmit={(e) => void submit(e)}>
       <Brand />
-      <h1>관리자 페이지</h1>
-      <p>운영자 아이디로 들어가 주세요.</p>
+      <h1>교무실</h1>
+      <p>선생님 아이디(fe·yogico)로 들어가 주세요.</p>
       <label className="adm-field">
         <span>아이디</span>
         <input className="adm-input" value={id} onChange={(e) => setId(e.target.value)} autoComplete="username" autoCapitalize="none" spellCheck={false} required />
@@ -241,6 +241,7 @@ function LoginCard({ onDone }: { onDone: () => void }) {
         {busy ? "확인하는 중…" : "들어가기"}
       </button>
       <div className="adm-login-foot">
+        <Link href="/login?next=/admin">아이디 만들기 (가입)</Link>
         <Link href="/">일기장으로 돌아가기</Link>
       </div>
     </form>

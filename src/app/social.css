@@ -85,10 +85,47 @@
   height: 22px;
 }
 
-/* 받은 아이디로 들어가기 */
-.id-login-open {
-  display: block;
-  margin: 14px auto 0;
+/* 기본 로그인 (아이디 들어가기·가입하기) */
+.basic-login {
+  margin-top: 16px;
+}
+.or-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.or-line::before,
+.or-line::after {
+  content: "";
+  flex: 1;
+  border-top: 1.5px dashed var(--line-soft);
+}
+.login-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border: 1.5px solid var(--line-soft);
+  border-radius: 14px;
+  background: var(--paper);
+}
+.login-seg button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font-family: var(--font-kid), cursive;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.login-seg button[aria-selected="true"] {
+  border: 1.5px solid var(--ink);
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 .id-login {
   display: grid;

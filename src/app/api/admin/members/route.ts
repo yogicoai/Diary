@@ -5,6 +5,7 @@ import type { Filter } from "mongodb";
 import { adminJson, escapeRegex, personBrief, requireStaff, USER_SAFE } from "@/lib/server/admin";
 import { cols, type UserDoc } from "@/lib/server/db";
 import { handle } from "@/lib/server/http";
+import { STAFF_LOGIN_IDS } from "@/lib/staff";
 
 const PAGE = 50;
 
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
       const rx = new RegExp(escapeRegex(q), "i");
       filter.$or = [{ nickname: rx }, { email: rx }, { loginId: rx }];
     }
-    if (kind === "staff") filter.staff = { $exists: true };
+    if (kind === "staff") filter.loginId = { $in: STAFF_LOGIN_IDS };
     else if (kind === "banned") filter.banned = true;
 
     const { users, diaries, classes } = await cols();

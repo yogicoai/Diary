@@ -153,7 +153,7 @@ export function ClassDetail({ id }: { id: string }) {
                 <th>로그인</th>
                 <th className="num">이 반에 낸 일기</th>
                 <th>최근 낸 날</th>
-                <th>최근 들어옴</th>
+                <th>최근 출석</th>
               </tr>
             </thead>
             <tbody>

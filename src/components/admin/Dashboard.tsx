@@ -20,25 +20,25 @@ type Dash = {
   } | null;
 };
 
-const ACTION: Record<string, string> = { ban: "회원 정지", unban: "정지 풀기", approve: "게시판 보이기", hide: "게시판 내리기", topic: "숙제 걸기", untopic: "숙제 되돌리기" };
+const ACTION: Record<string, string> = { ban: "학생 정지", unban: "정지 풀기", approve: "게시판 보이기", hide: "게시판 내리기", topic: "숙제 걸기", untopic: "숙제 되돌리기" };
 
 export default function Dashboard() {
   const { data, error, at, reload } = useAdminGet<Dash>("/api/admin/dashboard");
 
   return (
     <>
-      <PageHead title="대시보드" desc="오늘 숫자는 한국 시각 0시부터 세요. 회원 숫자에서 운영자 아이디는 빠져요." />
+      <PageHead title="교무 일지" desc="오늘 우리 학교 모습이에요. 오늘 숫자는 한국 시각 0시부터, 학생 수에서 선생님 아이디(fe·yogico)는 빠져요." />
       {error && <ErrorBox msg={error} retry={reload} />}
       {!data && !error && <Loading rows={3} />}
       {data && (
         <>
           <div className="adm-stats six">
-            <Stat label="회원" value={`${data.members.total}명`} sub={`오늘 +${data.members.today} · 이번 주 +${data.members.week}`} href="/admin/members" />
-            <Stat label="오늘 들어온 사람" value={`${data.members.activeToday}명`} sub={`정지 ${data.members.banned}명`} />
-            <Stat label="서버에 있는 일기" value={`${data.diaries.total}편`} sub={`오늘 ${data.diaries.today} · 이번 주 ${data.diaries.week}`} />
+            <Stat label="학생" value={`${data.members.total}명`} sub={`오늘 +${data.members.today} · 이번 주 +${data.members.week}`} href="/admin/members" />
+            <Stat label="오늘 출석" value={`${data.members.activeToday}명`} sub={`정지 ${data.members.banned}명`} />
+            <Stat label="올라온 일기" value={`${data.diaries.total}편`} sub={`오늘 ${data.diaries.today} · 이번 주 ${data.diaries.week}`} />
             <Stat label="게시판" value={`${data.board.visible}장`} sub={`숨긴 것 ${data.board.hidden}장`} href="/admin/board" />
             <Stat
-              label="확인할 것"
+              label="검사할 것"
               value={`${data.board.pending + data.board.reported}건`}
               sub={`검사 대기 ${data.board.pending} · 신고 ${data.board.reported}`}
               href="/admin/board"
@@ -48,19 +48,19 @@ export default function Dashboard() {
           </div>
 
           <div className="adm-grid2">
-            <Card title="쓴 일기" aside="최근 14일 · 서버에 있는 것">
+            <Card title="쓴 일기" aside="최근 14일 · 올라온 것">
               <Bars rows={data.days.diaries} unit="편" />
             </Card>
-            <Card title="새 회원" aside="최근 14일">
+            <Card title="새로 온 학생" aside="최근 14일">
               <Bars rows={data.days.members} unit="명" />
             </Card>
           </div>
 
           <div className="adm-grid2">
-            <Card title="입학 연도별 회원" aside="이름표의 초등학교 입학 연도">
+            <Card title="입학 연도별 학생" aside="이름표의 초등학교 입학 연도">
               <Cohorts rows={data.cohorts} />
             </Card>
-            <Card title="참여">
+            <Card title="학교생활">
               <ul className="adm-list">
                 <li>
                   <span className="grow">반·게시판에 보여 준 일기</span>
@@ -75,7 +75,7 @@ export default function Dashboard() {
                   <span className="val">{data.notes}개</span>
                 </li>
                 <li>
-                  <span className="grow">혼자만 쓴 일기 (내용은 운영자도 못 봐요)</span>
+                  <span className="grow">혼자만 쓴 일기 (내용은 선생님도 못 봐요)</span>
                   <span className="val">{data.diaries.total - data.diaries.shared}편</span>
                 </li>
               </ul>
@@ -84,7 +84,7 @@ export default function Dashboard() {
 
           {data.system && (
             <div className="adm-grid2">
-              <Card title="연결 상태" aside="개발자 계정에서만 보여요">
+              <Card title="시설 점검" aside="전산 선생님만 보여요">
                 <ul className="adm-list">
                   {data.system.checks.map((c) => (
                     <li key={c.key}>
@@ -95,7 +95,7 @@ export default function Dashboard() {
                   ))}
                 </ul>
               </Card>
-              <Card title="최근 처리 기록" aside="개발자 계정에서만 보여요">
+              <Card title="교무 기록" aside="전산 선생님만 보여요">
                 {data.system.log.length === 0 ? (
                   <p className="adm-empty" style={{ padding: "24px 0" }}>
                     아직 처리한 일이 없어요
@@ -163,7 +163,7 @@ function Bars({ rows, unit }: { rows: Day[]; unit: string }) {
 }
 
 function Cohorts({ rows }: { rows: { year: number | null; n: number }[] }) {
-  if (!rows.length) return <p className="adm-empty">아직 회원이 없어요</p>;
+  if (!rows.length) return <p className="adm-empty">아직 학생이 없어요</p>;
   const top = rows.slice(0, 8);
   const max = Math.max(1, ...top.map((r) => r.n));
   return (

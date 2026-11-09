@@ -109,7 +109,7 @@ export default function DiaryDrawer({ id, onClose, onChanged }: { id: string | n
           {data?.private && (
             <p className="adm-note">
               <Icon name="lock" size={16} />
-              <span>혼자 쓴 일기예요. 게시판에도 반에도 보여 주지 않아서 운영자는 날짜만 볼 수 있어요.</span>
+              <span>혼자 쓴 일기예요. 게시판에도 반에도 보여 주지 않아서 선생님도 날짜만 볼 수 있어요.</span>
             </p>
           )}
           {open && (
@@ -137,7 +137,7 @@ export default function DiaryDrawer({ id, onClose, onChanged }: { id: string | n
                 ) : (
                   open.bodyHidden && (
                     <p className="adm-muted" style={{ margin: "8px 0 0", fontSize: 14 }}>
-                      글은 남에게 보여 주지 않아서 운영자도 볼 수 없어요.
+                      글은 남에게 보여 주지 않아서 선생님도 볼 수 없어요.
                     </p>
                   )
                 )}

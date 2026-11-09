@@ -64,20 +64,20 @@ export function MembersList() {
   return (
     <>
       <PageHead
-        title="회원"
-        desc="로그인한 사람만 여기 보여요. 일기는 기기에 먼저 저장되고, 로그인하면 서버와 합쳐져요."
+        title="학생 명부"
+        desc="로그인한 학생만 여기 보여요. 일기는 기기에 먼저 저장되고, 로그인하면 서버와 합쳐져요."
         right={data && <span className="total">{data.total}명</span>}
       />
       <div className="adm-toolbar">
         <label className="adm-search">
           <Icon name="search" size={18} />
-          <input className="adm-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="별명·이메일·아이디로 찾기" aria-label="회원 찾기" />
+          <input className="adm-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="별명·이메일·아이디로 찾기" aria-label="학생 찾기" />
         </label>
         <div className="adm-seg" role="group" aria-label="거르기">
           {(
             [
               ["", "전체"],
-              ["staff", "운영자"],
+              ["staff", "선생님"],
               ["banned", "정지됨"],
             ] as const
           ).map(([k, label]) => (
@@ -119,15 +119,15 @@ export function MembersList() {
                 <th>로그인</th>
                 <th>들어간 반</th>
                 <th className="num">일기</th>
-                <th>가입</th>
-                <th>최근 들어옴</th>
+                <th>입학</th>
+                <th>최근 출석</th>
               </tr>
             </thead>
             <tbody>
               {data.rows.length === 0 && (
                 <tr>
                   <td colSpan={6} className="adm-empty">
-                    {query || kind ? "맞는 회원이 없어요" : "아직 회원이 없어요"}
+                    {query || kind ? "맞는 학생이 없어요" : "아직 학생이 없어요"}
                   </td>
                 </tr>
               )}
@@ -227,7 +227,7 @@ export function MemberDetail({ id }: { id: string }) {
   if (error) {
     return (
       <>
-        <PageHead title="회원" back={{ href: "/admin/members", label: "회원 목록" }} />
+        <PageHead title="학생" back={{ href: "/admin/members", label: "학생 명부" }} />
         <ErrorBox msg={error} retry={reload} />
       </>
     );
@@ -235,7 +235,7 @@ export function MemberDetail({ id }: { id: string }) {
   if (!data) {
     return (
       <>
-        <PageHead title="회원" back={{ href: "/admin/members", label: "회원 목록" }} />
+        <PageHead title="학생" back={{ href: "/admin/members", label: "학생 명부" }} />
         <Loading rows={3} />
       </>
     );
@@ -247,14 +247,14 @@ export function MemberDetail({ id }: { id: string }) {
 
   return (
     <>
-      <PageHead title="회원" back={{ href: "/admin/members", label: "회원 목록" }} />
+      <PageHead title="학생" back={{ href: "/admin/members", label: "학생 명부" }} />
       <Card>
         <div className="adm-profile">
           <div>
             <h1>{p.nameTag}</h1>
             <span className="adm-badges">
               <Badge>{lg.kind} 로그인</Badge>
-              {p.staff && <Badge tone="blue">운영자 · {p.staff === "developer" ? "개발자" : "회사"}</Badge>}
+              {p.staff && <Badge tone="blue">{p.staff === "developer" ? "전산 선생님" : "교장 선생님"}</Badge>}
               {p.banned && <Badge tone="red">정지</Badge>}
             </span>
           </div>
@@ -280,11 +280,11 @@ export function MemberDetail({ id }: { id: string }) {
               </dd>
             </div>
             <div>
-              <dt>가입</dt>
+              <dt>입학</dt>
               <dd>{fmtDay(p.createdAt)}</dd>
             </div>
             <div>
-              <dt>최근 들어옴</dt>
+              <dt>최근 출석</dt>
               <dd>{fmtAgo(p.lastSeenAt, at)}</dd>
             </div>
           </dl>
@@ -292,7 +292,7 @@ export function MemberDetail({ id }: { id: string }) {
       </Card>
 
       <div className="adm-stats five adm-section">
-        <Stat label="서버에 있는 일기" value={`${c.diaries}편`} sub={`혼자 ${c.alone} · 반 ${c.classShared} · 게시판 ${c.board}`} />
+        <Stat label="올라온 일기" value={`${c.diaries}편`} sub={`혼자 ${c.alone} · 반 ${c.classShared} · 게시판 ${c.board}`} />
         <Stat label="받은 도장·스티커" value={`${c.stampsGot}개`} />
         <Stat label="찍어 준 도장·스티커" value={`${c.stampsGiven}개`} />
         <Stat label="신고 받음" value={`${c.reportsOn}건`} alert={c.reportsOn > 0} sub={`신고한 것 ${c.reportsMade}건`} />
@@ -322,10 +322,10 @@ export function MemberDetail({ id }: { id: string }) {
       </Card>
 
       <Card title="일기" aside={`${data.diaries.length}편`} className="adm-section">
-        <Privacy>운영자는 남에게 보여 준 일기(게시판·반)만 펼쳐 볼 수 있어요. 혼자 쓴 일기는 날짜만 보여요.</Privacy>
+        <Privacy>선생님도 남에게 보여 준 일기(게시판·반)만 펼쳐 볼 수 있어요. 혼자 쓴 일기는 날짜만 보여요.</Privacy>
         {data.diaries.length === 0 ? (
           <p className="adm-empty" style={{ padding: "16px 0" }}>
-            서버에 있는 일기가 없어요
+            올라온 일기가 없어요
           </p>
         ) : (
           <div className="adm-table-wrap">
