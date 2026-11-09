@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { CARD_H, CARD_W } from "@/lib/card";
 import { useMe } from "@/lib/me";
 import { REPORT_REASONS } from "@/lib/social";
 import type { BoardItem } from "./BoardPage";
@@ -60,8 +61,9 @@ export default function BoardDetail({ id }: { id: string }) {
           </p>
           {data.item.topic && <p className="topic-chip">오늘의 숙제로 쓴 일기</p>}
           {data.status !== "visible" && <p className="care-note">{data.note ?? "지금은 게시판에 보이지 않아요"}</p>}
+          {/* Cafe24 에서 늦게 와도 도장 버튼이 밀려 내려가지 않게 카드 자리를 먼저 잡아 둔다 */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="board-card" src={data.item.cardUrl} alt={`${data.item.title} 그림일기`} />
+          <img className="board-card" src={data.item.cardUrl} alt={`${data.item.title} 그림일기`} width={CARD_W} height={CARD_H} />
           {data.mine ? (
             <p className="note" style={{ textAlign: "center" }}>
               내 일기예요. 친구들이 찍어 준 도장 {Object.values(data.item.reactions).reduce<number>((a, b) => a + (b ?? 0), 0)}개

@@ -72,7 +72,8 @@ await a.goto(`${B}/class`, { waitUntil: "networkidle0" });
 await sleep(500);
 await a.type(".inline-form input", "입사 동기");
 await Promise.all([a.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {}), click(a, "만들기", ".inline-form button")]);
-await sleep(1200);
+// 처음 켠 개발 서버는 화면을 처음 만들 때 1~2초 걸린다 → 정해진 시간 대신 화면이 뜰 때까지 기다린다
+await a.waitForFunction(() => /초대 코드 [A-Z0-9]{6}/.test(document.querySelector(".brand-sub")?.textContent ?? ""), { timeout: 20000 });
 const classUrl = a.url();
 const code = await a.$eval(".brand-sub", (e) => e.textContent?.match(/[A-Z0-9]{6}/)?.[0]);
 console.log("class", classUrl, code);
@@ -97,9 +98,10 @@ await b.goto(`${B}/api/auth/dev?name=${encodeURIComponent("바다")}&next=/board
 await sleep(1200);
 await shot(b, "07-board", true);
 await b.evaluate(() => document.querySelector(".pinned")?.click());
-await sleep(1500);
+await b.waitForSelector('.reaction[aria-label^="참 잘했어요"]', { timeout: 20000 });
 await b.evaluate(() => document.querySelector('.reaction[aria-label^="참 잘했어요"]')?.click());
-await sleep(500);
+// 도장은 한 번에 하나씩만 저장된다 → 앞 도장 저장이 끝난 뒤 다음 스티커
+await b.waitForNetworkIdle({ idleTime: 300, timeout: 20000 });
 await b.evaluate(() => document.querySelector('.reaction[aria-label^="하트"]')?.click());
 await sleep(800);
 await shot(b, "08-board-detail", true);

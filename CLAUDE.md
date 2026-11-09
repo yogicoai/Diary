@@ -10,7 +10,8 @@
 - `npm run dev:mem` → http://localhost:6900 (임시 Mongo + 개발용 로그인. 끄면 데이터 사라짐, 첫 실행은 Mongo 내려받기)
 - `npm run dev:mem -- --voice ../todo/.env.local` → 위와 같고 아이 목소리 읽기까지 켬 (그 파일의 TYPECAST_API_KEY 하나만 빌려 씀)
 - `npm run dev` → .env.local 의 실제 Mongo·구글·FTP·Claude 로 실행. 변수 목록은 `.env.example`
-- .env.local 현재(11-09): Claude 키·Cafe24 FTP 는 사용자 지시로 Desktop/Dong(보이스동화) .env.local 에서 옮겨 옴. **MONGODB_URI·구글 로그인은 아직 없음** (Dong 은 Supabase 라 Mongo 없음)
+- .env.local 현재(11-09, 사용자 지시로 옮겨 옴): Claude 키·Cafe24 FTP = Desktop/Dong(보이스동화) .env.local, **MONGODB_URI = 예산 대시보드(Dropbox …/예산설정/budget-dashboard/.local/.env)의 Atlas cluster0**. 이 앱은 그 안의 **DB chamjal 만** 쓴다 — 같은 클러스터의 yogico_budget·yogiboB2b 는 건드리지 않는다. **구글 로그인만 아직 없음**
+- `npm run dev` 는 실제 Atlas·FTP 에 쓴다 → 개발용 로그인으로 시험하면 실제 DB 에 dev: 사용자가 생긴다. 평소 시험은 dev:mem, 실제 DB 로 시험했으면 dev: 사용자·FTP 시험 그림을 지운다
 - 참여 기능 화면 시험: dev:mem 켠 뒤 `node scripts/e2e-social.mjs <임시 Mongo 주소>` → shots/social
 - 화면 확인: `node scripts/shot.mjs http://localhost:6900 <출력폴더>` (390px, 테마 3종, 카드·시트·일기장 캡처)
 - 아이콘: `src/app/icon.svg` 고친 뒤 `node scripts/icons.mjs`
