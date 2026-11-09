@@ -46,6 +46,8 @@ export type DiaryDoc = {
   bg: string | null;
   teacher: string;
   teacherBy: "ai" | "rule";
+  stickers?: string[];
+  late?: boolean; // 밀린 숙제 — 개근상 계산에서 뺀다
   care: boolean;
   secret: boolean;
   topic: string | null; // 오늘의 숙제로 쓴 날짜 키 (YYYY-MM-DD)

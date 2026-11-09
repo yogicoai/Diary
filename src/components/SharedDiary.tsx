@@ -9,6 +9,7 @@ import { track } from "@/lib/store";
 import CrayonPad from "./CrayonPad";
 import { BrandMark, StampSvg } from "./Icons";
 import Manuscript from "./Manuscript";
+import PraiseStickers from "./PraiseStickers";
 import WeatherPicker from "./WeatherPicker";
 
 // 친구가 받은 링크로 보는 화면
@@ -60,7 +61,10 @@ export default function SharedDiary() {
             {diary.secret ? (
               <div className="secret-note">비밀 일기예요. 글은 친구만 알아요.</div>
             ) : (
-              <Manuscript value={diary.body} onChange={() => {}} readOnly />
+              <div className="manu-wrap">
+                <Manuscript value={diary.body} onChange={() => {}} readOnly checked />
+                {!!diary.stickers?.length && <PraiseStickers ids={diary.stickers} />}
+              </div>
             )}
             <div className="teacher">
               <div className="teacher-line">{diary.teacher}</div>

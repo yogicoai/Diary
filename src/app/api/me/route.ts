@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 
     const { diaries } = await cols();
     const [dates, agg] = await Promise.all([
-      diaries.distinct("date", { userId: user._id }) as Promise<string[]>,
+      diaries.distinct("date", { userId: user._id, late: { $ne: true } }) as Promise<string[]>,
       diaries
         .aggregate<{ n: number; stamps: number; board: number }>([
           { $match: { userId: user._id } },

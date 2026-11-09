@@ -15,6 +15,8 @@ export type Diary = {
   bg?: string | null; // 그림칸 배경 id, 없으면 직접 그리기(흰 종이)
   teacher: string;
   teacherBy?: "ai" | "rule"; // 선생님 한 줄을 누가 썼나
+  stickers?: string[]; // 선생님 칭찬 스티커 id (lib/stickers.ts)
+  late?: boolean; // 밀린 숙제 (날짜가 지나서 쓴 일기) — 개근상에는 안 들어간다
   care?: boolean; // Claude 가 위험 신호를 봤을 때
   topic?: string | null; // 오늘의 숙제로 쓴 날 (YYYY-MM-DD)
   // 서버에 올라간 뒤 채워지는 값

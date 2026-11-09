@@ -3,7 +3,8 @@
 
 import { bgById, bgSrc, loadImage } from "./backgrounds";
 import { crayonPattern, renderStrokes } from "./crayon";
-import { COLS, ROWS, layoutCells } from "./manuscript";
+import { drawSticker, STICKERS } from "./stickers";
+import { COLS, ROWS, layoutCells, rowSpans } from "./manuscript";
 import { koreanDate } from "./date";
 import { WEATHERS } from "./weather";
 import type { Diary } from "./store";
@@ -33,7 +34,8 @@ export async function renderCard(d: Diary): Promise<HTMLCanvasElement> {
     red: cssVar("--red") || "#d2402f",
   };
 
-  const allText = d.title + d.body + koreanDate(d.date) + d.teacher + "참잘했어요날씨제목어른이그림일기";
+  const allText =
+    d.title + d.body + koreanDate(d.date) + d.teacher + "참잘했어요날씨제목어른이그림일기" + STICKERS.map((s) => s.text).join("");
   try {
     await Promise.all([
       document.fonts.load(`64px ${kid}`, allText),
@@ -151,7 +153,8 @@ export async function renderCard(d: Diary): Promise<HTMLCanvasElement> {
   ctx.fillText("제목", x0, y + 40);
   ctx.fillStyle = color.ink;
   ctx.font = `700 54px ${kid}`;
-  ctx.fillText(d.title || "", x0 + 90, y + 40, cw - 100);
+  // 칭찬 스티커가 붙을 오른쪽은 비운다
+  ctx.fillText(d.title || "", x0 + 90, y + 40, d.stickers?.length ? cw - 120 - Math.min(3, d.stickers.length) * 125 : cw - 100);
   ctx.strokeStyle = color.line;
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -207,6 +210,27 @@ export async function renderCard(d: Diary): Promise<HTMLCanvasElement> {
     }
     ctx.restore();
   }
+  // 선생님 빨간 물결 밑줄 (검사한 흔적)
+  if (!d.secret) {
+    ctx.save();
+    ctx.strokeStyle = color.red;
+    ctx.globalAlpha = 0.85;
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
+    rowSpans(d.body).forEach((n, r) => {
+      if (!n) return;
+      const ly = y + (r + 1) * cell - 7;
+      ctx.beginPath();
+      ctx.moveTo(x0 + 6, ly);
+      for (let xx = x0 + 6; xx < x0 + n * cell - 6; xx += 22) {
+        ctx.quadraticCurveTo(xx + 5.5, ly - 6, xx + 11, ly);
+        ctx.quadraticCurveTo(xx + 16.5, ly + 6, xx + 22, ly);
+      }
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+  const gridTop = y;
   y += ROWS * cell + 30;
 
   // 선생님 한 줄
@@ -214,17 +238,33 @@ export async function renderCard(d: Diary): Promise<HTMLCanvasElement> {
   ctx.translate(x0 + 10, y + 50);
   ctx.rotate(-0.025);
   ctx.fillStyle = color.red;
-  ctx.font = `66px ${pen}`;
-  // 도장 자리를 비우고, 길면 두 줄로 (글자 단위로 자름)
+  // 도장 자리를 비우고 띄어쓰기 단위로 줄바꿈. 세 줄을 넘으면 글씨를 줄인다
   const maxW = cw - 250;
-  const lines: string[] = [""];
-  for (const ch of Array.from(d.teacher)) {
-    const cur = lines[lines.length - 1];
-    if (ctx.measureText(cur + ch).width > maxW && lines.length < 2) lines.push(ch.trim());
-    else lines[lines.length - 1] = cur + ch;
-  }
-  lines.forEach((ln, i) => ctx.fillText(ln, 0, i * 70 - (lines.length - 1) * 30, maxW));
+  const wrap = (px: number) => {
+    ctx.font = `${px}px ${pen}`;
+    const out: string[] = [""];
+    for (const w of d.teacher.split(" ")) {
+      const cur = out[out.length - 1];
+      const next = cur ? `${cur} ${w}` : w;
+      if (ctx.measureText(next).width > maxW && cur) out.push(w);
+      else out[out.length - 1] = next;
+    }
+    return out;
+  };
+  let size = 64;
+  let lines = wrap(size);
+  while (lines.length > 3 && size > 44) lines = wrap((size -= 4));
+  const lh = size * 1.08;
+  lines.forEach((ln, i) => ctx.fillText(ln, 0, i * lh - (lines.length - 1) * lh * 0.45, maxW));
   ctx.restore();
+
+  // 선생님 칭찬 스티커: 원고지 오른쪽 위 귀퉁이에
+  const spots = [
+    [x0 + cw - 40, gridTop - 78, 0.2],
+    [x0 + cw - 165, gridTop - 94, -0.17],
+    [x0 + cw - 290, gridTop - 80, 0.1],
+  ];
+  (d.stickers ?? []).slice(0, 3).forEach((id, i) => drawSticker(ctx, id, spots[i][0], spots[i][1], 150, spots[i][2], kid));
 
   // 도장
   drawStamp(ctx, px + pw - 120, py + ph - 125, 108, color.red, kid);

@@ -7,6 +7,7 @@ import { assertRate, assertSameOrigin, handle, HttpError, json, readJson } from 
 import { awardToClient, diaryToClient } from "@/lib/server/serialize";
 import { requireUser } from "@/lib/server/session";
 import type { Stroke } from "@/lib/crayon";
+import { cleanStickers } from "@/lib/stickers";
 
 export async function GET(req: NextRequest) {
   return handle(async () => {
@@ -27,6 +28,8 @@ type In = {
   bg?: string | null;
   teacher: string;
   teacherBy?: "ai" | "rule";
+  stickers?: string[];
+  late?: boolean;
   care?: boolean;
   secret: boolean;
   topic?: string | null;
@@ -55,6 +58,8 @@ export async function POST(req: NextRequest) {
       teacher: String(d.teacher ?? "").slice(0, 60),
       teacherBy: d.teacherBy === "ai" ? ("ai" as const) : ("rule" as const),
       care: !!d.care,
+      stickers: cleanStickers(d.stickers, []),
+      late: !!d.late,
       secret: !!d.secret,
       topic: typeof d.topic === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.topic) ? d.topic : null,
       updatedAt: now,

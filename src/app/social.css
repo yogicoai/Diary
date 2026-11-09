@@ -1112,3 +1112,124 @@
 .shelf[hidden] {
   display: none;
 }
+
+/* ---------- 선생님 칭찬 스티커 ---------- */
+.manu-wrap {
+  position: relative;
+}
+
+.praise {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.praise-sticker {
+  position: absolute;
+  display: block;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.18));
+}
+
+.praise-sticker.pop {
+  opacity: 0;
+  animation: sticker-on 0.38s cubic-bezier(0.2, 1.5, 0.4, 1) forwards;
+}
+
+@keyframes sticker-on {
+  0% {
+    opacity: 0;
+    transform: scale(1.8) translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.feed-stickers {
+  display: flex;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+/* ---------- 밀린 숙제 ---------- */
+.date-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.date-btn:disabled {
+  cursor: default;
+}
+
+.date-btn:not(:disabled)::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg) translateY(-3px);
+}
+
+.late-tag {
+  padding: 1px 7px;
+  border: 1.5px solid var(--red);
+  border-radius: 6px;
+  color: var(--red);
+  font-family: var(--font-pen), cursive;
+  font-size: 19px;
+  font-weight: 400;
+  transform: rotate(-4deg);
+}
+
+.late-quick {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.late-quick .tab-btn.on {
+  border-color: var(--ink);
+  background: var(--accent);
+}
+
+.late-date {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.late-date input {
+  height: 48px;
+  padding: 0 12px;
+  border: 1.5px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--paper);
+  font-size: 16px;
+}
+
+.cal-late {
+  margin-top: auto;
+  margin-bottom: 4px;
+  font-size: 8px;
+  color: var(--line);
+  opacity: 0;
+}
+
+.cal-day:not(.has):not(:disabled):hover .cal-late,
+.cal-day:not(.has):not(:disabled):focus-visible .cal-late {
+  opacity: 1;
+}

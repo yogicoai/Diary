@@ -12,7 +12,7 @@ import { topicOf } from "@/lib/social";
 import { pushDiary } from "@/lib/sync";
 import { saveDiary, track, type Diary } from "@/lib/store";
 import { rowSpans } from "@/lib/manuscript";
-import { teacherLine } from "@/lib/teacher";
+import { teacherReply } from "@/lib/teacher";
 import { askTeacher, getConsent, setConsent } from "@/lib/teacherAi";
 import type { WeatherId } from "@/lib/weather";
 import CardSheet from "./CardSheet";
@@ -22,6 +22,8 @@ import DiaryActions from "./DiaryActions";
 import CrayonPad from "./CrayonPad";
 import { BrandMark, StampSvg } from "./Icons";
 import Manuscript, { READ_MS } from "./Manuscript";
+import LateSheet, { daysBetween } from "./LateSheet";
+import PraiseStickers from "./PraiseStickers";
 import TopicBanner from "./TopicBanner";
 import WeatherPicker from "./WeatherPicker";
 
@@ -33,6 +35,8 @@ export default function DiaryEditor() {
   const { me } = useMe();
   const [topicOn, setTopicOn] = useState(false); // 오늘의 숙제로 쓰기
   const [date, setDate] = useState<string | null>(null);
+  const [today, setToday] = useState<string | null>(null);
+  const [lateOpen, setLateOpen] = useState(false);
   const [weather, setWeather] = useState<WeatherId | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -48,8 +52,12 @@ export default function DiaryEditor() {
 
   // 날짜는 브라우저에서만 정한다 (서버 시간과 어긋나지 않게)
   useEffect(() => {
+    const t = todayKey();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 오늘 날짜는 기기 시계 기준
-    setDate(todayKey());
+    setToday(t);
+    // 달력에서 지난 날을 눌러 왔으면 그날 일기 (밀린 숙제), 아니면 오늘
+    const want = new URLSearchParams(location.search).get("date");
+    setDate(want && /^\d{4}-\d{2}-\d{2}$/.test(want) && want <= t ? want : t);
     // 처음 배경은 "나 → 기본 설정"에서 고른 것
     setBg(preferredBg());
   }, []);
@@ -74,6 +82,10 @@ export default function DiaryEditor() {
 
   const handIn = async (useAi: boolean) => {
     if (!date) return;
+    const lateDays = today ? daysBetween(date, today) : 0;
+    const fallback = lateDays > 0
+      ? { line: "밀린 숙제 발견! 개학 전날 밤 냄새가 나는데요? 그래도 냈으니 통과예요.", stickers: ["bravo", "laugh"] }
+      : teacherReply(body + title, weather);
     const draft: Diary = {
       id: newId(),
       date,
@@ -82,7 +94,9 @@ export default function DiaryEditor() {
       body: body.trim(),
       strokes,
       bg,
-      teacher: teacherLine(body + title, weather), // Claude 가 못 쓰면 이 한 줄
+      teacher: fallback.line, // Claude 가 못 쓰면 이 답장
+      stickers: fallback.stickers,
+      late: lateDays > 0,
       teacherBy: "rule",
       secret,
       topic: topicOn ? date : null,
@@ -99,9 +113,11 @@ export default function DiaryEditor() {
     const readFor = Math.max(1100, lines * READ_MS + 600);
     const [, ai] = await Promise.all([
       new Promise((r) => setTimeout(r, readFor)),
-      useAi ? askTeacher(draft) : Promise.resolve(null),
+      useAi ? askTeacher(draft, lateDays) : Promise.resolve(null),
     ]);
-    const d: Diary = ai ? { ...draft, teacher: ai.line, teacherBy: "ai", care: ai.care } : draft;
+    const d: Diary = ai
+      ? { ...draft, teacher: ai.line, teacherBy: "ai", care: ai.care, stickers: ai.stickers.length ? ai.stickers : draft.stickers }
+      : draft;
     try {
       await saveDiary(d);
     } catch {
@@ -160,7 +176,10 @@ export default function DiaryEditor() {
 
       <article className={`page${done && !reading ? " stamped" : ""}`} aria-label="오늘의 그림일기">
         <div className="page-head">
-          <div className="page-date">{date ? koreanDate(date) : ""}</div>
+          <button type="button" className="page-date date-btn" onClick={() => !locked && setLateOpen(true)} disabled={locked}>
+            {date ? koreanDate(date) : ""}
+            {date && today && date < today && <span className="late-tag">밀린 숙제</span>}
+          </button>
           <WeatherPicker value={weather} onChange={setWeather} readOnly={locked} />
         </div>
 
@@ -186,7 +205,10 @@ export default function DiaryEditor() {
           />
         </div>
 
-        <Manuscript value={body} onChange={setBody} readOnly={locked} checked={!!done} />
+        <div className="manu-wrap">
+          <Manuscript value={body} onChange={setBody} readOnly={locked} checked={!!done} />
+          {done && !reading && !!done.stickers?.length && <PraiseStickers ids={done.stickers} animate delay={1500} />}
+        </div>
 
         {done && reading && (
           <div className="teacher" id="teacher">
@@ -250,6 +272,16 @@ export default function DiaryEditor() {
       </p>
 
 
+      <LateSheet
+        open={lateOpen}
+        today={today}
+        value={date}
+        onClose={() => setLateOpen(false)}
+        onPick={(k) => {
+          setDate(k);
+          setLateOpen(false);
+        }}
+      />
       <MineSheet
         open={mineOpen}
         onClose={() => setMineOpen(false)}

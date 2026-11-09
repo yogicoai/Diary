@@ -2,6 +2,7 @@
 
 // 내 일기장 보기: 달력(월별) / 하루씩(일기장 한 쪽 그대로 넘겨 보기)
 
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { koreanDate } from "@/lib/date";
 import type { Diary } from "@/lib/store";
@@ -9,6 +10,7 @@ import { renderThumb } from "@/lib/thumb";
 import CrayonPad from "./CrayonPad";
 import { StampSvg } from "./Icons";
 import Manuscript from "./Manuscript";
+import PraiseStickers from "./PraiseStickers";
 import WeatherPicker from "./WeatherPicker";
 
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
@@ -40,6 +42,7 @@ export function MonthView({
   onMonth: (m: string) => void;
   onPick: (d: Diary) => void;
 }) {
+  const router = useRouter();
   const [y, m] = month.split("-").map(Number);
   const first = new Date(y, m - 1, 1);
   const days = new Date(y, m, 0).getDate();
@@ -86,8 +89,8 @@ export function MonthView({
               key={key}
               type="button"
               className={`cal-day${ds ? " has" : ""}${key === today ? " today" : ""}`}
-              disabled={!ds}
-              onClick={() => ds && onPick(ds[0])}
+              disabled={!ds && key > today}
+              onClick={() => (ds ? onPick(ds[0]) : router.push(`/?date=${key}`))}
               aria-label={`${m}월 ${i + 1}일${ds ? ` 일기 ${ds.length}장` : ""}`}
             >
               <span className="cal-n">{i + 1}</span>
@@ -98,6 +101,7 @@ export function MonthView({
                 </span>
               )}
               {ds && ds.length > 1 && <span className="cal-more">+{ds.length - 1}</span>}
+              {!ds && key < today && <span className="cal-late">밀린 숙제</span>}
             </button>
           );
         })}
@@ -160,7 +164,10 @@ export function DayView({
           <label>제목</label>
           <input value={d.title} readOnly aria-label="제목" />
         </div>
-        <Manuscript value={d.body} onChange={() => {}} readOnly />
+        <div className="manu-wrap">
+          <Manuscript value={d.body} onChange={() => {}} readOnly checked />
+          {!!d.stickers?.length && <PraiseStickers ids={d.stickers} />}
+        </div>
         <div className="teacher">
           <div className="teacher-line">{d.teacher}</div>
           <StampSvg className="stamp" />

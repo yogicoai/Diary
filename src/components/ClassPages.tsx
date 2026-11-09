@@ -12,6 +12,7 @@ import type { Stroke } from "@/lib/crayon";
 import { renderThumb } from "@/lib/thumb";
 import { BrandMark } from "./Icons";
 import { LoginButtons } from "./LoginBox";
+import { StickerSvg } from "./PraiseStickers";
 import Reactions from "./Reactions";
 
 type ClassLite = { id: string; name: string; code: string; members: number; owner: boolean };
@@ -127,6 +128,7 @@ type FeedItem = {
   strokes: Stroke[];
   bg: string | null;
   teacher: string;
+  stickers?: string[];
   nameTag: string;
   reactions: Partial<Record<string, number>>;
   mine: boolean;
@@ -221,6 +223,13 @@ export function ClassFeed({ id }: { id: string }) {
                 <h3>{it.title || "제목 없는 날"}</h3>
                 {it.secret ? <p className="muted">비밀 일기라 글은 가렸어요</p> : <p>{it.body}</p>}
                 {it.teacher && <p className="feed-teacher">{it.teacher}</p>}
+                {!!it.stickers?.length && (
+                  <div className="feed-stickers">
+                    {it.stickers.map((id) => (
+                      <StickerSvg key={id} id={id} size={44} />
+                    ))}
+                  </div>
+                )}
                 {!it.mine && (
                   <Reactions diaryId={it.id} initial={it.reactions} mine={it.myReactions} canReact onToast={setToast} />
                 )}

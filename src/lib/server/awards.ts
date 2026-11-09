@@ -39,7 +39,7 @@ const STREAKS: { days: number; kind: AwardDoc["kind"]; label: string }[] = [
 /** 일기를 저장할 때 불러서 새로 받은 개근상을 돌려준다 */
 export async function grantStreak(userId: ObjectId): Promise<AwardDoc[]> {
   const { diaries, awards } = await cols();
-  const dates = new Set((await diaries.distinct("date", { userId })) as string[]);
+  const dates = new Set((await diaries.distinct("date", { userId, late: { $ne: true } })) as string[]);
   const { streak, start } = streakOf(dates);
   const granted: AwardDoc[] = [];
   for (const s of STREAKS) {

@@ -23,18 +23,18 @@ export function setConsent(v: "yes" | "no") {
   }
 }
 
-export async function askTeacher(d: Diary): Promise<{ line: string; care: boolean } | null> {
+export async function askTeacher(d: Diary, lateDays = 0): Promise<{ line: string; stickers: string[]; care: boolean } | null> {
   try {
     const res = await fetch("/api/teacher", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ weather: d.weather, title: d.title, body: d.body, drew: d.strokes.length > 0 }),
+      body: JSON.stringify({ weather: d.weather, title: d.title, body: d.body, drew: d.strokes.length > 0, late: lateDays || undefined }),
       signal: AbortSignal.timeout(9000),
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { line?: string; care?: boolean };
+    const data = (await res.json()) as { line?: string; stickers?: string[]; care?: boolean };
     if (!data.line) return null;
-    return { line: data.line, care: !!data.care };
+    return { line: data.line, stickers: data.stickers ?? [], care: !!data.care };
   } catch {
     return null;
   }
