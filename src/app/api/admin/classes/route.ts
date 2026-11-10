@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     const ids = list.map((c) => c._id);
     const [owners, dAgg] = await Promise.all([
       users
-        .find({ _id: { $in: list.map((c) => c.ownerId) } }, { projection: { nickname: 1, birthYear: 1 } })
+        .find({ _id: { $in: list.map((c) => c.ownerId) } }, { projection: { nickname: 1, birth: 1, birthYear: 1 } })
         .toArray(),
       diaries
         .aggregate<{ _id: ObjectId; n: number; last: Date }>([

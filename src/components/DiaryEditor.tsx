@@ -14,6 +14,7 @@ import { pushDiary } from "@/lib/sync";
 import { api } from "@/lib/api";
 import { saveDiary, track, type Diary } from "@/lib/store";
 import { rowSpans } from "@/lib/manuscript";
+import { isBirthday } from "@/lib/social";
 import { teacherReply } from "@/lib/teacher";
 import { askTeacher, getConsent, setConsent } from "@/lib/teacherAi";
 import type { WeatherId } from "@/lib/weather";
@@ -99,9 +100,13 @@ export default function DiaryEditor() {
   const handIn = async (useAi: boolean) => {
     if (!date) return;
     const lateDays = today ? daysBetween(date, today) : 0;
-    const fallback = lateDays > 0
-      ? { line: "밀린 숙제 발견! 개학 전날 밤 냄새가 나는데요? 그래도 냈으니 통과예요.", stickers: ["bravo", "laugh"], stamp: "cham" }
-      : teacherReply(body + title, weather);
+    // 일기 날짜가 내 생일이면 선생님이 축하한다 (11-10 사용자: "생일 날짜에는 선생님이 축하 메시지를")
+    const bday = !!me?.birth && isBirthday(me.birth, date);
+    const fallback = bday
+      ? { line: "생일 축하해요! 생일에 쓴 일기라 도장을 두 번 찍고 싶어요.", stickers: ["bravo", "best"], stamp: "best" }
+      : lateDays > 0
+        ? { line: "밀린 숙제 발견! 개학 전날 밤 냄새가 나는데요? 그래도 냈으니 통과예요.", stickers: ["bravo", "laugh"], stamp: "cham" }
+        : teacherReply(body + title, weather);
     const draft: Diary = {
       id: newId(),
       date,
@@ -129,7 +134,7 @@ export default function DiaryEditor() {
     const readFor = Math.max(1100, lines * READ_MS + 600);
     const [, ai] = await Promise.all([
       new Promise((r) => setTimeout(r, readFor)),
-      useAi ? askTeacher(draft, lateDays) : Promise.resolve(null),
+      useAi ? askTeacher(draft, lateDays, bday) : Promise.resolve(null),
     ]);
     const d: Diary = ai
       ? { ...draft, teacher: ai.line, teacherBy: "ai", care: ai.care, stickers: ai.stickers.length ? ai.stickers : draft.stickers, stamp: ai.stamp }

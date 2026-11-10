@@ -5,7 +5,7 @@ import { streakOf } from "@/lib/server/awards";
 import { cols, NoDbError } from "@/lib/server/db";
 import { assertSameOrigin, handle, HttpError, json, readJson } from "@/lib/server/http";
 import { meToClient } from "@/lib/server/serialize";
-import { AGE_MAX, AGE_MIN, kstYear } from "@/lib/social";
+import { birthProblem } from "@/lib/social";
 import { currentUser, isAdmin, requireUser } from "@/lib/server/session";
 
 function flags() {
@@ -63,23 +63,29 @@ export async function GET(req: NextRequest) {
   });
 }
 
-/** 이름표 고치기: 이름 2~8자, 나이(→ 어른이 초등학교 학년·반), 나(남자아이·여자아이 = 읽어 주는 목소리) */
+/** 이름표 고치기: 이름 2~8자, 생년월일(→ 만 나이 = 어른이 초등학교 학년·반, 생일 축하), 나(남자아이·여자아이 = 읽어 주는 목소리) */
 export async function PATCH(req: NextRequest) {
   return handle(async () => {
     assertSameOrigin(req);
     const user = await requireUser(req);
-    const body = await readJson<{ nickname?: string; age?: number | null; kid?: string }>(req);
+    const body = await readJson<{ nickname?: string; birth?: string | null; kid?: string }>(req);
     const set: Record<string, unknown> = {};
     if (body.nickname !== undefined) {
       const nick = String(body.nickname).trim();
       if (!/^[\p{L}\p{N}]{2,8}$/u.test(nick)) throw new HttpError(400, "nickname", "이름은 띄어쓰기 없이 2~8자로 써 주세요");
       set.nickname = nick;
     }
-    if (body.age !== undefined) {
-      const a = body.age === null ? null : Number(body.age);
-      if (a !== null && !(Number.isInteger(a) && a >= AGE_MIN && a <= AGE_MAX))
-        throw new HttpError(400, "age", `나이는 ${AGE_MIN}~${AGE_MAX}살로 적어 주세요`);
-      set.birthYear = a === null ? null : kstYear() - a;
+    if (body.birth !== undefined) {
+      if (body.birth === null) {
+        set.birth = null;
+        set.birthYear = null;
+      } else {
+        const b = String(body.birth);
+        const problem = birthProblem(b);
+        if (problem) throw new HttpError(400, "birth", problem);
+        set.birth = b;
+        set.birthYear = Number(b.slice(0, 4));
+      }
     }
     if (body.kid !== undefined) {
       if (body.kid !== "girl" && body.kid !== "boy") throw new HttpError(400, "kid", "남자아이·여자아이 중에 골라 주세요");

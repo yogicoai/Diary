@@ -2596,3 +2596,38 @@ html[data-intro] .tabbar {
   width: 14px;
   height: 14px;
 }
+
+/* 이름표 생년월일 칸 (11-10 사용자: 가입 뒤 생년월일·이름, 생일 축하) */
+.al-fill.year {
+  width: 2.7em;
+}
+.al-fill.md {
+  width: 1.5em;
+}
+.al-line.al-bday {
+  color: var(--red);
+  font-family: var(--font-pen), cursive;
+  font-size: 27px;
+  font-weight: 400;
+  border-bottom-style: dashed;
+}
+.nt-birth {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.nt-birth-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 15px;
+}
+.nt-birth-row input {
+  width: 64px;
+  text-align: center;
+}
+.nt-birth-row input:first-child {
+  width: 84px;
+}

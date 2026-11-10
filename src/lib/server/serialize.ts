@@ -7,7 +7,8 @@ export function meToClient(u: UserDoc, admin: boolean) {
   return {
     id: u._id.toHexString(),
     nickname: u.nickname,
-    age: ageOf(u.birthYear),
+    age: ageOf(u),
+    birth: u.birth ?? null, // 본인 화면에만 (이름표 고치기·생일 축하)
     kid: u.kid ?? null,
     email: u.email,
     nameTag: nameTag(u),
@@ -45,7 +46,7 @@ export function diaryToClient(d: DiaryDoc) {
 }
 
 /** 게시판에 보이는 일기 (글은 "글까지" 붙인 경우만) */
-export function boardItem(d: DiaryDoc, owner: Pick<UserDoc, "nickname" | "birthYear"> | null) {
+export function boardItem(d: DiaryDoc, owner: Pick<UserDoc, "nickname" | "birth" | "birthYear"> | null) {
   const full = d.board?.mode === "full" && !d.secret;
   return {
     id: d._id.toHexString(),
@@ -66,7 +67,7 @@ export function boardItem(d: DiaryDoc, owner: Pick<UserDoc, "nickname" | "birthY
 }
 
 /** 우리 반 피드: 반 친구끼리라 그림을 획 그대로 보낸다 (비밀 일기는 글을 뺀다) */
-export function classItem(d: DiaryDoc, owner: Pick<UserDoc, "nickname" | "birthYear"> | null) {
+export function classItem(d: DiaryDoc, owner: Pick<UserDoc, "nickname" | "birth" | "birthYear"> | null) {
   return {
     id: d._id.toHexString(),
     date: d.date,

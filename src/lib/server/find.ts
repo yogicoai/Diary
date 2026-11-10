@@ -35,7 +35,7 @@ export async function ownersOf(list: DiaryDoc[]) {
   const { users } = await cols();
   const ids = [...new Set(list.map((d) => d.userId.toHexString()))].map((s) => new ObjectId(s));
   const owners = await users
-    .find({ _id: { $in: ids } }, { projection: { nickname: 1, birthYear: 1 } })
+    .find({ _id: { $in: ids } }, { projection: { nickname: 1, birth: 1, birthYear: 1 } })
     .toArray();
   return new Map(owners.map((u) => [u._id.toHexString(), u]));
 }

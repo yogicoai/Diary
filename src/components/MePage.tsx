@@ -9,7 +9,7 @@ import { canvasToBlob } from "@/lib/card";
 import { renderCertificate } from "@/lib/certificate";
 import { useMe } from "@/lib/me";
 import { setReadVoice } from "@/lib/readAloud";
-import { gradeText, SCHOOL } from "@/lib/social";
+import { ageFromBirth, birthProblem, gradeText, SCHOOL } from "@/lib/social";
 import { BrandMark, StampSvg } from "./Icons";
 import StickerBoard from "./StickerBoard";
 import { LoginButtons } from "./LoginBox";
@@ -23,7 +23,9 @@ export default function MePage() {
   const { me, stats, loading, refresh, logout } = useMe();
   const [edit, setEdit] = useState(false);
   const [nickname, setNickname] = useState("");
-  const [age, setAge] = useState("");
+  const [birth, setBirth] = useState({ y: "", m: "", d: "" }); // 생년월일 (만 나이 → 학년·반, 생일 축하)
+  const birthStr = birth.y.length === 4 && birth.m && birth.d ? `${birth.y}-${birth.m.padStart(2, "0")}-${birth.d.padStart(2, "0")}` : "";
+  const previewAge = birthStr && !birthProblem(birthStr) ? ageFromBirth(birthStr) : null;
   const [kid, setKid] = useState<"girl" | "boy" | "">("");
   const [error, setError] = useState<string | null>(null);
   const [awards, setAwards] = useState<Award[]>([]);
@@ -39,7 +41,8 @@ export default function MePage() {
   const startEdit = () => {
     if (!me) return;
     setNickname(me.nickname);
-    setAge(me.age ? String(me.age) : "");
+    const [y = "", m = "", d = ""] = (me.birth ?? "").split("-");
+    setBirth({ y, m: m ? String(Number(m)) : "", d: d ? String(Number(d)) : "" });
     setKid(me.kid ?? "");
     setError(null);
     setEdit(true);
@@ -47,8 +50,11 @@ export default function MePage() {
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
+    const partial = !birthStr && (birth.y || birth.m || birth.d);
+    const problem = partial ? "생년월일을 끝까지 적어 주세요" : birthStr ? birthProblem(birthStr) : null;
+    if (problem) return setError(problem);
     try {
-      await api("/api/me", { method: "PATCH", json: { nickname, age: age ? Number(age) : null, ...(kid ? { kid } : {}) } });
+      await api("/api/me", { method: "PATCH", json: { nickname, ...(birthStr ? { birth: birthStr } : {}), ...(kid ? { kid } : {}) } });
       if (kid) setReadVoice(kid);
       await refresh();
       setEdit(false);
@@ -117,7 +123,10 @@ export default function MePage() {
             <span className="nt-hole" aria-hidden="true" />
             <span className="nt-label">이름표</span>
             <b className="nt-name">{me.nickname}</b>
-            <span className="nt-sub">{me.age ? `${SCHOOL} ${gradeText(me.age)}` : "나이를 적으면 학년·반이 생겨요"}</span>
+            <span className="nt-sub">
+              {me.age ? `${SCHOOL} ${gradeText(me.age)}` : "생년월일을 적으면 학년·반이 생겨요"}
+              {me.birth && ` · 생일 ${Number(me.birth.slice(5, 7))}월 ${Number(me.birth.slice(8, 10))}일`}
+            </span>
             <button type="button" className="linkish nt-edit" onClick={startEdit}>
               고치기
             </button>
@@ -187,16 +196,40 @@ export default function MePage() {
             이름 (게시판·우리 반에 보여요, 별명으로 바꿔도 돼요)
             <input value={nickname} maxLength={8} onChange={(e) => setNickname(e.target.value)} />
           </label>
-          <label>
-            나이 (두 자리가 학년·반이 돼요{gradeText(Number(age)) ? ` → ${SCHOOL} ${gradeText(Number(age))}` : ", 38살이면 3학년 8반"})
-            <input
-              inputMode="numeric"
-              value={age}
-              maxLength={2}
-              placeholder="예: 38"
-              onChange={(e) => setAge(e.target.value.replace(/\D/g, "").slice(0, 2))}
-            />
-          </label>
+          <div className="nt-birth" role="group" aria-label="생년월일">
+            <span>
+              생년월일 (만 나이 두 자리가 학년·반{previewAge ? ` → ${SCHOOL} ${gradeText(previewAge)}` : ", 38살이면 3학년 8반"}. 다른 사람에겐 안 보여요)
+            </span>
+            <div className="nt-birth-row">
+              <input
+                inputMode="numeric"
+                value={birth.y}
+                maxLength={4}
+                placeholder="1988"
+                aria-label="태어난 해"
+                onChange={(e) => setBirth((b) => ({ ...b, y: e.target.value.replace(/\D/g, "").slice(0, 4) }))}
+              />
+              년
+              <input
+                inputMode="numeric"
+                value={birth.m}
+                maxLength={2}
+                placeholder="3"
+                aria-label="태어난 달"
+                onChange={(e) => setBirth((b) => ({ ...b, m: e.target.value.replace(/\D/g, "").slice(0, 2) }))}
+              />
+              월
+              <input
+                inputMode="numeric"
+                value={birth.d}
+                maxLength={2}
+                placeholder="14"
+                aria-label="태어난 날"
+                onChange={(e) => setBirth((b) => ({ ...b, d: e.target.value.replace(/\D/g, "").slice(0, 2) }))}
+              />
+              일
+            </div>
+          </div>
           <label>
             나는 (일기를 이 아이 목소리로 읽어 줘요)
             <select value={kid} onChange={(e) => setKid(e.target.value as "girl" | "boy" | "")}>

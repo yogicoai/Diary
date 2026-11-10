@@ -40,7 +40,9 @@ export default function HomeGate() {
   }, [me, refresh]);
 
   const first = !!boot && !boot.seen && !loading && !me;
-  const cover = !!boot && (force || !boot.today || first);
+  // 가입한 뒤 이름표(이름·생년월일)를 아직 안 썼으면 쓸 때까지 표지에서 받는다 (11-10 사용자: "가입 후에 생년월일과 이름은 필요"). 선생님 아이디는 빼고
+  const needsTag = !!me && !me.birth && !me.admin;
+  const cover = !!boot && (force || !boot.today || first || needsTag);
 
   // 표지·인트로 동안엔 아래 메뉴(탭)를 감춘다
   useEffect(() => {
@@ -68,9 +70,9 @@ export default function HomeGate() {
       {cover && (
         <Intro
           first={first}
-          me={me ? { nickname: me.nickname, age: me.age } : null}
-          onSaveTag={async (nickname, age) => {
-            await api("/api/me", { method: "PATCH", json: { nickname, age } });
+          me={me ? { nickname: me.nickname, age: me.age, birth: me.birth, admin: me.admin } : null}
+          onSaveTag={async (nickname, birth) => {
+            await api("/api/me", { method: "PATCH", json: { nickname, birth } });
             await refresh();
           }}
           onOpen={open}

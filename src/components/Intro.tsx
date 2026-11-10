@@ -10,7 +10,7 @@ import { CRAYONS } from "@/lib/crayon";
 import { useCoverPic } from "@/lib/coverPic";
 import { todayKey } from "@/lib/date";
 import { useHomework } from "@/lib/homework";
-import { AGE_MAX, AGE_MIN, gradeClass, gradeText } from "@/lib/social";
+import { ageFromBirth, birthProblem, gradeClass, gradeText, isBirthday } from "@/lib/social";
 import { useTopic } from "@/lib/useTopic";
 import CoverPicSheet from "./CoverPicSheet";
 import { BrandMark, CrayonStick, PencilIcon, StampSvg, ColorWord } from "./Icons";
@@ -23,7 +23,7 @@ const HOW = 3; // 쓰는 법 장 수
 const SAMPLE_ROWS = ["오늘은 떡볶이를", "먹었다. 맛있었다."]; // 원고지 10칸씩, 낱말이 줄에서 안 잘리게
 const SAMPLE = SAMPLE_ROWS.join(" ");
 
-type Me = { nickname: string; age: number | null } | null;
+type Me = { nickname: string; age: number | null; birth: string | null; admin: boolean } | null;
 
 export default function Intro({
   first,
@@ -36,18 +36,23 @@ export default function Intro({
   me: Me;
   onOpen: () => void;
   onGuest: () => void;
-  onSaveTag: (nickname: string, age: number) => Promise<void>; // 표지에서 이름표(이름·나이) 쓰기
+  onSaveTag: (nickname: string, birth: string) => Promise<void>; // 표지에서 이름표(이름·생년월일) 쓰기
 }) {
   const [step, setStep] = useState(0); // 0 표지 · 1~3 쓰는 법 · 4 이름표
   const [next, setNext] = useState("/");
-  // 로그인했는데 나이가 없으면 표지 알림장에서 이름·나이를 받는다 (11-10 사용자: 나이 → 어른이 초등학교 O학년 O반)
-  const asking = !!me && !me.age;
+  // 로그인했는데 생년월일이 없으면 표지 알림장에서 이름·생년월일을 꼭 받는다
+  // (11-10 사용자: "가입 후에 생년월일과 이름", 만 나이 → 어른이 초등학교 O학년 O반, 생일엔 선생님이 축하). 선생님 아이디는 빼고.
+  const asking = !!me && !me.birth && !me.admin;
   const [name, setName] = useState(me?.nickname ?? "");
-  const [age, setAge] = useState("");
+  const [by, setBy] = useState("");
+  const [bm, setBm] = useState("");
+  const [bd, setBd] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const ageNum = Number(age);
-  const ageOk = Number.isInteger(ageNum) && ageNum >= AGE_MIN && ageNum <= AGE_MAX;
+  const birth = by.length === 4 && bm && bd ? `${by}-${bm.padStart(2, "0")}-${bd.padStart(2, "0")}` : "";
+  const birthErr = birth ? birthProblem(birth) : null;
+  const birthOk = !!birth && !birthErr;
+  const newAge = birthOk ? ageFromBirth(birth) : null;
   const nameOk = /^[\p{L}\p{N}]{2,8}$/u.test(name.trim());
   const cover = useCoverPic(); // 표지 그림: 내가 고른 내 그림 → 없으면 학교 운동장
   const [picOpen, setPicOpen] = useState(false);
@@ -71,7 +76,7 @@ export default function Intro({
       setSaving(true);
       setError(null);
       try {
-        await onSaveTag(name.trim(), ageNum);
+        await onSaveTag(name.trim(), birth);
         onOpen();
       } catch (e) {
         setError(e instanceof Error ? e.message : "이름표를 못 적었어요. 다시 해 볼까요?");
@@ -83,7 +88,7 @@ export default function Intro({
       <main className="app intro">
         <Cover90
           name={asking ? name.trim() : (me?.nickname ?? "")}
-          age={asking ? (ageOk ? ageNum : null) : (me?.age ?? null)}
+          age={asking ? newAge : (me?.age ?? null)}
           pic={cover.src}
           onChangePic={first ? undefined : () => setPicOpen(true)}
         />
@@ -103,40 +108,55 @@ export default function Intro({
                 이에요.
               </p>
               <p className="al-line">
-                나이는
+                생일은
                 <input
-                  className="al-fill age"
+                  className="al-fill year"
                   inputMode="numeric"
-                  value={age}
-                  maxLength={2}
-                  placeholder="38"
-                  aria-label="나이"
-                  onChange={(e) => setAge(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                  value={by}
+                  maxLength={4}
+                  placeholder="1988"
+                  aria-label="태어난 해"
+                  onChange={(e) => setBy(e.target.value.replace(/\D/g, "").slice(0, 4))}
                 />
-                살이에요.
-                {ageOk && <em className="al-pen">→ {gradeText(ageNum)}!</em>}
+                년
+                <input
+                  className="al-fill md"
+                  inputMode="numeric"
+                  value={bm}
+                  maxLength={2}
+                  placeholder="3"
+                  aria-label="태어난 달"
+                  onChange={(e) => setBm(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                />
+                월
+                <input
+                  className="al-fill md"
+                  inputMode="numeric"
+                  value={bd}
+                  maxLength={2}
+                  placeholder="14"
+                  aria-label="태어난 날"
+                  onChange={(e) => setBd(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                />
+                일
               </p>
+              {birthOk && <p className="al-line al-pen">→ {gradeText(newAge)}! 생일엔 선생님이 축하해 줄게요.</p>}
               <p className="al-small">
-                {age && !ageOk
-                  ? `${AGE_MIN}살부터 쓸 수 있어요.`
-                  : "나이 두 자리가 학년·반이 돼요. 게시판·우리 반에도 이 이름표가 보이니 이름은 별명으로 바꿔도 돼요."}
+                {birthErr ??
+                  "만 나이 두 자리가 학년·반이 돼요(38살 → 3학년 8반). 생년월일은 다른 사람에게 안 보이고, 게시판·우리 반엔 이름과 학년·반만 보여요. 이름은 별명으로 바꿔도 돼요."}
               </p>
             </>
           )}
         </Notice>
         {error && <p className="form-error">{error}</p>}
-        <button type="button" className="btn" onClick={() => void open()} disabled={asking && (!ageOk || !nameOk || saving)}>
+        <button type="button" className="btn" onClick={() => void open()} disabled={asking && (!birthOk || !nameOk || saving)}>
           {saving ? "이름표 다는 중…" : "일기장 펼치기"}
         </button>
         {first ? (
           <button type="button" className="linkish intro-skip" onClick={() => setStep(HOW + 1)}>
             이미 이름표가 있어요
           </button>
-        ) : asking ? (
-          <button type="button" className="linkish intro-skip" onClick={onOpen}>
-            이름표는 나중에 쓸게요
-          </button>
-        ) : (
+        ) : asking ? null : (
           <button type="button" className="linkish intro-skip" onClick={() => setStep(1)}>
             쓰는 법 다시 보기
           </button>
@@ -220,6 +240,7 @@ function Notice({ me, asking, children }: { me: Me; asking: boolean; children?: 
   }, []);
   const topic = useTopic(today);
   const hw = useHomework(today, !!today && !!me && !asking); // 오늘 숙제 검사 받았나
+  const bday = !!today && !!me && isBirthday(me.birth, today);
   return (
     <section className="al-note" aria-label="알림장">
       <span className="al-tab">알림장</span>
@@ -235,7 +256,15 @@ function Notice({ me, asking, children }: { me: Me; asking: boolean; children?: 
         </>
       ) : me ? (
         <>
-          <p className="al-line">{me.nickname}, 오늘도 왔네요!</p>
+          {bday ? (
+            <>
+              {/* 생일 (11-10 사용자: "생일 날짜에는 선생님이 축하 메시지를") — 만 나이가 하나 올라 진급하는 날 */}
+              <p className="al-line al-bday">{me.nickname}, 생일 축하해요!</p>
+              {gradeText(me.age) && <p className="al-line al-pen">오늘부터 {gradeText(me.age)}! 진급도 축하해요.</p>}
+            </>
+          ) : (
+            <p className="al-line">{me.nickname}, 오늘도 왔네요!</p>
+          )}
           <p className="al-line">
             <span className="al-no">숙제</span>
             {topic?.text ?? "오늘 있었던 일 그리기"}
@@ -244,7 +273,7 @@ function Notice({ me, asking, children }: { me: Me; asking: boolean; children?: 
           {topic?.note && <p className="al-line al-pen">{topic.note}</p>}
           <p className="al-line">
             <span className="al-no">준비물</span>
-            크레파스, 오늘 있었던 일
+            {bday ? "크레파스, 생일 케이크 한 조각" : "크레파스, 오늘 있었던 일"}
           </p>
         </>
       ) : (

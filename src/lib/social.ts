@@ -70,18 +70,51 @@ export function topicOf(dateKey: string): string {
 
 /** 이름표 한 줄: "1995년 입학 3반 하늘이" */
 /* 어른이 초등학교 (11-10 사용자): 나이 두 자리가 학년·반 — 38살이면 3학년 8반, 번호는 없다.
- * 이름표에 나이를 적으면 birthYear = 그해 - 나이 로 두고, 해가 바뀌면 한 살 더 (= 진급). */
+ * 가입하면 이름과 생년월일을 받는다 (11-10 사용자: "가입 후에 생년월일과 이름, 생일엔 선생님이 축하").
+ * 나이는 만 나이 → 생일이 오면 한 살 더 = 진급. 생년월일은 본인과 이름표 계산에만 쓰고 남에겐 학년·반만 보인다.
+ * birthYear 는 생년월일의 해(동갑 친구 찾기). 생년월일 없이 나이만 적던 잠깐 동안의 사람은 birthYear 로 계산한다. */
 export const SCHOOL = "어른이 초등학교";
 export const AGE_MIN = 14;
 export const AGE_MAX = 99;
 
-/** 지금 한국 시간의 해 */
-export function kstYear(now = Date.now()): number {
-  return new Date(now + 9 * 3600_000).getUTCFullYear();
+/** 지금 한국 날짜 YYYY-MM-DD */
+export function kstToday(now = Date.now()): string {
+  return new Date(now + 9 * 3600_000).toISOString().slice(0, 10);
 }
 
-export function ageOf(birthYear: number | null | undefined, year = kstYear()): number | null {
-  return birthYear ? year - birthYear : null;
+/** 만 나이 (생일이 지나면 한 살 더) */
+export function ageFromBirth(birth: string, today = kstToday()): number {
+  const [by, bm, bd] = birth.split("-").map(Number);
+  const [ty, tm, td] = today.split("-").map(Number);
+  return ty - by - (tm < bm || (tm === bm && td < bd) ? 1 : 0);
+}
+
+/** 이름표 나이: 생년월일 → 만 나이 / 예전(나이만 적던 때) → 태어난 해로 */
+export function ageOf(u: { birth?: string | null; birthYear?: number | null }, today = kstToday()): number | null {
+  if (u.birth) return ageFromBirth(u.birth, today);
+  return u.birthYear ? Number(today.slice(0, 4)) - u.birthYear : null;
+}
+
+/** 그날이 생일인가 (2월 29일생은 평년엔 2월 28일에) */
+export function isBirthday(birth: string | null | undefined, day = kstToday()): boolean {
+  if (!birth) return false;
+  const md = birth.slice(5);
+  if (md === day.slice(5)) return true;
+  const y = Number(day.slice(0, 4));
+  const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+  return md === "02-29" && !leap && day.slice(5) === "02-28";
+}
+
+/** 생년월일 확인: 진짜 있는 날짜인지, 14~99살인지. 괜찮으면 null */
+export function birthProblem(birth: string, today = kstToday()): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birth)) return "생년월일을 다시 적어 주세요";
+  const [y, m, d] = birth.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return "달력에 없는 날짜예요";
+  const age = ageFromBirth(birth, today);
+  if (age < AGE_MIN) return `${AGE_MIN}살부터 쓸 수 있어요`;
+  if (age > AGE_MAX) return "생년월일을 다시 확인해 주세요";
+  return null;
 }
 
 /** 나이 → 학년·반 (38 → 3학년 8반) */
@@ -90,14 +123,14 @@ export function gradeClass(age: number | null | undefined): { grade: number; ban
   return { grade: Math.floor(age / 10), ban: age % 10 };
 }
 
-/** "3학년 8반" (나이를 안 적었으면 빈 글) */
+/** "3학년 8반" (나이를 모르면 빈 글) */
 export function gradeText(age: number | null | undefined): string {
   const g = gradeClass(age);
   return g ? `${g.grade}학년 ${g.ban}반` : "";
 }
 
-/** 게시판·우리 반에 보이는 이름표: "3학년 8반 길동" (나이를 안 적었으면 이름만) */
-export function nameTag(u: { nickname: string; birthYear?: number | null }): string {
-  const g = gradeText(ageOf(u.birthYear));
+/** 게시판·우리 반에 보이는 이름표: "3학년 8반 길동" (생년월일을 안 적었으면 이름만) */
+export function nameTag(u: { nickname: string; birth?: string | null; birthYear?: number | null }): string {
+  const g = gradeText(ageOf(u));
   return g ? `${g} ${u.nickname}` : u.nickname;
 }

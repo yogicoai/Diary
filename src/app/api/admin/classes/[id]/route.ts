@@ -30,14 +30,14 @@ export async function GET(req: NextRequest, { params }: Ctx) {
 
     // 반 일기 주인 (반을 나간 사람 일기도 남아 있을 수 있다)
     const ownerIds = [...new Set(list.map((d) => d.userId.toHexString()))].map(oid);
-    const owners = await users.find({ _id: { $in: ownerIds } }, { projection: { nickname: 1, birthYear: 1 } }).toArray();
+    const owners = await users.find({ _id: { $in: ownerIds } }, { projection: { nickname: 1, birth: 1, birthYear: 1 } }).toArray();
     const tagOf = (id: ObjectId) => {
       const o = owners.find((u) => u._id.equals(id)) ?? members.find((u) => u._id.equals(id));
       return o ? nameTag(o) : "전학 간 친구";
     };
     const nl = await notes.find({ diaryId: { $in: list.map((d) => d._id) } }).sort({ at: -1 }).limit(40).toArray();
     const noteAuthors = await users
-      .find({ _id: { $in: [...new Set(nl.map((n) => n.userId.toHexString()))].map(oid) } }, { projection: { nickname: 1, birthYear: 1 } })
+      .find({ _id: { $in: [...new Set(nl.map((n) => n.userId.toHexString()))].map(oid) } }, { projection: { nickname: 1, birth: 1, birthYear: 1 } })
       .toArray();
 
     return adminJson({

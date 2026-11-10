@@ -34,7 +34,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
     const reportsOn = await reports.countDocuments({ diaryId: { $in: list.map((d) => d._id) } });
 
     return adminJson({
-      person: { ...personBrief(u), age: ageOf(u.birthYear) },
+      person: { ...personBrief(u), age: ageOf(u) },
       counts: {
         diaries: list.length,
         board: list.filter((d) => d.board?.status === "visible").length,

@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
         homework.find({ date, share: true, status: "visible" }).sort({ at: -1 }).limit(30).toArray(),
       ]);
       const owners = await users
-        .find({ _id: { $in: [...new Set(shared.map((h) => h.userId.toHexString()))].map((s) => new ObjectId(s)) } }, { projection: { nickname: 1, birthYear: 1 } })
+        .find({ _id: { $in: [...new Set(shared.map((h) => h.userId.toHexString()))].map((s) => new ObjectId(s)) } }, { projection: { nickname: 1, birth: 1, birthYear: 1 } })
         .toArray();
       const tag = (id: ObjectId) => {
         const o = owners.find((u) => u._id.equals(id));

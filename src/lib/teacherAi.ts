@@ -23,12 +23,12 @@ export function setConsent(v: "yes" | "no") {
   }
 }
 
-export async function askTeacher(d: Diary, lateDays = 0): Promise<{ line: string; stickers: string[]; stamp: string; care: boolean } | null> {
+export async function askTeacher(d: Diary, lateDays = 0, birthday = false): Promise<{ line: string; stickers: string[]; stamp: string; care: boolean } | null> {
   try {
     const res = await fetch("/api/teacher", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ weather: d.weather, title: d.title, body: d.body, drew: d.strokes.length > 0, late: lateDays || undefined }),
+      body: JSON.stringify({ weather: d.weather, title: d.title, body: d.body, drew: d.strokes.length > 0, late: lateDays || undefined, birthday: birthday || undefined }),
       signal: AbortSignal.timeout(9000),
     });
     if (!res.ok) return null;

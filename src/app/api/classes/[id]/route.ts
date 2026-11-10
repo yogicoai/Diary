@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
     const today = kstKey();
     const { diaries, users, reactions, notes } = await cols();
     const [members, feed, todays] = await Promise.all([
-      users.find({ _id: { $in: c.memberIds } }, { projection: { nickname: 1, birthYear: 1 } }).toArray(),
+      users.find({ _id: { $in: c.memberIds } }, { projection: { nickname: 1, birth: 1, birthYear: 1 } }).toArray(),
       diaries.find({ classIds: c._id }).sort({ createdAt: -1 }).limit(40).toArray(),
       // 출석부: 오늘 이 반에 일기를 낸 사람 (혼자 쓴 일기는 드러나지 않는다)
       diaries.distinct("userId", { classIds: c._id, date: today }),

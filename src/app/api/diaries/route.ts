@@ -2,7 +2,7 @@
 // 저장하면 개근상을 확인한다.
 
 import type { NextRequest } from "next/server";
-import { grantStreak } from "@/lib/server/awards";
+import { grantBirthday, grantStreak } from "@/lib/server/awards";
 import { cols } from "@/lib/server/db";
 import { assertRate, assertSameOrigin, handle, HttpError, json, readJson } from "@/lib/server/http";
 import { removeMyDiary } from "@/lib/server/removeDiary";
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       { upsert: true, returnDocument: "after" },
     );
     if (!saved) throw new HttpError(500, "save");
-    const awards = await grantStreak(user._id);
+    const awards = [...(await grantStreak(user._id)), ...(await grantBirthday(user, fields.date))];
     return json({ diary: diaryToClient(saved), awards: awards.map(awardToClient) });
   });
 }

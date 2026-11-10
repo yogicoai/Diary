@@ -1,7 +1,8 @@
-// 상장: 개근상(7·30·100일 연속) + 이번 주 참 잘한 일기(게시판 도장·스티커 많이 받은 1~3등).
+// 상장: 개근상(7·30·100일 연속) + 이번 주 참 잘한 일기(게시판 도장·스티커 많이 받은 1~3등) + 생일 축하장.
 // 날짜는 한국 시간 기준.
 
 import type { ObjectId } from "mongodb";
+import { ageFromBirth, isBirthday } from "@/lib/social";
 import { cols, type AwardDoc } from "./db";
 
 const DAY = 86400000;
@@ -57,6 +58,23 @@ export async function grantStreak(userId: ObjectId): Promise<AwardDoc[]> {
     if (res.upsertedId) granted.push({ _id: res.upsertedId, ...doc });
   }
   return granted;
+}
+
+/** 생일 축하장 (11-10 사용자: 생일엔 선생님이 축하). 생일 날짜의 일기를 내면 그해 한 번 */
+export async function grantBirthday(user: { _id: ObjectId; birth?: string | null }, diaryDate: string): Promise<AwardDoc[]> {
+  if (!user.birth || !isBirthday(user.birth, diaryDate)) return [];
+  const { awards } = await cols();
+  const key = `birthday:${diaryDate.slice(0, 4)}`;
+  const doc = {
+    userId: user._id,
+    kind: "birthday" as const,
+    key,
+    label: "생일 축하장",
+    detail: `${ageFromBirth(user.birth, diaryDate)}번째 생일에도 그림일기를 썼어요`,
+    at: new Date(),
+  };
+  const res = await awards.updateOne({ userId: user._id, key }, { $setOnInsert: doc }, { upsert: true });
+  return res.upsertedId ? [{ _id: res.upsertedId, ...doc }] : [];
 }
 
 /** 한국 시간 월요일 0시 */
