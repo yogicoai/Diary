@@ -3058,3 +3058,109 @@ html[data-intro] .tabbar {
 .about-foot {
   text-align: center;
 }
+
+/* ---------- 크게 그리기 (11-10 사용자: "모바일에서 그림칸이 약해서 가로로 크게, 전체 화면 가로 모드") ----------
+   그림칸 귀퉁이 '크게' → 화면 가득 가로 (그림칸 + 옆에 크레파스·도구·다 그렸어요).
+   휴대폰이 세로면 .rot 로 무대를 90도 돌린다 → 폰을 옆으로 들면 똑바로. 손가락 좌표는 CrayonPad 가 돌려서 읽는다 */
+.draw-big {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 9px 3px 7px;
+  border: 1.5px solid var(--ink);
+  border-radius: 10px 12px 9px 13px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-kid), cursive;
+  font-size: 15px;
+  font-weight: 700;
+}
+.draw-big svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pad-full {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  overflow: hidden;
+  background: var(--desk);
+  touch-action: none;
+  overscroll-behavior: none;
+}
+.pf-stage {
+  --S: 100dvh; /* 짧은 변 */
+  --L: 100dvw; /* 긴 변 */
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: var(--L);
+  height: var(--S);
+  padding: 10px 14px;
+}
+.pad-full.rot .pf-stage {
+  --S: 100dvw;
+  --L: 100dvh;
+  transform: rotate(90deg) translateY(-100%);
+  transform-origin: top left;
+}
+.pad-full .draw-box {
+  flex: none;
+  width: min(calc(var(--L) - 196px), calc((var(--S) - 20px) * 4 / 3));
+  margin: 0;
+  box-shadow: 0 14px 26px -16px rgba(60, 40, 20, 0.45);
+}
+.pf-side {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 8px;
+  width: 152px;
+  max-height: 100%;
+}
+.pf-side .crayon-box {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0 2px;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+.pf-side .crayon {
+  width: auto;
+  height: 48px;
+  transform: translateY(8px);
+}
+.pf-side .crayon[aria-pressed="true"] {
+  transform: none;
+}
+.pf-side .tools {
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.pf-side .pf-done {
+  min-height: 46px;
+  margin-top: 4px;
+  font-size: 19px;
+}
+.pf-turn {
+  margin: 0 0 2px;
+  color: var(--red);
+  font-family: var(--font-pen), cursive;
+  font-size: 18px;
+  line-height: 1.15;
+  white-space: nowrap;
+}

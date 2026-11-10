@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { BACKGROUNDS, bgById, bgSrc, bgThumb, BG_PACKS } from "@/lib/backgrounds";
 import { CRAYONS, drawStroke, type Point, type Stroke } from "@/lib/crayon";
 import { addWear, newCrayon, wearMap } from "@/lib/crayonWear";
@@ -36,11 +37,63 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
   // 손끝을 따라다니는 크레파스
   const cursorRef = useRef<HTMLDivElement>(null);
   const crayonId = CRAYONS.find((c) => c.hex === color)?.id ?? "black";
+  // 크게 그리기 (11-10 사용자: "모바일에서 그림칸이 약해서 가로로 크게, 전체 화면 가로 모드"):
+  // 화면 가득 가로로 그림칸을 키운다. 휴대폰이 세로면 화면을 90도 돌려서 보여 준다(rot) — 폰을 옆으로 들면 똑바로 보인다.
+  // 아이폰은 웹에서 방향을 못 바꿔서 이 방식이 모두에게 같다. 안드로이드는 전체 화면 + 가로 고정도 해 본다.
+  const [big, setBig] = useState(false);
+  const [rot, setRot] = useState(false);
+  const fsOn = useRef(false);
+  const turned = big && rot;
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 이 기기에 남은 크레파스 길이를 읽는다
     setWear(wearMap());
   }, []);
+
+  const closeBig = useCallback(() => {
+    setBig(false);
+    try {
+      (screen.orientation as unknown as { unlock?: () => void } | undefined)?.unlock?.();
+    } catch {
+      /* 가로 고정을 못 풀어도 그대로 */
+    }
+    if (fsOn.current && document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+    fsOn.current = false;
+  }, []);
+
+  const openBig = () => {
+    setRot(window.innerHeight > window.innerWidth);
+    setBig(true);
+    // 손가락 기기면 전체 화면 + 가로 고정 (안드로이드 크롬). 안 되면(아이폰 등) 화면을 돌려 보여 주는 것으로 충분
+    if (!window.matchMedia("(pointer: coarse)").matches) return;
+    const p = document.documentElement.requestFullscreen?.({ navigationUI: "hide" });
+    if (!p) return;
+    p.then(() => {
+      fsOn.current = true;
+      return (screen.orientation as unknown as { lock?: (o: string) => Promise<void> }).lock?.("landscape");
+    }).catch(() => {});
+  };
+
+  useEffect(() => {
+    if (!big) return;
+    const onResize = () => setRot(window.innerHeight > window.innerWidth);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeBig();
+    // 뒤로 가기 등으로 전체 화면이 풀리면 크게 그리기도 닫는다
+    const onFs = () => {
+      if (!document.fullscreenElement && fsOn.current) closeBig();
+    };
+    window.addEventListener("resize", onResize);
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("fullscreenchange", onFs);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("fullscreenchange", onFs);
+      document.body.style.overflow = prev;
+    };
+  }, [big, closeBig]);
 
   // 크레파스 끝(뷰박스 y = 3 + 39×닳음)을 손끝(0,0)에 두고 그 점을 중심으로 기울인다
   const tipStyle = (w: number) => {
@@ -53,7 +106,10 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
     const box = boxRef.current;
     if (!el || !box || readOnly) return;
     const r = box.getBoundingClientRect();
-    el.style.transform = `translate(${e.clientX - r.left}px, ${e.clientY - r.top}px)`;
+    // 화면을 90도 돌려 보여 줄 땐 그림칸 안 좌표도 돌려서 (그림칸의 위쪽 = 화면 오른쪽)
+    const x = turned ? e.clientY - r.top : e.clientX - r.left;
+    const y = turned ? r.right - e.clientX : e.clientY - r.top;
+    el.style.transform = `translate(${x}px, ${y}px)`;
     el.style.opacity = show ? "1" : "0";
   };
 
@@ -75,16 +131,16 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
     if (!box || !c) return;
     const fit = () => {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
-      const r = box.getBoundingClientRect();
-      c.width = Math.round(r.width * dpr);
-      c.height = Math.round(r.height * dpr);
+      // 화면에 놓인 크기(돌려 보여 줘도 그대로인 레이아웃 크기)
+      c.width = Math.round((c.offsetWidth || box.clientWidth) * dpr);
+      c.height = Math.round((c.offsetHeight || box.clientHeight) * dpr);
       redraw(strokesRef.current);
     };
     const ro = new ResizeObserver(fit);
     ro.observe(box);
     fit();
     return () => ro.disconnect();
-  }, [redraw]);
+  }, [redraw, big]);
 
   useEffect(() => {
     strokesRef.current = strokes;
@@ -93,6 +149,8 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
 
   const toPoint = (e: React.PointerEvent): Point => {
     const r = canvasRef.current!.getBoundingClientRect();
+    // 90도 돌린 그림칸: 그림의 가로 = 화면 아래쪽, 그림의 세로 = 화면 왼쪽
+    if (turned) return { x: (e.clientY - r.top) / r.height, y: (r.right - e.clientX) / r.width };
     return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height };
   };
 
@@ -151,47 +209,126 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
 
   const empty = strokes.length === 0;
 
+  const drawBox = (
+    <div
+      className="draw-box"
+      ref={boxRef}
+      onPointerDown={onDown}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={onUp}
+      onPointerLeave={(e) => moveCursor(e, false)}
+      aria-label="그림칸. 손가락으로 그려요"
+    >
+      {bgItem && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img className="draw-bg" src={bgSrc(bgItem.id)} alt="" draggable={false} />
+      )}
+      <canvas ref={canvasRef} />
+      {!readOnly && (
+        <div className="crayon-cursor" ref={cursorRef} aria-hidden="true">
+          {erase ? (
+            <svg className="cc-eraser" viewBox="0 0 40 24">
+              <rect x="1" y="1" width="38" height="22" rx="4" fill="#f4b6c2" stroke="rgba(0,0,0,.3)" />
+              <rect x="1" y="1" width="14" height="22" rx="4" fill="#5aa9e6" stroke="rgba(0,0,0,.3)" />
+            </svg>
+          ) : (
+            <span className="cc-stick" style={tipStyle(wear[crayonId] ?? 0)}>
+              <CrayonStick color={color} selected={false} wear={wear[crayonId] ?? 0} />
+            </span>
+          )}
+        </div>
+      )}
+      {empty && !readOnly && !bgItem && (
+        <div className="draw-hint">
+          <div>
+            여기에 오늘을 그려요
+            <small>못 그려도 괜찮아요. 그게 그림일기니까요</small>
+          </div>
+        </div>
+      )}
+      {empty && !readOnly && bgItem && <div className="draw-hint-chip">배경 위에 오늘의 나를 그려 넣어요</div>}
+      {!readOnly && !big && (
+        // 그림칸 귀퉁이 단추 — 누른 손가락이 그림으로 번지지 않게 막는다
+        <button type="button" className="draw-big" aria-label="크게 그리기 (가로 전체 화면)" onPointerDown={(e) => e.stopPropagation()} onClick={openBig}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+          </svg>
+          크게
+        </button>
+      )}
+    </div>
+  );
+
+  const crayonBox = (
+    <div className="crayon-box" role="toolbar" aria-label="크레파스">
+      {CRAYONS.map((c) => (
+        <button
+          key={c.id}
+          type="button"
+          className="crayon"
+          aria-label={c.name}
+          aria-pressed={!erase && color === c.hex}
+          onClick={() => {
+            setColor(c.hex);
+            setErase(false);
+          }}
+        >
+          <CrayonStick color={c.hex} selected={!erase && color === c.hex} wear={wear[c.id] ?? 0} />
+        </button>
+      ))}
+    </div>
+  );
+
+  const tools = (
+    <div className="tools">
+      <button
+        type="button"
+        className="tool"
+        aria-label={`굵기: ${["가늘게", "보통", "굵게"][size]} (누르면 바뀜)`}
+        onClick={() => setSize((s) => (s + 1) % SIZES.length)}
+      >
+        <span className="dot" style={{ width: 4 + size * 5, height: 4 + size * 5 }} />
+      </button>
+      <button type="button" className="tool" aria-pressed={erase} onClick={() => setErase((v) => !v)}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8.5 19.5 3.8 14.8a1.6 1.6 0 0 1 0-2.3l8.2-8.2a1.6 1.6 0 0 1 2.3 0l5.4 5.4a1.6 1.6 0 0 1 0 2.3l-7.8 7.8M8.5 19.5h11M7 11.4l6.1 6.1" />
+        </svg>
+        지우개
+      </button>
+      <button type="button" className="tool" aria-label="되돌리기" disabled={empty} onClick={() => onChange(strokes.slice(0, -1))}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 7 4.5 11.5 9 16M5 11.5h9.5a5 5 0 0 1 0 10H12" />
+        </svg>
+      </button>
+      {!erase && (wear[crayonId] ?? 0) >= 0.96 && (
+        <button
+          type="button"
+          className="tool new-crayon"
+          onClick={() => {
+            newCrayon(crayonId);
+            setWear(wearMap());
+            pencilTick();
+          }}
+        >
+          새 크레파스 꺼내기
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div>
-      <div
-        className="draw-box"
-        ref={boxRef}
-        onPointerDown={onDown}
-        onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
-        onPointerLeave={(e) => moveCursor(e, false)}
-        aria-label="그림칸. 손가락으로 그려요"
-      >
-        {bgItem && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img className="draw-bg" src={bgSrc(bgItem.id)} alt="" draggable={false} />
-        )}
-        <canvas ref={canvasRef} />
-        {!readOnly && (
-          <div className="crayon-cursor" ref={cursorRef} aria-hidden="true">
-            {erase ? (
-              <svg className="cc-eraser" viewBox="0 0 40 24">
-                <rect x="1" y="1" width="38" height="22" rx="4" fill="#f4b6c2" stroke="rgba(0,0,0,.3)" />
-                <rect x="1" y="1" width="14" height="22" rx="4" fill="#5aa9e6" stroke="rgba(0,0,0,.3)" />
-              </svg>
-            ) : (
-              <span className="cc-stick" style={tipStyle(wear[crayonId] ?? 0)}>
-                <CrayonStick color={color} selected={false} wear={wear[crayonId] ?? 0} />
-              </span>
-            )}
-          </div>
-        )}
-        {empty && !readOnly && !bgItem && (
+      {big ? (
+        // 크게 그리는 동안 제자리는 크기만 지킨다 (돌아오면 그린 것이 그대로 다시 그려진다)
+        <div className="draw-box draw-away" aria-hidden="true">
           <div className="draw-hint">
-            <div>
-              여기에 오늘을 그려요
-              <small>못 그려도 괜찮아요. 그게 그림일기니까요</small>
-            </div>
+            <div>크게 그리는 중이에요</div>
           </div>
-        )}
-        {empty && !readOnly && bgItem && <div className="draw-hint-chip">배경 위에 오늘의 나를 그려 넣어요</div>}
-      </div>
+        </div>
+      ) : (
+        drawBox
+      )}
 
       {!readOnly && BACKGROUNDS.length > 0 && (
         <div className="bg-packs" role="group" aria-label="상황별 배경">
@@ -245,67 +382,32 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
         </div>
       )}
 
-      {!readOnly && (
+      {!readOnly && !big && (
         <>
-          <div className="crayon-box" role="toolbar" aria-label="크레파스">
-            {CRAYONS.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                className="crayon"
-                aria-label={c.name}
-                aria-pressed={!erase && color === c.hex}
-                onClick={() => {
-                  setColor(c.hex);
-                  setErase(false);
-                }}
-              >
-                <CrayonStick color={c.hex} selected={!erase && color === c.hex} wear={wear[c.id] ?? 0} />
-              </button>
-            ))}
-          </div>
-          <div className="tools">
-            <button
-              type="button"
-              className="tool"
-              aria-label={`굵기: ${["가늘게", "보통", "굵게"][size]} (누르면 바뀜)`}
-              onClick={() => setSize((s) => (s + 1) % SIZES.length)}
-            >
-              <span className="dot" style={{ width: 4 + size * 5, height: 4 + size * 5 }} />
-            </button>
-            <button type="button" className="tool" aria-pressed={erase} onClick={() => setErase((v) => !v)}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M8.5 19.5 3.8 14.8a1.6 1.6 0 0 1 0-2.3l8.2-8.2a1.6 1.6 0 0 1 2.3 0l5.4 5.4a1.6 1.6 0 0 1 0 2.3l-7.8 7.8M8.5 19.5h11M7 11.4l6.1 6.1" />
-              </svg>
-              지우개
-            </button>
-            <button
-              type="button"
-              className="tool"
-              aria-label="되돌리기"
-              disabled={empty}
-              onClick={() => onChange(strokes.slice(0, -1))}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 7 4.5 11.5 9 16M5 11.5h9.5a5 5 0 0 1 0 10H12" />
-              </svg>
-            </button>
-            {!erase && (wear[crayonId] ?? 0) >= 0.96 && (
-              <button
-                type="button"
-                className="tool new-crayon"
-                onClick={() => {
-                  newCrayon(crayonId);
-                  setWear(wearMap());
-                  pencilTick();
-                }}
-              >
-                새 크레파스 꺼내기
-              </button>
-            )}
-          </div>
+          {crayonBox}
+          {tools}
         </>
       )}
+
+      {/* 크게 그리기: 화면 가득 가로. 세로 휴대폰이면 90도 돌려 보여 준다 (.rot) */}
+      {big &&
+        createPortal(
+          <div className={`pad-full${rot ? " rot" : ""}`} role="dialog" aria-modal="true" aria-label="크게 그리기">
+            <div className="pf-stage">
+              {drawBox}
+              <div className="pf-side">
+                {/* 세로로 든 휴대폰: 무대를 시계 방향으로 돌렸으니 폰을 왼쪽으로 눕히면 똑바로 보인다 */}
+                {rot && <p className="pf-turn">폰을 왼쪽으로 눕혀서 그려요</p>}
+                {crayonBox}
+                {tools}
+                <button type="button" className="btn pf-done" onClick={closeBig}>
+                  다 그렸어요
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
