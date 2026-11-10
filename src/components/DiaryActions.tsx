@@ -12,6 +12,7 @@ import { saveDiary, track, type Diary } from "@/lib/store";
 import { pushDiary } from "@/lib/sync";
 import { canvasBlob, renderThumb } from "@/lib/thumb";
 import { LoginSheet } from "./LoginBox";
+import { openDemoSheet } from "./BetaBar";
 import Sheet from "./Sheet";
 
 type Props = { diary: Diary; onChange: (d: Diary) => void; onToast: (m: string) => void };
@@ -31,10 +32,10 @@ export default function DiaryActions({ diary, onChange, onToast }: Props) {
   return (
     <>
       <div className="btn-row">
-        <button type="button" className="btn plain" onClick={() => setSheet(me ? "board" : "login-board")}>
+        <button type="button" className="btn plain" onClick={() => (me?.demo ? openDemoSheet() : setSheet(me ? "board" : "login-board"))}>
           {onBoard ? "게시판에 붙어 있어요" : "게시판에 붙이기"}
         </button>
-        <button type="button" className="btn plain" onClick={() => setSheet(me ? "class" : "login-class")}>
+        <button type="button" className="btn plain" onClick={() => (me?.demo ? openDemoSheet() : setSheet(me ? "class" : "login-class"))}>
           우리 반에 보내기
         </button>
       </div>

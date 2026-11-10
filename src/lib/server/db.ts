@@ -29,6 +29,9 @@ export type UserDoc = {
   passHash?: string;
   loginFails?: number;
   lockedUntil?: Date;
+  // 예제 데이터 (scripts/demo.mjs, 출시 전에 remove): 예제 친구는 demo, fe 는 '길동'으로 바꾸기 전 이름표를 demoBackup 에
+  demo?: boolean;
+  demoBackup?: { nickname: string; birth: string | null; birthYear: number | null };
 };
 
 // 오늘의 숙제(어른이 미션) 검사: 사진 한 장이나 한 줄로 낸 인증. 한 사람 하루 하나 (일기와 따로).

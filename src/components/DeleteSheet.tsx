@@ -24,13 +24,16 @@ export default function DeleteSheet({
   const { me } = useMe();
   const [busy, setBusy] = useState(false);
   const d = diary;
-  const onServer = !!me || !!d?.serverId;
+  // 베타 둘러보기: 예제 일기(서버에서 받아 온 것)는 못 지운다. 둘러보며 쓴 일기는 이 기기에서만 지운다
+  const demo = !!me?.demo;
+  const locked = demo && !!d?.serverId;
+  const onServer = !demo && (!!me || !!d?.serverId);
 
   const erase = async () => {
     if (!d || busy) return;
     setBusy(true);
     try {
-      const r = await removeDiary(d, !!me);
+      const r = await removeDiary(d, !!me && !demo);
       track("diary_delete", { later: r === "later" });
       onToast(
         r === "done"
@@ -49,8 +52,9 @@ export default function DeleteSheet({
 
   return (
     <Sheet open={!!d} onClose={onClose} label="일기 지우기">
-      <h2>이 일기를 지울까요?</h2>
-      {d && (
+      <h2>{locked ? "예제 일기는 지울 수 없어요" : "이 일기를 지울까요?"}</h2>
+      {d && locked && <p>여러 사람이 같이 둘러보는 예제 일기장이라 지우지 않고 남겨 둬요. 내 이름으로 시작하면 내 일기는 언제든 지울 수 있어요.</p>}
+      {d && !locked && (
         <>
           <p className="del-what">
             {koreanDate(d.date)}
@@ -64,14 +68,20 @@ export default function DeleteSheet({
           </ul>
         </>
       )}
-      <div className="btn-row">
-        <button type="button" className="btn plain" onClick={onClose} disabled={busy}>
-          그냥 둘래요
+      {locked ? (
+        <button type="button" className="btn plain" onClick={onClose}>
+          알겠어요
         </button>
-        <button type="button" className="btn plain erase" onClick={() => void erase()} disabled={busy}>
-          {busy ? "지우는 중…" : "지울래요"}
-        </button>
-      </div>
+      ) : (
+        <div className="btn-row">
+          <button type="button" className="btn plain" onClick={onClose} disabled={busy}>
+            그냥 둘래요
+          </button>
+          <button type="button" className="btn plain erase" onClick={() => void erase()} disabled={busy}>
+            {busy ? "지우는 중…" : "지울래요"}
+          </button>
+        </div>
+      )}
     </Sheet>
   );
 }

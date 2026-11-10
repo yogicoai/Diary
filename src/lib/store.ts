@@ -149,8 +149,17 @@ export async function releaseToGuest(owner: string): Promise<void> {
 
 /** 로그아웃할 때: 서버에 올라간 일기 사본은 이 기기에서 지운다 (공용 컴퓨터에 남지 않게 — 다시 로그인하면 서버에서 받아 온다).
  *  아직 못 올린 일기만 남겨 두고 다음 로그인 때 올린다 */
-export async function forgetSynced(owner: string): Promise<void> {
+export async function forgetSynced(owner: string, toGuest = false): Promise<void> {
   const left = (await readAll(owner)).filter((d) => !d.serverId);
+  if (toGuest) {
+    // 베타 둘러보기(예제 일기장)에서 쓴 일기 = 올리지 않은 것 → 손님 일기장으로 (내 이름으로 시작하면 그 일기장으로 합쳐진다)
+    if (left.length) {
+      const guest = ((await get(GUEST_KEY)) as Diary[] | undefined) ?? [];
+      await set(GUEST_KEY, [...guest, ...left.filter((d) => !guest.some((g) => g.id === d.id))]);
+    }
+    await del(keyOf(owner));
+    return;
+  }
   if (left.length) await set(keyOf(owner), left);
   else await del(keyOf(owner));
 }

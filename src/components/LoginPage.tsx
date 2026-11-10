@@ -16,7 +16,7 @@ const ERRORS: Record<string, string> = {
 };
 
 export default function LoginPage() {
-  const { me } = useMe();
+  const { me, flags } = useMe();
   const [next, setNext] = useState("/me");
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +56,8 @@ export default function LoginPage() {
         <LoginButtons next={next} />
       )}
       <p className="note">
-        구글 계정 이메일은 로그인에만 쓰고 다른 사람에게 보이지 않아요. 게시판·우리 반에는 이름과 학년·반만 보이고 생년월일은 보이지 않아요.
+        {flags?.google ? "구글 계정 이메일은 로그인에만 쓰고 다른 사람에게 보이지 않아요. " : ""}게시판·우리 반에는 이름과 학년·반만 보이고 생년월일은 보이지 않아요.{" "}
+        <Link href="/about">이 앱은요?</Link>
       </p>
     </main>
   );

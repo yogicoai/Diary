@@ -71,19 +71,22 @@ export async function removeDiary(d: Diary, signedIn: boolean): Promise<"done" |
 
 let running: Promise<void> | null = null;
 
-export function syncAll(userId: string): Promise<void> {
+/** readOnly = 베타 둘러보기(예제 일기장): 받아 오기만 한다. 손님 일기를 합치거나 올리지 않는다 (여러 사람이 같이 보는 일기장) */
+export function syncAll(userId: string, readOnly = false): Promise<void> {
   running ??= (async () => {
     try {
       setDiaryOwner(userId); // 이 사람 일기장 칸으로 (lib/me.tsx 가 먼저 맞추지만 한 번 더)
-      for (const id of goneList()) await eraseOnServer(id); // 못 지운 일기 마저 지우기
-      // 로그인 전에 이 기기에 쓴 손님 일기는 내 일기장으로 ("이름표를 만들면 그대로 합쳐져요")
-      await adoptGuestDiaries();
-      // 서버에 아직 없는 내 일기 올리기 (손님 때 쓴 것·인터넷이 끊겨 못 올린 것)
-      for (const d of (await listDiaries()).filter((x) => !x.serverId)) {
-        if (diaryOwner() !== userId) return;
-        await pushDiary(d).catch(async (e) => {
-          if (e instanceof ApiError && e.status === 410) await deleteDiary(d.id); // 서버에서 지운 일기 (다른 기기에서 지움)
-        });
+      if (!readOnly) {
+        for (const id of goneList()) await eraseOnServer(id); // 못 지운 일기 마저 지우기
+        // 로그인 전에 이 기기에 쓴 손님 일기는 내 일기장으로 ("이름표를 만들면 그대로 합쳐져요")
+        await adoptGuestDiaries();
+        // 서버에 아직 없는 내 일기 올리기 (손님 때 쓴 것·인터넷이 끊겨 못 올린 것)
+        for (const d of (await listDiaries()).filter((x) => !x.serverId)) {
+          if (diaryOwner() !== userId) return;
+          await pushDiary(d).catch(async (e) => {
+            if (e instanceof ApiError && e.status === 410) await deleteDiary(d.id); // 서버에서 지운 일기 (다른 기기에서 지움)
+          });
+        }
       }
       const { diaries } = await api<{ diaries: ServerDiary[] }>("/api/diaries");
       if (diaryOwner() !== userId) return; // 그사이 로그아웃·다른 계정이면 남의 칸에 쓰지 않는다

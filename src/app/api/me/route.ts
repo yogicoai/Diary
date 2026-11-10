@@ -6,13 +6,15 @@ import { cols, NoDbError } from "@/lib/server/db";
 import { assertSameOrigin, handle, HttpError, json, readJson } from "@/lib/server/http";
 import { meToClient } from "@/lib/server/serialize";
 import { birthProblem, TOO_YOUNG } from "@/lib/social";
+import { betaOn, devLoginOn } from "@/lib/server/beta";
 import { removeAccount } from "@/lib/server/removeAccount";
 import { clearSession, currentUser, isAdmin, requireUser } from "@/lib/server/session";
 
 function flags() {
   return {
     google: !!process.env.GOOGLE_CLIENT_ID,
-    devLogin: process.env.NODE_ENV !== "production" && process.env.DEV_LOGIN === "1",
+    devLogin: devLoginOn(), // 개발 또는 베타 서버 (베타에선 "이름만 적고 시작하기")
+    beta: betaOn(), // 베타 서버: 처음 온 사람은 예제 일기장으로 둘러보기 (lib/server/beta.ts)
     server: !!process.env.MONGODB_URI && !!process.env.AUTH_SECRET,
   };
 }

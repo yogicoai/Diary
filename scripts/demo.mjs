@@ -17,6 +17,7 @@
 //
 // 표시: 예제 사용자·반·숙제·상장은 demo: true, 일기는 clientId 가 demo- 로 시작한다.
 // 브라우저 일기장(IndexedDB)은 기기에 남으니, 보여 줄 땐 시크릿 창에서 교무실 문(/admin)으로 fe 로 들어가 / 로 가면 깔끔하다.
+// 베타 서버(BETA=1)에선 처음 온 사람이 이 예제 일기장으로 저절로 들어와 둘러본다(읽기만, src/lib/server/beta.ts). remove 하면 둘러보기도 없어진다.
 
 import fs from "node:fs";
 import path from "node:path";

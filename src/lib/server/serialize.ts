@@ -1,9 +1,10 @@
 // DB 문서 → 화면으로 보내는 모양
 
 import type { AwardDoc, ClassDoc, DiaryDoc, UserDoc } from "./db";
+import type { SessionUser } from "./session";
 import { ageOf, nameTag } from "@/lib/social";
 
-export function meToClient(u: UserDoc, admin: boolean) {
+export function meToClient(u: SessionUser, admin: boolean) {
   return {
     id: u._id.toHexString(),
     nickname: u.nickname,
@@ -13,6 +14,7 @@ export function meToClient(u: UserDoc, admin: boolean) {
     email: u.email,
     nameTag: nameTag(u),
     admin,
+    demo: u.demoView === true, // 베타 둘러보기 (예제 일기장을 읽기만, lib/server/beta.ts)
   };
 }
 

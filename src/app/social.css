@@ -737,6 +737,7 @@
   font-size: 15px;
   text-align: center;
   line-height: 1.2;
+  word-break: keep-all; /* "숙제 잘하는 / 어른이 상" — 낱말 중간에서 안 끊기게 */
 }
 
 .award span {
@@ -2863,4 +2864,196 @@ html[data-intro] .tabbar {
   flex-wrap: wrap;
   gap: 2px;
   margin-top: 4px;
+}
+
+/* ---------- 베타 둘러보기 (BETA=1 서버, lib/server/beta.ts · components/BetaBar.tsx) — 베타가 끝나면 같이 지운다 ---------- */
+/* 맨 위 쪽지: 예제 일기장을 보는 중 → 누르면 안내 시트 */
+.beta-bar {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 10px 16px 0;
+}
+.beta-bar button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 10px 5px 8px;
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  text-align: left;
+}
+.beta-tag {
+  flex: none;
+  padding: 0 7px;
+  border: 1.5px solid var(--red);
+  border-radius: 5px;
+  color: var(--red);
+  font-family: var(--font-pen), cursive;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.3;
+  transform: rotate(-4deg);
+}
+.beta-text {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.beta-go {
+  flex: none;
+  margin-left: auto;
+  color: var(--red);
+  font-family: var(--font-pen), cursive;
+  font-size: 19px;
+  white-space: nowrap;
+}
+
+/* 로그인: 이름만 적고 시작하기 + 예제 일기장 둘러보기 */
+.beta-login {
+  padding: 12px 12px 6px;
+  border: 1.5px dashed var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+}
+.beta-login-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-kid), cursive;
+  font-size: 19px;
+  font-weight: 700;
+}
+.beta-login .note {
+  margin: 10px 2px 0;
+}
+.beta-look {
+  display: block;
+  margin: 6px auto 0;
+  font-size: 14px;
+}
+.login-box .beta-login + .btn.google {
+  margin-top: 14px;
+}
+
+/* ---------- 이 앱은요? (/about, components/AboutPage.tsx) — 앱 조각(표지·알림장·쓰는 법·이름표·숙제 띠·출석부·상장함)은 원래 모양 그대로, 묶는 것만 여기 ---------- */
+.about .al-note {
+  margin-top: 40px;
+}
+.about-h {
+  margin: 40px 4px 0;
+  font-family: var(--font-kid), cursive;
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: underline wavy var(--accent);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 8px;
+}
+.about .intro-step {
+  margin-top: 16px;
+}
+.about-card {
+  position: relative;
+  margin-top: 30px;
+  padding: 22px 14px 16px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 3px 3px 6px 6px;
+  box-shadow:
+    0 1px 0 var(--paper-edge),
+    0 14px 26px -16px rgba(60, 40, 20, 0.45);
+}
+.about-h + .about-card {
+  margin-top: 26px;
+}
+.about-tag {
+  position: absolute;
+  top: -15px;
+  left: 12px;
+  padding: 0 10px 2px;
+  border: 2px solid var(--ink);
+  border-radius: 7px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-kid), cursive;
+  font-size: 17px;
+  font-weight: 700;
+  transform: rotate(-2deg);
+}
+.about-card h3 {
+  margin: 2px 0 12px;
+  font-family: var(--font-kid), cursive;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.about-card > p {
+  margin: 12px 0 0;
+  font-size: 14.5px;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+.about-stamps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  justify-items: center;
+  gap: 2px;
+}
+.about-stamp {
+  width: 68px;
+  height: 68px;
+  color: var(--red);
+  transform: rotate(-9deg);
+}
+.about-stamp:nth-child(even) {
+  transform: rotate(7deg);
+}
+.about-stickers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 4px;
+  margin-top: 10px;
+}
+.about-stickers svg:nth-child(odd) {
+  transform: rotate(-8deg);
+}
+.about-stickers svg:nth-child(even) {
+  transform: rotate(6deg);
+}
+.about-nametag {
+  max-width: 270px;
+  margin: 0 auto;
+}
+.about-topic {
+  margin: 0;
+}
+.about-cardshot {
+  width: 60%;
+  max-width: 240px;
+  margin: 0 auto;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: var(--desk);
+  box-shadow: 0 14px 26px -16px rgba(60, 40, 20, 0.5);
+  transform: rotate(-1.5deg);
+}
+.about-cardshot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.about-cta {
+  margin-top: 30px;
+}
+.about-foot {
+  text-align: center;
 }

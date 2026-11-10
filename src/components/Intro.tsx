@@ -351,7 +351,7 @@ function Notice({ me, asking, children }: { me: Me; asking: boolean; children?: 
 
 /** 처음 표지: 90년대 그림일기장·알림장 느낌 (11-09 사용자 "90년대 일기장이나 알림장 느낌")
  *  색 동그라미 제목 · 항공우편 줄무늬 · 크레파스 학교 운동장 · 별·반짝이 · 알림장식 이름 띠 · 천 테이프 책등 */
-function Cover90({ name, age, pic, onChangePic }: { name: string; age: number | null; pic?: string | null; onChangePic?: () => void }) {
+export function Cover90({ name, age, pic, onChangePic }: { name: string; age: number | null; pic?: string | null; onChangePic?: () => void }) {
   const g = gradeClass(age); // 38살 → 3학년 8반 (번호는 없다, 11-10 사용자)
   return (
     <section className="c90" aria-label="그림일기장 표지">
@@ -402,11 +402,12 @@ function Cover90({ name, age, pic, onChangePic }: { name: string; age: number | 
   );
 }
 
-function HowTo({ step }: { step: number }) {
+/** 쓰는 법 한 장 (인트로 · 이 앱은요? 에서 같이 쓴다) */
+export function HowTo({ step, total = HOW }: { step: number; total?: number }) {
   return (
     <section className="page intro-step" key={step}>
       <p className="intro-no">
-        {step} / {HOW}
+        {step} / {total}
       </p>
       {step === 1 && (
         <>

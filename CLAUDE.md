@@ -19,6 +19,7 @@
 - **예제 데이터(검토·클라이언트 시연용, 11-10 사용자 "일기장·우리 반·게시판·동갑 친구·나까지 다 채워")**: `node --env-file=.env.local scripts/demo.mjs build` → fe 를 이름표 '길동'(1988년생 → 2026년엔 3학년 8반, 생일 = 만든 날)으로: 어제까지 30일 하루도 안 빠진 일기 + 밀린 숙제·비밀 일기, 숙제 검사 10번(칭찬 스티커판 한 판), 일주일·한 달 개근상·숙제 상, 게시판 2편(지난주 참 잘한 일기 후보). 예제 친구 8명(demo: true, 개발용 로그인 데모지민·데모도윤·데모서연·데모하준·데모유나 + 동갑 데모민준·데모수빈·데모예린): 게시판 10편(지난주 1~3등), 숙제 벽, 우리 반 '퇴근 후 그림반'(반장 fe + 6명, 반 숙제·출석부·반 일기 도장·짝꿍 한마디). 6900 에 **같은 DB** 서버가 켜져 있어야 한다(게시판은 화면에서 진짜로 붙여 카드 그림을 만든다, fe 글은 임시 친구 데모대신으로 붙여 옮김. AI 검사 12번 ≈ 4.8원, 진짜 DB 면 그림은 카페24 FTP). 보는 법: 시크릿 창 → /admin 에서 fe → / . **출시 전에 `scripts/demo.mjs remove` 필수**(예제·그림을 지우고 fe 이름표를 되돌린다). 임시 DB 는 `--uri <주소>`.
 - **시험 전에 6900 서버가 dev:mem 인지 npm run dev(진짜 Atlas) 인지 확인한다** — 사용자가 평소 npm run dev 로 켜 둔다. 진짜 DB 에서 개발용 로그인으로 시험하면 dev: 사용자가 진짜로 생긴다(11-10 에 시험 계정 13명을 지움, 사용자가 만든 '시험' 계정은 남김).
 - 화면 확인: `node scripts/shot.mjs http://localhost:6900 <출력폴더>` (390px, 테마 3종, 카드·시트·일기장 캡처)
+- **베타 서버 = 호스팅 환경변수 `BETA=1`** (11-10 사용자: "서버 올릴 땐 개발자 모드로 이미 로그인된 상태로 보여 주기", "베타라 이후 없앨 것"): 운영에서도 개발용 로그인을 "이름만 적고 시작하기"로 열고, 처음 온 사람은 예제 일기장(fe = 3학년 8반 길동, demo.mjs build 가 있어야)으로 **로그인된 채** 둘러본다. 시험은 `npx next build` → `BETA=1 npx next start -p 6901`(6900 사용자 서버는 그대로). 로컬 .env.local 엔 넣지 않는다(인트로 대신 예제가 열림). **정식 출시 전에 지운다**
 - 아이콘: `src/app/icon.svg` 고친 뒤 `node scripts/icons.mjs`
 - 링크 미리보기 그림(카카오톡 등, 11-10): `src/app/opengraph-image.jpg` = 표지(.c90)를 찍어 문구점 낙서 배경 가운데에 놓은 것. 표지를 바꾸면 6900 을 켜고 `node scripts/og-image.mjs`. 절대 주소는 AUTH_URL(운영 주소)로 만든다(layout metadataBase). `/d` 는 openGraph 를 따로 적어서 그림도 직접 적어 둠, 게시판 글(/board/[id])은 그 카드 그림
 - 커밋 전: `npx eslint src scripts` + `npx next build`
@@ -58,7 +59,8 @@
 
 ## 참여 기능 (11-06, 사용자: "다 가보자")
 
-- 로그인 = **구글만** (11-09 사용자: "이후는 모두 구글 가입만, 덜 헷갈리게"). OAuth 직접 구현 `api/auth/google`, jose 세션 쿠키 `cj_session`. 아이디 가입 길은 없다. 개발용 로그인은 DEV_LOGIN=1 + 운영 아님일 때만.
+- 로그인 = **구글만** (11-09 사용자: "이후는 모두 구글 가입만, 덜 헷갈리게"). OAuth 직접 구현 `api/auth/google`, jose 세션 쿠키 `cj_session`. 아이디 가입 길은 없다. 개발용 로그인은 DEV_LOGIN=1 + 운영 아님일 때만, 또는 베타 서버(BETA=1, `lib/server/beta.ts` devLoginOn).
+- **베타 둘러보기** (BETA=1, 베타 끝나면 같이 없어짐): `lib/me.tsx` 가 처음 온 사람(이 기기 localStorage chamjal.betaDemo 없음, /admin·/login·/join·/d 로 온 사람은 빼고)을 `POST /api/auth/demo` 로 한 번 들여보낸다 → 세션 JWT 에 demo:true. **둘러보기 세션은 읽기만**: `requireUser` 가 GET 말고는 모두 403 "demo"(이름표·탈퇴·일기 올리기·게시판·반·숙제·도장…), `staffRole` 은 null(fe 계정이어도 교무실 못 들어감, 교무실은 비밀번호 세션만). 여러 사람이 같이 보는 일기장이라서. 화면: 맨 위 쪽지(`BetaBar`) · 막히면 안내 시트(`DemoSheetHost`, lib/api.ts 가 403 demo 면 chamjal:demo 알림) → "내 이름으로 시작하기"(로그아웃 → /login). 둘러보며 쓴 일기는 서버에 안 올리고(syncAll readOnly, DiaryEditor 도 안 올림) 이 기기에만, 끝내면 손님 칸으로 옮겨서(forgetSynced toGuest) 내 이름으로 들어가면 합쳐진다. 예제 일기는 못 지움(DeleteSheet). 베타 로그인(`LoginBox` BetaLogin): 이름 2~8자, "데모…"(예제 친구)는 화면·서버 둘 다 막음, 같은 이름 = 같은 일기장이라고 알림, "예제 일기장 먼저 둘러보기". 구글이 안 켜졌으면 구글 단추는 감춘다.
 - **선생님 아이디 = fe(개발 → 전산 선생님)·yogico(클라이언트 → 교장 선생님)** 두 개만 교무실에 들어온다 (11-09 사용자). 이 둘만 교무실 문에서 아이디·비밀번호로 들어온다(`api/auth/password`, scrypt, 5번 틀리면 15분 잠금, 그 밖의 아이디는 거절). 사용자가 직접 정한 비밀번호로 만들어 진짜 Atlas 에 있다(임시 DB 에서 가입한 것을 11-09 에 비밀번호 값 그대로 옮김). 잊으면 `scripts/account.mjs reset`. 권한은 아이디 이름으로(`lib/staff.ts`). 전산 선생님만 교무 일지의 '시설 점검·교무 기록'을 본다.
 - **교무실** `/admin` (11-09 사용자: "동화 앱 어드민단과 비슷한 관리자 페이지" → "교무실이라고"): 교무 일지(대시보드) · 학생 명부(이름표·로그인·들어간 반·일기 수, 정지) · 반(반장·친구·반에 낸 일기·짝꿍 한마디) · 숙제 내기 · 게시판 검사. 서버는 `lib/server/admin.ts` requireStaff 로 막고 응답은 no-store. **운영자는 남에게 보여 준 일기(게시판·반)만 펼쳐 본다 — 혼자 쓴 일기는 날짜만** (canOpen/bodyVisible). 정지하면 로그인 막고 게시판 일기도 내린다. 처리는 adminlog 에 남는다.
 - 저장 = **Mongo(DB chamjal) + Cafe24 FTP**(그림 파일, QR 스튜디오 price_Line 과 같은 FTP_* / PUBLIC_ASSET_BASE 이름). FTP 없으면 개발은 public/_dev-uploads.
@@ -81,4 +83,5 @@
 - `src/lib/card.ts` 1080×1920 공유 카드
 - `src/lib/teacher.ts` 선생님 한 줄 (규칙 기반, 나중에 AI 답장으로 교체 가능)
 - `src/components/DiaryShelf.tsx` 내 일기장 (이번 주 도장 + 목록)
+- `src/components/AboutPage.tsx` **이 앱은요?** (`/about`, 11-10 사용자 "어떤 어플인지 설명, 앱의 HTML·CSS 활용"): 앱 조각을 그대로 쓴다 — 표지(Intro 의 Cover90)·알림장·쓰는 법(HowTo 4장, 4장째는 `renderCard` 로 예시 카드를 그 자리에서 그림)·도장·칭찬 스티커·이름표·숙제 띠·출석부·상장함·몽당 크레파스·약속, 베타면 "지금은 베타예요". 가짓수는 목록 길이에서 읽는다. 나 화면·로그인·둘러보기 시트에서 링크
 - 다음 단계·수익구조: `docs/ROADMAP.md`, `docs/revenue/`

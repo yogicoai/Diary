@@ -13,6 +13,7 @@ import { READ_ALOUD } from "@/lib/business";
 import { setReadVoice } from "@/lib/readAloud";
 import { ageOf, birthProblem, gradeText, SCHOOL } from "@/lib/social";
 import { dropDiariesOf, setDiaryOwner } from "@/lib/store";
+import { openDemoSheet } from "./BetaBar";
 import { BrandMark, StampSvg } from "./Icons";
 import StickerBoard from "./StickerBoard";
 import { LoginButtons } from "./LoginBox";
@@ -172,6 +173,9 @@ export default function MePage() {
             <li>휴대폰을 바꿔도 일기가 그대로예요</li>
           </ul>
           <LoginButtons next="/me" />
+          <p className="note" style={{ textAlign: "center" }}>
+            <Link href="/about">이 앱은요?</Link>
+          </p>
         </div>
       )}
 
@@ -185,7 +189,8 @@ export default function MePage() {
               {me.age ? `${SCHOOL} ${gradeText(me.age)}` : "생년월일을 적으면 학년·반이 생겨요"}
               {me.birth && ` · 생일 ${Number(me.birth.slice(5, 7))}월 ${Number(me.birth.slice(8, 10))}일`}
             </span>
-            <button type="button" className="linkish nt-edit" onClick={startEdit}>
+            {/* 베타 둘러보기(예제 일기장)는 여러 사람이 같이 보니 이름표를 못 고친다 → 안내 */}
+            <button type="button" className="linkish nt-edit" onClick={me.demo ? openDemoSheet : startEdit}>
               고치기
             </button>
           </section>
@@ -238,10 +243,11 @@ export default function MePage() {
 
           <div className="me-links">
             {me.admin && <Link href="/admin">교무실</Link>}
+            <Link href="/about">이 앱은요?</Link>
             <button type="button" className="linkish" onClick={() => logout()}>
-              로그아웃
+              {me.demo ? "둘러보기 끝내기" : "로그아웃"}
             </button>
-            {!me.admin && (
+            {!me.admin && !me.demo && (
               <button type="button" className="linkish" onClick={() => setQuit(true)}>
                 회원 탈퇴
               </button>

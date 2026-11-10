@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Gaegu, Gowun_Dodum, Nanum_Pen_Script } from "next/font/google";
 import "./globals.css";
 import "./social.css";
+import { BetaBar, DemoSheetHost } from "@/components/BetaBar";
 import TabBar from "@/components/TabBar";
 import WebBackdrop from "@/components/WebBackdrop";
 import { MeProvider } from "@/lib/me";
@@ -56,9 +57,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body>
         <MeProvider>
+          {/* 베타 둘러보기 쪽지·안내 시트 (BETA=1 서버에서 예제 일기장을 보는 중일 때만, lib/server/beta.ts) */}
+          <BetaBar />
           {children}
           <TabBar />
           <WebBackdrop />
+          <DemoSheetHost />
         </MeProvider>
       </body>
     </html>

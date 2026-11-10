@@ -3,11 +3,15 @@
 import { SignJWT, jwtVerify } from "jose";
 import { ObjectId } from "mongodb";
 import type { NextRequest, NextResponse } from "next/server";
+import { betaOn, DEMO_READONLY } from "./beta";
 import { cols, type UserDoc } from "./db";
 import { HttpError } from "./http";
 import { staffOfLoginId, type StaffRole } from "@/lib/staff";
 
 export type { StaffRole };
+
+/** 로그인한 사람. demoView = 베타 둘러보기 세션(예제 일기장을 읽기만) — 세션에만 붙고 DB 에는 저장하지 않는다 */
+export type SessionUser = UserDoc & { demoView?: true };
 
 export const SESSION_COOKIE = "cj_session";
 const MAX_AGE = 60 * 60 * 24 * 60; // 60일
@@ -18,8 +22,9 @@ function secret() {
   return new TextEncoder().encode(s);
 }
 
-export async function setSession(res: NextResponse, userId: string) {
-  const token = await new SignJWT({ uid: userId })
+/** opts.demo = 베타 둘러보기 세션 (api/auth/demo) */
+export async function setSession(res: NextResponse, userId: string, opts: { demo?: boolean } = {}) {
+  const token = await new SignJWT(opts.demo ? { uid: userId, demo: true } : { uid: userId })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${MAX_AGE}s`)
@@ -37,39 +42,43 @@ export function clearSession(res: NextResponse) {
   res.cookies.set(SESSION_COOKIE, "", { httpOnly: true, path: "/", maxAge: 0 });
 }
 
-export async function sessionUserId(req: NextRequest): Promise<string | null> {
+async function readSession(req: NextRequest): Promise<{ uid: string; demo: boolean } | null> {
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret());
-    return typeof payload.uid === "string" ? payload.uid : null;
+    return typeof payload.uid === "string" ? { uid: payload.uid, demo: payload.demo === true } : null;
   } catch {
     return null;
   }
 }
 
-export async function currentUser(req: NextRequest): Promise<UserDoc | null> {
-  const uid = await sessionUserId(req);
-  if (!uid || !ObjectId.isValid(uid)) return null;
+export async function currentUser(req: NextRequest): Promise<SessionUser | null> {
+  const s = await readSession(req);
+  if (!s || !ObjectId.isValid(s.uid)) return null;
+  if (s.demo && !betaOn()) return null; // 베타가 끝나면 둘러보기 세션은 로그아웃된 것으로
   const { users } = await cols();
-  const user = await users.findOne({ _id: new ObjectId(uid) });
+  const user = await users.findOne({ _id: new ObjectId(s.uid) });
   if (!user || user.banned) return null;
-  return user;
+  return s.demo ? { ...user, demoView: true } : user;
 }
 
-export async function requireUser(req: NextRequest): Promise<UserDoc> {
+export async function requireUser(req: NextRequest): Promise<SessionUser> {
   const user = await currentUser(req);
   if (!user) throw new HttpError(401, "login", "로그인이 필요해요");
+  // 베타 둘러보기는 읽기만: 일기 올리기·지우기, 게시판·우리 반·숙제·도장, 이름표 고치기·탈퇴 등 쓰기는 모두 여기서 막는다
+  if (user.demoView && req.method !== "GET") throw new HttpError(403, "demo", DEMO_READONLY);
   return user;
 }
 
-/** 교무실(/admin)에 들어오는 선생님: fe(전산 선생님)·yogico(교장 선생님) 아이디 계정뿐 (lib/staff.ts) */
-export function staffRole(user: UserDoc | null): StaffRole | null {
-  if (!user || !user.googleSub.startsWith("id:")) return null;
+/** 교무실(/admin)에 들어오는 선생님: fe(전산 선생님)·yogico(교장 선생님) 아이디 계정뿐 (lib/staff.ts).
+ *  베타 둘러보기 세션은 fe 계정이어도 선생님이 아니다 — 교무실은 비밀번호로 들어온 세션만 */
+export function staffRole(user: SessionUser | null): StaffRole | null {
+  if (!user || user.demoView || !user.googleSub.startsWith("id:")) return null;
   return staffOfLoginId(user.loginId);
 }
 
-export function isAdmin(user: UserDoc | null): boolean {
+export function isAdmin(user: SessionUser | null): boolean {
   return staffRole(user) !== null;
 }
 
