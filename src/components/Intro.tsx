@@ -437,7 +437,7 @@ export function HowTo({ step, total = HOW }: { step: number; total?: number }) {
               </span>
             ))}
           </div>
-          <p className="intro-p">배경 그림 위에 쓱쓱. 잘 못 그려도 괜찮아요. 흰 종이에 처음부터 그려도 돼요.</p>
+          <p className="intro-p">흰 종이에 쓱쓱. 잘 못 그려도 괜찮아요. 배경 그림을 골라 그 위에 그려도 돼요.</p>
         </>
       )}
       {step === 3 && (

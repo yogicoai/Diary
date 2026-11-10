@@ -67,9 +67,10 @@ export function bgById(id: string | null | undefined): Background | undefined {
   return BACKGROUNDS.find((b) => b.id === id);
 }
 
-/** 새 일기의 첫 배경 (배경이 하나도 없으면 직접 그리기) */
+/** 새 일기의 첫 배경 = 직접 그리기(흰 종이) (11-10 사용자: "처음엔 직접 그리기 쪽으로"). 배경 그림은 골라서 깐다.
+ *  나 → 기본 설정에서 처음 배경을 고른 사람은 그것 (lib/prefs.ts preferredBg) */
 export function defaultBg(): string | null {
-  return BACKGROUNDS[0]?.id ?? null;
+  return null;
 }
 
 export function loadImage(src: string): Promise<HTMLImageElement> {
