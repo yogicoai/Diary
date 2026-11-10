@@ -10,6 +10,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { READ_ALOUD } from "@/lib/business";
 import { useMe } from "@/lib/me";
 import { kidChoice, setReadVoice } from "@/lib/readAloud";
 import { coverShownToday, introSeen, markCoverToday, setIntroSeen } from "@/lib/prefs";
@@ -29,6 +30,7 @@ export default function HomeGate() {
   useEffect(() => {
     if (!me) return;
     setIntroSeen();
+    if (!READ_ALOUD) return; // 남자아이·여자아이(읽어 주는 목소리)는 읽어 주기를 켤 때만
     const local = kidChoice();
     if (me.kid) {
       if (local !== me.kid) setReadVoice(me.kid);

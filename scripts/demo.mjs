@@ -296,7 +296,8 @@ async function remove() {
     notes: (await col("notes").deleteMany(byDiaryOrUser)).deletedCount,
     diaries: (await col("diaries").deleteMany(dq)).deletedCount,
     homework: (await col("homework").deleteMany({ $or: [{ userId: { $in: ids } }, { demo: true }] })).deletedCount,
-    awards: (await col("awards").deleteMany({ $or: [{ userId: { $in: ids } }, { demo: true }] })).deletedCount,
+    // 지난주 참 잘한 일기 상장은 fe 가 받았어도 예제 일기를 가리키면 같이 지운다 (남아 있으면 그 주 1~3등을 다시 안 센다)
+    awards: (await col("awards").deleteMany({ $or: [{ userId: { $in: ids } }, { demo: true }, { diaryId: { $in: dIds } }] })).deletedCount,
     goneDiaries: (await col("goneDiaries").deleteMany({ $or: [{ userId: { $in: ids } }, ...(fe ? [{ userId: fe._id, clientId: /^demo-/ }] : [])] })).deletedCount,
     brags: (await col("brags").deleteMany({ $or: [{ userId: { $in: ids } }, { classId: { $in: demoClassIds } }] })).deletedCount,
     classes: (await col("classes").deleteMany({ demo: true })).deletedCount,

@@ -5,6 +5,7 @@
 // - Typecast(네오사피엔스)는 국내 회사라 국외 이전이 아니다. 개인정보 처리방침의 처리 위탁에 적는다.
 
 import { z } from "zod";
+import { READ_ALOUD } from "@/lib/business";
 import { readScript, READ_TEMPO } from "@/lib/readScript";
 
 const API = "https://api.typecast.ai";
@@ -51,14 +52,14 @@ function limited(ip: string): boolean {
   return list.length > 12;
 }
 
-/** 버튼을 보여 줄지 */
+/** 버튼을 보여 줄지 (무료판은 꺼 둔다: lib/business.ts READ_ALOUD) */
 export function GET() {
-  return Response.json({ on: !!process.env.TYPECAST_API_KEY });
+  return Response.json({ on: READ_ALOUD && !!process.env.TYPECAST_API_KEY });
 }
 
 export async function POST(req: Request) {
   const key = process.env.TYPECAST_API_KEY;
-  if (!key) return Response.json({ error: "off" }, { status: 503 });
+  if (!READ_ALOUD || !key) return Response.json({ error: "off" }, { status: 503 });
 
   const origin = req.headers.get("origin");
   const host = req.headers.get("host");

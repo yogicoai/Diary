@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { canvasToBlob } from "@/lib/card";
 import { renderCertificate } from "@/lib/certificate";
 import { useMe } from "@/lib/me";
+import { READ_ALOUD } from "@/lib/business";
 import { setReadVoice } from "@/lib/readAloud";
 import { ageFromBirth, birthProblem, gradeText, SCHOOL } from "@/lib/social";
 import { BrandMark, StampSvg } from "./Icons";
@@ -230,14 +231,16 @@ export default function MePage() {
               일
             </div>
           </div>
-          <label>
-            나는 (일기를 이 아이 목소리로 읽어 줘요)
-            <select value={kid} onChange={(e) => setKid(e.target.value as "girl" | "boy" | "")}>
-              {!kid && <option value="">골라 주세요</option>}
-              <option value="girl">여자아이</option>
-              <option value="boy">남자아이</option>
-            </select>
-          </label>
+          {READ_ALOUD && (
+            <label>
+              나는 (일기를 이 아이 목소리로 읽어 줘요)
+              <select value={kid} onChange={(e) => setKid(e.target.value as "girl" | "boy" | "")}>
+                {!kid && <option value="">골라 주세요</option>}
+                <option value="girl">여자아이</option>
+                <option value="boy">남자아이</option>
+              </select>
+            </label>
+          )}
           {error && <p className="form-error">{error}</p>}
           <button type="submit" className="btn">
             저장

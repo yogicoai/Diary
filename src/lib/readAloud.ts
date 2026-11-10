@@ -2,6 +2,7 @@
 // → 같은 일기를 몇 번 들어도 크레딧은 한 번만.
 
 import { get, set } from "idb-keyval";
+import { READ_ALOUD } from "./business";
 import { readScript, type ReadVoice, READ_TEMPO } from "./readScript";
 
 const VOICE_KEY = "chamjal.readVoice";
@@ -38,8 +39,9 @@ export function setReadVoice(v: ReadVoice) {
 }
 
 let onCheck: Promise<boolean> | null = null;
-/** 서버에 목소리 키가 있을 때만 버튼을 보인다 */
+/** 서버에 목소리 키가 있을 때만 버튼을 보인다 (무료판은 꺼 둠: lib/business.ts READ_ALOUD) */
 export function readAloudOn(): Promise<boolean> {
+  if (!READ_ALOUD) return Promise.resolve(false);
   onCheck ??= fetch("/api/read")
     .then((r) => (r.ok ? r.json() : { on: false }))
     .then((j: { on?: boolean }) => !!j.on)

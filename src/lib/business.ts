@@ -4,6 +4,11 @@
 
 export const SALES_READY = false; // true 가 되면 실제 결제 흐름으로 바뀐다
 
+// 아이 목소리 읽어 주기 (Typecast — 읽는 글자만큼 돈이 든다). 무료판에선 끈다
+// (11-10 사용자: "무료 버전으로 풀 거라 그 부분까지 쓰면 우리 쪽 손해"). 꺼져 있으면 서버가 Typecast 를 부르지 않고,
+// 소리 내어 읽기 단추와 가입할 때 남자아이·여자아이 고르기도 안 보인다. 유료판에서 켜려면 true + 이 앱 전용 TYPECAST_API_KEY.
+export const READ_ALOUD = false;
+
 // 실물 그림일기 책: 50장이 한 권. 가격은 인쇄 견적 전 가설
 export const BOOK = { pages: 50, priceFrom: 24900, priceTo: 29900 };
 

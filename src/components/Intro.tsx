@@ -14,6 +14,7 @@ import { ageFromBirth, birthProblem, gradeClass, gradeText, isBirthday } from "@
 import { useTopic } from "@/lib/useTopic";
 import CoverPicSheet from "./CoverPicSheet";
 import { BrandMark, CakeIcon, CrayonStick, PencilIcon, StampSvg, ColorWord } from "./Icons";
+import { READ_ALOUD } from "@/lib/business";
 import { kidChoice, setReadVoice } from "@/lib/readAloud";
 import { READ_VOICES, type ReadVoice } from "@/lib/readScript";
 import { LoginButtons } from "./LoginBox";
@@ -410,17 +411,21 @@ function HowTo({ step }: { step: number }) {
 }
 
 function Join({ next, onGuest }: { next: string; onGuest: () => void }) {
-  const [kid, setKid] = useState<ReadVoice | null>(null);
+  const [picked, setKid] = useState<ReadVoice | null>(null);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 이 기기에서 전에 고른 나
     setKid(kidChoice());
   }, []);
+  // 남자아이·여자아이는 읽어 주는 목소리 때문에만 고른다 → 무료판(읽어 주기 끔)에선 고르지 않고 잠그지도 않는다
+  const kid = READ_ALOUD ? picked : "girl";
   return (
     <section className="page intro-step">
       <h2 className="intro-h">이름표를 만들어요</h2>
       <p className="intro-p" style={{ marginTop: 0 }}>
         가입하면 일기가 서버에도 보관돼서 휴대폰을 바꿔도 그대로예요. 우리 반, 교실 뒤 게시판도 같이 쓸 수 있어요.
       </p>
+      {READ_ALOUD && (
+        <>
       <div className="kid-pick" role="radiogroup" aria-label="나는">
         <span className="kid-pick-label">나는</span>
         {READ_VOICES.map((v) => (
@@ -439,6 +444,8 @@ function Join({ next, onGuest }: { next: string; onGuest: () => void }) {
         ))}
       </div>
       <p className="note kid-pick-note">{kid ? "일기를 소리 내어 읽어 줄 때 이 아이 목소리로 읽어요." : "먼저 남자아이·여자아이를 골라 주세요. 일기를 읽어 줄 목소리가 돼요."}</p>
+        </>
+      )}
       <div className={kid ? "" : "kid-gate"} aria-disabled={kid ? undefined : true}>
         <LoginButtons next={next} />
       </div>

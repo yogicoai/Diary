@@ -181,35 +181,56 @@ export async function renderCard(d: Diary): Promise<HTMLCanvasElement> {
     ctx.lineTo(x0 + col * cell, y + ROWS * cell);
     ctx.stroke();
   }
-  const cells = layoutCells(d.body);
-  ctx.fillStyle = color.ink;
-  ctx.font = `700 ${Math.round(cell * 0.66)}px ${kid}`;
-  ctx.textAlign = "center";
-  cells.forEach((ch, i) => {
-    if (!ch) return;
-    const r = Math.floor(i / COLS);
-    const col = i % COLS;
-    ctx.fillText(ch, x0 + col * cell + cell / 2, y + r * cell + cell / 2 + 3);
-  });
-  ctx.textAlign = "left";
-
-  // 비밀 일기: 글씨 위를 크레파스로 박박 칠한다
-  if (d.secret) {
-    const usedRows = Math.max(1, Math.ceil(cells.length / COLS));
+  // 비밀 일기·게시판 '그림만 붙이기': 글씨는 아예 쓰지 않는다 (11-10: 덧칠 사이로 글자가 비쳐 보이던 것 — 글이 새지 않게)
+  if (!d.secret) {
+    const cells = layoutCells(d.body);
+    ctx.fillStyle = color.ink;
+    ctx.font = `700 ${Math.round(cell * 0.66)}px ${kid}`;
+    ctx.textAlign = "center";
+    cells.forEach((ch, i) => {
+      if (!ch) return;
+      const r = Math.floor(i / COLS);
+      const col = i % COLS;
+      ctx.fillText(ch, x0 + col * cell + cell / 2, y + r * cell + cell / 2 + 3);
+    });
+    ctx.textAlign = "left";
+  } else if (d.body.trim()) {
+    // 글이 있던 줄만 크레파스로 박박 칠한 자국 (연한 회색, 촘촘한 지그재그) + 빨간 펜 "쉿, 글은 비밀이에요"
     ctx.save();
     ctx.strokeStyle = crayonPattern(ctx, color.ink, 2);
-    ctx.lineWidth = cell * 0.5;
+    ctx.globalAlpha = 0.42;
+    ctx.lineWidth = cell * 0.4;
     ctx.lineCap = "round";
-    for (let r = 0; r < usedRows; r++) {
+    ctx.lineJoin = "round";
+    const step = cell * 0.34;
+    rowSpans(d.body).forEach((n, r) => {
+      if (!n) return;
       const cy = y + r * cell + cell / 2;
+      const right = x0 + Math.max(2, n) * cell - 14;
       ctx.beginPath();
-      ctx.moveTo(x0 + 10, cy - cell * 0.18);
-      for (let k = 0; k < 14; k++) {
-        const xx = x0 + 10 + (k + 1) * ((cw - 20) / 14);
-        ctx.lineTo(xx, cy + (k % 2 ? -1 : 1) * cell * 0.2);
-      }
+      ctx.moveTo(x0 + 14, cy);
+      let up = true;
+      for (let xx = x0 + 14; xx < right; xx += step, up = !up) ctx.lineTo(Math.min(right, xx + step), cy + (up ? -1 : 1) * cell * 0.24);
       ctx.stroke();
-    }
+    });
+    ctx.restore();
+    ctx.save();
+    const label = "쉿, 글은 비밀이에요";
+    ctx.font = `${Math.round(cell * 0.72)}px ${pen}`;
+    const lw = ctx.measureText(label).width + cell * 0.8;
+    const ly = y + Math.min(ROWS, Math.max(1, rowSpans(d.body).filter(Boolean).length)) * cell * 0.5;
+    ctx.fillStyle = color.paper;
+    ctx.globalAlpha = 0.92;
+    ctx.beginPath();
+    ctx.roundRect(x0 + (cw - lw) / 2, ly - cell * 0.5, lw, cell, cell * 0.3);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = color.red;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.translate(x0 + cw / 2, ly);
+    ctx.rotate(-0.03);
+    ctx.fillText(label, 0, 2);
     ctx.restore();
   }
   // 선생님 빨간 물결 밑줄 (검사한 흔적)
