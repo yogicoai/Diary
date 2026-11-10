@@ -5,7 +5,7 @@ import { streakOf } from "@/lib/server/awards";
 import { cols, NoDbError } from "@/lib/server/db";
 import { assertSameOrigin, handle, HttpError, json, readJson } from "@/lib/server/http";
 import { meToClient } from "@/lib/server/serialize";
-import { birthProblem } from "@/lib/social";
+import { birthProblem, TOO_YOUNG } from "@/lib/social";
 import { removeAccount } from "@/lib/server/removeAccount";
 import { clearSession, currentUser, isAdmin, requireUser } from "@/lib/server/session";
 
@@ -69,7 +69,7 @@ export async function PATCH(req: NextRequest) {
   return handle(async () => {
     assertSameOrigin(req);
     const user = await requireUser(req);
-    const body = await readJson<{ nickname?: string; birth?: string | null; kid?: string }>(req);
+    const body = await readJson<{ nickname?: string; birth?: string | null; kid?: string; under14?: boolean }>(req);
     const set: Record<string, unknown> = {};
     if (body.nickname !== undefined) {
       const nick = String(body.nickname).trim();
@@ -83,6 +83,17 @@ export async function PATCH(req: NextRequest) {
       } else {
         const b = String(body.birth);
         const problem = birthProblem(b);
+        if (problem === TOO_YOUNG) {
+          // 만 14살 미만 (11-10 사용자 결정): 처음 이름표를 쓰다가 본인이 '맞아요'(under14)를 누르면 가입 정보를 바로 지운다.
+          // 생년월일은 저장하지 않는다. 이미 이름표가 있는 사람이 고치다 잘못 적은 것이면 지우지 않고 다시 적게 한다 (어른 계정 보호)
+          if (body.under14 === true && !user.birth && !isAdmin(user)) {
+            await removeAccount(user);
+            const res = NextResponse.json({ removed: true }, { headers: { "Cache-Control": "no-store" } });
+            clearSession(res);
+            return res;
+          }
+          throw new HttpError(400, "under14", problem);
+        }
         if (problem) throw new HttpError(400, "birth", problem);
         set.birth = b;
         set.birthYear = Number(b.slice(0, 4));

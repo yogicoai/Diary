@@ -14,14 +14,18 @@ import { READ_ALOUD } from "@/lib/business";
 import { useMe } from "@/lib/me";
 import { kidChoice, setReadVoice } from "@/lib/readAloud";
 import { coverShownToday, introSeen, markCoverToday, setIntroSeen } from "@/lib/prefs";
+import { releaseToGuest, setDiaryOwner } from "@/lib/store";
+import { setConsent } from "@/lib/teacherAi";
 import DiaryEditor from "./DiaryEditor";
 import Intro from "./Intro";
+import Sheet from "./Sheet";
 
 export default function HomeGate() {
   const { me, loading, refresh } = useMe();
   const router = useRouter();
   const force = useSearchParams().get("cover") === "1"; // 로고를 누르면 언제든 표지
   const [boot, setBoot] = useState<{ seen: boolean; today: boolean } | null>(null);
+  const [bye, setBye] = useState(false); // 만 14살 미만이라 가입 정보를 지운 뒤 인사
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 이 기기에서 표지·인트로를 봤는지 한 번 읽는다
@@ -77,6 +81,17 @@ export default function HomeGate() {
             await api("/api/me", { method: "PATCH", json: { nickname, birth } });
             await refresh();
           }}
+          onUnder14={async (birth) => {
+            if (!me) return;
+            const uid = me.id;
+            // 서버: 가입 정보(이름표·올린 일기)를 바로 지우고 로그인도 끊는다. 생년월일은 저장하지 않는다
+            await api("/api/me", { method: "PATCH", json: { birth, under14: true } });
+            await releaseToGuest(uid).catch(() => {}); // 이 기기 일기는 손님 일기장으로 (기기에만)
+            setConsent("no"); // 만 14살 미만이 확인된 기기: 일기 글을 국외 AI 로 보내지 않고 기본 한 줄로
+            setDiaryOwner(null);
+            await refresh();
+            setBye(true);
+          }}
           onOpen={open}
           onGuest={() => {
             setIntroSeen();
@@ -91,6 +106,14 @@ export default function HomeGate() {
           <DiaryEditor />
         </div>
       )}
+      <Sheet open={bye} onClose={() => setBye(false)} label="이름표를 지웠어요">
+        <h2>이름표를 지웠어요</h2>
+        <p>구글에서 받은 이름·이메일과 서버에 올라간 일기를 모두 지웠어요. 만 14살이 되면 다시 만나요!</p>
+        <p style={{ marginTop: 8 }}>이 기기에 쓴 일기는 이 기기에만 남아 있어요. 선생님 한 줄은 미리 준비된 한 줄로 드릴게요.</p>
+        <button type="button" className="btn" onClick={() => setBye(false)}>
+          알겠어요
+        </button>
+      </Sheet>
     </>
   );
 }

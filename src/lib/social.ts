@@ -70,28 +70,31 @@ export function topicOf(dateKey: string): string {
 
 /* 어른이 초등학교 (11-10 사용자): 나이 두 자리가 학년·반 — 38살이면 3학년 8반, 번호는 없다.
  * 가입하면 이름과 생년월일을 받는다 (11-10 사용자: "가입 후에 생년월일과 이름, 생일엔 선생님이 축하").
- * 나이는 만 나이 → 생일이 오면 한 살 더 = 진급. 생년월일은 본인과 이름표 계산에만 쓰고 남에겐 학년·반만 보인다.
+ * 학년·반은 올해 나이(올해 - 태어난 해) → **해마다 1월 1일에 다 같이 진급** (11-10 사용자: "매년 지나면 학년이 오르는 거, 1월 1일날").
+ * 만 나이는 법으로 정한 '만 14살' 확인과 'N번째 생일'에만 쓴다. 생년월일은 본인과 이름표 계산에만 쓰고 남에겐 학년·반만 보인다.
  * birthYear 는 생년월일의 해(동갑 친구 찾기). 생년월일 없이 나이만 적던 잠깐 동안의 사람은 birthYear 로 계산한다. */
 export const SCHOOL = "어른이 초등학교";
-export const AGE_MIN = 14;
+export const AGE_MIN = 14; // 만 나이 (개인정보 보호법: 만 14세 미만은 보호자 동의가 필요해서 받지 않는다)
 export const AGE_MAX = 99;
+/** 만 14살 미만일 때 birthProblem 이 돌려주는 말 (이 말로 알아보고 가입 정보 지우기를 묻는다) */
+export const TOO_YOUNG = `만 ${AGE_MIN}살부터 가입할 수 있어요`;
 
 /** 지금 한국 날짜 YYYY-MM-DD */
 export function kstToday(now = Date.now()): string {
   return new Date(now + 9 * 3600_000).toISOString().slice(0, 10);
 }
 
-/** 만 나이 (생일이 지나면 한 살 더) */
+/** 만 나이 (생일이 지나면 한 살 더) — 만 14살 확인·'N번째 생일'에만 */
 export function ageFromBirth(birth: string, today = kstToday()): number {
   const [by, bm, bd] = birth.split("-").map(Number);
   const [ty, tm, td] = today.split("-").map(Number);
   return ty - by - (tm < bm || (tm === bm && td < bd) ? 1 : 0);
 }
 
-/** 이름표 나이: 생년월일 → 만 나이 / 예전(나이만 적던 때) → 태어난 해로 */
+/** 이름표 나이 = 올해 나이 (올해 - 태어난 해). 1월 1일에 다 같이 한 살 → 학년·반 진급 */
 export function ageOf(u: { birth?: string | null; birthYear?: number | null }, today = kstToday()): number | null {
-  if (u.birth) return ageFromBirth(u.birth, today);
-  return u.birthYear ? Number(today.slice(0, 4)) - u.birthYear : null;
+  const born = u.birth ? Number(u.birth.slice(0, 4)) : u.birthYear;
+  return born ? Number(today.slice(0, 4)) - born : null;
 }
 
 /** 그날이 생일인가 (2월 29일생은 평년엔 2월 28일에) */
@@ -111,14 +114,15 @@ export function birthdayIn(birth: string, year: number): string {
   return `${year}-${md === "02-29" && !leap ? "02-28" : md}`;
 }
 
-/** 생년월일 확인: 진짜 있는 날짜인지, 14~99살인지. 괜찮으면 null */
+/** 생년월일 확인: 진짜 있는 날짜인지, 만 14~99살인지. 괜찮으면 null, 만 14살 미만이면 TOO_YOUNG */
 export function birthProblem(birth: string, today = kstToday()): string | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(birth)) return "생년월일을 다시 적어 주세요";
   const [y, m, d] = birth.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d));
   if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return "달력에 없는 날짜예요";
   const age = ageFromBirth(birth, today);
-  if (age < AGE_MIN) return `${AGE_MIN}살부터 쓸 수 있어요`;
+  if (age < 0) return "생년월일을 다시 확인해 주세요"; // 아직 안 온 날
+  if (age < AGE_MIN) return TOO_YOUNG;
   if (age > AGE_MAX) return "생년월일을 다시 확인해 주세요";
   return null;
 }

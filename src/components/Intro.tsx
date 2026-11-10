@@ -10,9 +10,10 @@ import { CRAYONS } from "@/lib/crayon";
 import { useCoverPic } from "@/lib/coverPic";
 import { todayKey } from "@/lib/date";
 import { useHomework } from "@/lib/homework";
-import { ageFromBirth, birthProblem, gradeClass, gradeText, isBirthday } from "@/lib/social";
+import { ageOf, birthProblem, gradeClass, gradeText, isBirthday, TOO_YOUNG } from "@/lib/social";
 import { useTopic } from "@/lib/useTopic";
 import CoverPicSheet from "./CoverPicSheet";
+import Sheet from "./Sheet";
 import { BrandMark, CakeIcon, CrayonStick, PencilIcon, StampSvg, ColorWord } from "./Icons";
 import { READ_ALOUD } from "@/lib/business";
 import { kidChoice, setReadVoice } from "@/lib/readAloud";
@@ -32,17 +33,20 @@ export default function Intro({
   onOpen,
   onGuest,
   onSaveTag,
+  onUnder14,
 }: {
   first: boolean;
   me: Me;
   onOpen: () => void;
   onGuest: () => void;
   onSaveTag: (nickname: string, birth: string) => Promise<void>; // 표지에서 이름표(이름·생년월일) 쓰기
+  onUnder14: (birth: string) => Promise<void>; // 만 14살 미만이 맞다고 하면 가입 정보를 바로 지운다 (11-10 사용자 결정)
 }) {
   const [step, setStep] = useState(0); // 0 표지 · 1~3 쓰는 법 · 4 이름표
   const [next, setNext] = useState("/");
   // 로그인했는데 생년월일이 없으면 표지 알림장에서 이름·생년월일을 꼭 받는다
-  // (11-10 사용자: "가입 후에 생년월일과 이름", 만 나이 → 어른이 초등학교 O학년 O반, 생일엔 선생님이 축하). 선생님 아이디는 빼고.
+  // (11-10 사용자: "가입 후에 생년월일과 이름", "몇 학년 몇 반 — 내 나이에 맞는 반을 설정", 올해 나이 → 어른이 초등학교 O학년 O반,
+  // 해마다 1월 1일 진급, 생일엔 선생님이 축하). 선생님 아이디는 빼고. 만 14살 미만이면 맞는지 묻고 가입 정보를 바로 지운다.
   const asking = !!me && !me.birth && !me.admin;
   const [name, setName] = useState(me?.nickname ?? "");
   const [by, setBy] = useState("");
@@ -53,7 +57,9 @@ export default function Intro({
   const birth = by.length === 4 && bm && bd ? `${by}-${bm.padStart(2, "0")}-${bd.padStart(2, "0")}` : "";
   const birthErr = birth ? birthProblem(birth) : null;
   const birthOk = !!birth && !birthErr;
-  const newAge = birthOk ? ageFromBirth(birth) : null;
+  const tooYoung = birthErr === TOO_YOUNG; // 진짜 날짜인데 만 14살 미만
+  const [youngOpen, setYoungOpen] = useState(false);
+  const newAge = birthOk ? ageOf({ birth }) : null;
   const nameOk = /^[\p{L}\p{N}]{2,8}$/u.test(name.trim());
   const cover = useCoverPic(); // 표지 그림: 내가 고른 내 그림 → 없으면 학교 운동장
   const [picOpen, setPicOpen] = useState(false);
@@ -74,6 +80,7 @@ export default function Intro({
     const open = async () => {
       if (first) return setStep(1);
       if (!asking) return onOpen();
+      if (tooYoung) return setYoungOpen(true); // 만 14살 미만: 생년월일이 맞는지 한 번 묻는다
       setSaving(true);
       setError(null);
       try {
@@ -108,6 +115,7 @@ export default function Intro({
                 />
                 이에요.
               </p>
+              <p className="al-line al-pen">몇 학년 몇 반일까요? 내 나이에 맞는 반을 정해 주세요.</p>
               <p className="al-line">
                 생일은
                 <input
@@ -141,18 +149,19 @@ export default function Intro({
                 />
                 일
               </p>
-              {birthOk && <p className="al-line al-pen">→ {gradeText(newAge)}! 생일엔 선생님이 축하해 줄게요.</p>}
+              {birthOk && <p className="al-line al-pen">→ {gradeText(newAge)}! 해마다 1월 1일에 진급해요.</p>}
               <p className="al-small">
                 {birthErr ??
-                  "만 나이 두 자리가 학년·반이 돼요(38살 → 3학년 8반). 생년월일은 다른 사람에게 안 보이고, 게시판·우리 반엔 이름과 학년·반만 보여요. 이름은 별명으로 바꿔도 돼요."}
+                  "올해 나이 두 자리가 학년·반이 돼요(38살 → 3학년 8반). 생일엔 선생님이 축하해 줘요. 생년월일은 다른 사람에게 안 보이고, 게시판·우리 반엔 이름과 학년·반만 보여요. 이름은 별명으로 바꿔도 돼요."}
               </p>
             </>
           )}
         </Notice>
         {error && <p className="form-error">{error}</p>}
-        <button type="button" className="btn" onClick={() => void open()} disabled={asking && (!birthOk || !nameOk || saving)}>
+        <button type="button" className="btn" onClick={() => void open()} disabled={asking && (!(birthOk || tooYoung) || !nameOk || saving)}>
           {saving ? "이름표 다는 중…" : "일기장 펼치기"}
         </button>
+        {asking && <Under14Sheet open={youngOpen} birth={birth} onClose={() => setYoungOpen(false)} onConfirm={onUnder14} />}
         {first ? (
           <button type="button" className="linkish intro-skip" onClick={() => setStep(HOW + 1)}>
             이미 이름표가 있어요
@@ -231,6 +240,44 @@ function Star({ className, twinkle }: { className: string; twinkle?: boolean }) 
   );
 }
 
+/** 만 14살 미만 (11-10 사용자 결정: 확인되면 가입 정보를 바로 지운다). 잘못 적은 어른이 지워지지 않게 생년월일이 맞는지 한 번 묻는다.
+ *  맞다고 하면 서버의 가입 정보(구글 이름·이메일, 올린 일기)를 지우고, 이 기기 일기는 손님 일기장으로 돌려놓는다 (HomeGate) */
+function Under14Sheet({ open, birth, onClose, onConfirm }: { open: boolean; birth: string; onClose: () => void; onConfirm: (birth: string) => Promise<void> }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [y, m, d] = birth ? birth.split("-").map(Number) : [0, 0, 0];
+  const confirm = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await onConfirm(birth);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "잠시 문제가 생겼어요. 다시 해 볼까요?");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Sheet open={open} onClose={onClose} label="만 14살이 되면 다시 만나요">
+      <h2>만 14살이 되면 다시 만나요</h2>
+      <p>
+        어른이 그림일기는 만 14살부터 가입할 수 있어요. 생일이 {y}년 {m}월 {d}일이 맞으면, 방금 만든 이름표(구글에서 받은 이름·이메일)를 바로
+        지울게요.
+      </p>
+      <p style={{ marginTop: 8 }}>이 기기에 쓴 일기는 지우지 않고 이 기기에만 남겨 둬요.</p>
+      {error && <p className="form-error">{error}</p>}
+      <div className="btn-row">
+        <button type="button" className="btn plain" onClick={onClose}>
+          다시 적기
+        </button>
+        <button type="button" className="btn" onClick={() => void confirm()} disabled={busy}>
+          {busy ? "지우는 중…" : "맞아요, 지워요"}
+        </button>
+      </div>
+    </Sheet>
+  );
+}
+
 /** 표지 아래 알림장 쪽지 (11-10 사용자: "이 부분도 디자인이 필요"). 줄 공책 + 빨간 여백 줄 + '알림장' 딱지.
  *  처음 온 사람 = 쓰는 법 1·2·3 / 다시 온 사람 = 인사·오늘의 숙제·준비물 / 나이 없는 사람 = 이름표 쓰기(children) */
 function Notice({ me, asking, children }: { me: Me; asking: boolean; children?: React.ReactNode }) {
@@ -242,6 +289,8 @@ function Notice({ me, asking, children }: { me: Me; asking: boolean; children?: 
   const topic = useTopic(today);
   const hw = useHomework(today, !!today && !!me && !asking); // 오늘 숙제 검사 받았나
   const bday = !!today && !!me && isBirthday(me.birth, today);
+  const newYear = !!today && today.slice(5) === "01-01"; // 1월 1일 = 다 같이 진급하는 날 (11-10 사용자)
+  const grade = me ? gradeText(me.age) : "";
   return (
     <section className="al-note" aria-label="알림장">
       <span className="al-tab">알림장</span>
@@ -258,15 +307,19 @@ function Notice({ me, asking, children }: { me: Me; asking: boolean; children?: 
         </>
       ) : me ? (
         <>
+          {/* 생일 (11-10 사용자: "생일 날짜에는 선생님이 축하 메시지를") · 1월 1일엔 다 같이 진급 (11-10 사용자: "매년 1월 1일날 학년이 오르는") */}
           {bday ? (
-            <>
-              {/* 생일 (11-10 사용자: "생일 날짜에는 선생님이 축하 메시지를") — 만 나이가 하나 올라 진급하는 날 */}
-              <p className="al-line al-bday">{me.nickname}, 생일 축하해요!</p>
-              {gradeText(me.age) && <p className="al-line al-pen">오늘부터 {gradeText(me.age)}! 진급도 축하해요.</p>}
-            </>
+            <p className="al-line al-bday">{me.nickname}, 생일 축하해요!</p>
+          ) : newYear ? (
+            <p className="al-line al-bday">{me.nickname}, 새해 복 많이 받아요!</p>
           ) : (
             <p className="al-line">{me.nickname}, 오늘도 왔네요!</p>
           )}
+          {newYear && grade ? (
+            <p className="al-line al-pen">오늘부터 {grade}! 진급{bday ? "도" : ""} 축하해요.</p>
+          ) : bday ? (
+            <p className="al-line al-pen">오늘 일기를 내면 선생님이 축하해 줄게요.</p>
+          ) : null}
           <p className="al-line">
             <span className="al-no">숙제</span>
             {topic?.text ?? "오늘 있었던 일 그리기"}
@@ -275,7 +328,7 @@ function Notice({ me, asking, children }: { me: Me; asking: boolean; children?: 
           {topic?.note && <p className="al-line al-pen">{topic.note}</p>}
           <p className="al-line">
             <span className="al-no">준비물</span>
-            {bday ? "크레파스, 생일 케이크 한 조각" : "크레파스, 오늘 있었던 일"}
+            {bday ? "크레파스, 생일 케이크 한 조각" : newYear ? "크레파스, 새 학년 새 마음" : "크레파스, 오늘 있었던 일"}
           </p>
         </>
       ) : (

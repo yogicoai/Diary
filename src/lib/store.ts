@@ -133,6 +133,20 @@ export async function dropDiariesOf(owner: string): Promise<void> {
   await del(keyOf(owner));
 }
 
+/** 만 14살 미만이라 가입 정보를 지웠을 때: 이 기기의 그 사람 일기를 손님 칸으로 돌려놓는다.
+ *  서버 쪽 표시(serverId·게시판·반·반응)는 뗀다 — 서버에선 이미 지워졌고, 일기는 이 기기에만 남는다 */
+export async function releaseToGuest(owner: string): Promise<void> {
+  const mine = await readAll(owner);
+  if (mine.length) {
+    const guest = ((await get(GUEST_KEY)) as Diary[] | undefined) ?? [];
+    const back = mine
+      .filter((d) => !guest.some((g) => g.id === d.id))
+      .map((d): Diary => ({ ...d, serverId: undefined, board: null, classIds: undefined, reactions: undefined }));
+    await set(GUEST_KEY, [...guest, ...back]);
+  }
+  await del(keyOf(owner));
+}
+
 /** 로그아웃할 때: 서버에 올라간 일기 사본은 이 기기에서 지운다 (공용 컴퓨터에 남지 않게 — 다시 로그인하면 서버에서 받아 온다).
  *  아직 못 올린 일기만 남겨 두고 다음 로그인 때 올린다 */
 export async function forgetSynced(owner: string): Promise<void> {

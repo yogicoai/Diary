@@ -11,7 +11,7 @@ import { renderCertificate } from "@/lib/certificate";
 import { useMe } from "@/lib/me";
 import { READ_ALOUD } from "@/lib/business";
 import { setReadVoice } from "@/lib/readAloud";
-import { ageFromBirth, birthProblem, gradeText, SCHOOL } from "@/lib/social";
+import { ageOf, birthProblem, gradeText, SCHOOL } from "@/lib/social";
 import { dropDiariesOf, setDiaryOwner } from "@/lib/store";
 import { BrandMark, StampSvg } from "./Icons";
 import StickerBoard from "./StickerBoard";
@@ -82,7 +82,7 @@ export default function MePage() {
   const [nickname, setNickname] = useState("");
   const [birth, setBirth] = useState({ y: "", m: "", d: "" }); // 생년월일 (만 나이 → 학년·반, 생일 축하)
   const birthStr = birth.y.length === 4 && birth.m && birth.d ? `${birth.y}-${birth.m.padStart(2, "0")}-${birth.d.padStart(2, "0")}` : "";
-  const previewAge = birthStr && !birthProblem(birthStr) ? ageFromBirth(birthStr) : null;
+  const previewAge = birthStr && !birthProblem(birthStr) ? ageOf({ birth: birthStr }) : null;
   const [kid, setKid] = useState<"girl" | "boy" | "">("");
   const [error, setError] = useState<string | null>(null);
   const [awards, setAwards] = useState<Award[]>([]);
@@ -262,7 +262,7 @@ export default function MePage() {
           </label>
           <div className="nt-birth" role="group" aria-label="생년월일">
             <span>
-              생년월일 (만 나이 두 자리가 학년·반{previewAge ? ` → ${SCHOOL} ${gradeText(previewAge)}` : ", 38살이면 3학년 8반"}. 다른 사람에겐 안 보여요)
+              생년월일 (올해 나이 두 자리가 학년·반{previewAge ? ` → ${SCHOOL} ${gradeText(previewAge)}` : ", 38살이면 3학년 8반"}, 해마다 1월 1일에 진급. 다른 사람에겐 안 보여요)
             </span>
             <div className="nt-birth-row">
               <input

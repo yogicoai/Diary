@@ -277,7 +277,7 @@ export function MemberDetail({ id }: { id: string }) {
             <div>
               <dt>이름표</dt>
               <dd>
-                {p.age ? `${p.age}살 · ${gradeText(p.age)}` : "나이 안 적음"} · {p.nickname}
+                {p.age ? `올해 ${p.age}살 · ${gradeText(p.age)}` : "나이 안 적음"} · {p.nickname}
               </dd>
             </div>
             <div>
