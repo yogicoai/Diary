@@ -9,14 +9,17 @@ import { removeImages } from "./storage";
 
 /** 지웠으면 true, 서버에 없던 일기면 false (지운 표시는 어느 쪽이든 남긴다) */
 export async function removeMyDiary(userId: ObjectId, clientId: string, d: DiaryDoc | null): Promise<boolean> {
-  const { diaries, reactions, reports, notes, goneDiaries } = await cols();
+  const { diaries, reactions, reports, notes, goneDiaries, awards } = await cols();
   await goneDiaries.updateOne({ userId, clientId }, { $setOnInsert: { at: new Date() } }, { upsert: true });
   if (!d) return false;
+  // 이 일기로 받은 주간 상장은 남기되, 상장 글에 적힌 일기 제목은 뺀다 (지운 일기의 글이 남지 않게)
+  const won = await awards.find({ diaryId: d._id }, { projection: { detail: 1 } }).toArray();
   await Promise.all([
     diaries.deleteOne({ _id: d._id }),
     reactions.deleteMany({ diaryId: d._id }),
     reports.deleteMany({ diaryId: d._id }),
     notes.deleteMany({ diaryId: d._id }),
+    ...won.map((a) => awards.updateOne({ _id: a._id }, { $set: { detail: a.detail.replace(/^「.*?」로 /, "") } })),
   ]);
   const board = d.board;
   if (board) after(() => removeImages([board.cardUrl, board.thumbUrl]));

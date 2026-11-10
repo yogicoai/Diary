@@ -373,7 +373,6 @@ async function build() {
     bg: d.bg,
     teacher: d.teacher,
     teacherBy: "ai",
-    care: false,
     stickers: d.stickers,
     stamp: d.stamp,
     late: !!d.late,

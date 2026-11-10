@@ -17,7 +17,7 @@ export default function ConsentSheet({
       <h2>선생님이 직접 읽어 드릴까요?</h2>
       <p>
         선생님 한 줄은 AI(Anthropic의 Claude)가 오늘 일기를 읽고 써 줘요. 그래서 일기 글(날씨·제목·본문)이 미국에 있는
-        Anthropic 서버로 보내져요. 그림은 보내지 않고, 우리 쪽에는 따로 저장하지 않아요.
+        Anthropic 서버로 보내져요. 그림은 보내지 않고, 보낸 글은 선생님 한 줄을 만드는 데만 써요.
       </p>
       <p style={{ marginTop: 8 }}>싫으시면 미리 준비된 한 줄로 도장을 찍어 드려요. 나중에 바꿀 수 있어요.</p>
       <div className="btn-row">

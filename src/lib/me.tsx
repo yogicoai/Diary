@@ -4,7 +4,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api } from "./api";
-import { setDiaryOwner } from "./store";
+import { diaryOwner, forgetSynced, setDiaryOwner } from "./store";
 import { syncAll } from "./sync";
 
 export type Me = {
@@ -62,7 +62,10 @@ export function MeProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     await api("/api/auth/logout", { method: "POST" }).catch(() => {});
-    setDiaryOwner(null); // 손님 칸으로 — 방금 사람의 일기는 이 기기에 남아도 화면엔 안 나온다
+    const owner = diaryOwner();
+    setDiaryOwner(null); // 손님 칸으로
+    // 서버에 간 일기 사본은 이 기기에서 지운다 (공용 컴퓨터) — 못 올린 일기만 남아 다음 로그인 때 올라간다
+    if (owner) await forgetSynced(owner).catch(() => {});
     setMe(null);
     setStats(null);
   }, []);

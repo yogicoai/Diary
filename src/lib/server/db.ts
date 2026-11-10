@@ -88,7 +88,7 @@ export type DiaryDoc = {
   teacherBy: "ai" | "rule";
   stickers?: string[];
   late?: boolean; // 밀린 숙제 — 개근상 계산에서 뺀다
-  care: boolean;
+  care?: boolean; // 예전 일기에만 남은 값 — 11-10 부터 서버에 안 둔다 (위험 신호는 건강 관련 민감정보가 될 수 있어 이 기기에만)
   secret: boolean;
   topic: string | null; // 오늘의 숙제로 쓴 날짜 키 (YYYY-MM-DD)
   topicText?: string | null; // 그때 숙제 글 (선생님이 나중에 숙제를 바꿔도 이 일기의 숙제는 그대로)

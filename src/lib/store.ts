@@ -133,6 +133,14 @@ export async function dropDiariesOf(owner: string): Promise<void> {
   await del(keyOf(owner));
 }
 
+/** 로그아웃할 때: 서버에 올라간 일기 사본은 이 기기에서 지운다 (공용 컴퓨터에 남지 않게 — 다시 로그인하면 서버에서 받아 온다).
+ *  아직 못 올린 일기만 남겨 두고 다음 로그인 때 올린다 */
+export async function forgetSynced(owner: string): Promise<void> {
+  const left = (await readAll(owner)).filter((d) => !d.serverId);
+  if (left.length) await set(keyOf(owner), left);
+  else await del(keyOf(owner));
+}
+
 /** 손님 때 이 기기에 쓴 일기를 지금 로그인한 사람 일기장으로 옮긴다. 옮긴 일기를 돌려준다 */
 export async function adoptGuestDiaries(): Promise<Diary[]> {
   const owner = diaryOwner();

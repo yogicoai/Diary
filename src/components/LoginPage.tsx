@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useMe } from "@/lib/me";
+import { gradeText, SCHOOL } from "@/lib/social";
 import { BrandMark } from "./Icons";
 import { LoginButtons } from "./LoginBox";
 
@@ -44,7 +45,7 @@ export default function LoginPage() {
         <span className="nt-hole" aria-hidden="true" />
         <span className="nt-label">이름표</span>
         <b className="nt-name">{me ? me.nickname : "○○○"}</b>
-        <span className="nt-sub">{me ? "이미 이름표가 있어요" : "몇 년도에 입학했나요?"}</span>
+        <span className="nt-sub">{me ? (me.age ? `${SCHOOL} ${gradeText(me.age)}` : "이미 이름표가 있어요") : `${SCHOOL} ○학년 ○반`}</span>
       </section>
       {error && <p className="form-error">{error}</p>}
       {me ? (
@@ -55,7 +56,7 @@ export default function LoginPage() {
         <LoginButtons next={next} />
       )}
       <p className="note">
-        구글 계정 이메일은 로그인에만 쓰고 다른 사람에게 보이지 않아요. 게시판에는 직접 정한 별명과 입학 연도·반만 보여요.
+        구글 계정 이메일은 로그인에만 쓰고 다른 사람에게 보이지 않아요. 게시판·우리 반에는 이름과 학년·반만 보이고 생년월일은 보이지 않아요.
       </p>
     </main>
   );

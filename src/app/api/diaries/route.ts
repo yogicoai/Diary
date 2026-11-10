@@ -33,7 +33,6 @@ type In = {
   teacherBy?: "ai" | "rule";
   stickers?: string[];
   late?: boolean;
-  care?: boolean;
   secret: boolean;
   topic?: string | null;
   topicText?: string | null;
@@ -62,7 +61,7 @@ export async function POST(req: NextRequest) {
       bg: typeof d.bg === "string" ? d.bg.slice(0, 40) : null,
       teacher: String(d.teacher ?? "").slice(0, 60),
       teacherBy: d.teacherBy === "ai" ? ("ai" as const) : ("rule" as const),
-      care: !!d.care,
+      // 위험 신호(care)는 받지 않는다 — 109 안내는 답장을 받은 그 화면에서만 쓰고 이 기기에만 남는다 (민감정보 줄이기)
       stickers: cleanStickers(d.stickers, []),
       stamp: cleanStamp(d.stamp),
       late: !!d.late,
@@ -80,6 +79,7 @@ export async function POST(req: NextRequest) {
       { userId: user._id, clientId: d.id },
       {
         $set: fields,
+        $unset: { care: "" }, // 예전에 올라온 값도 다시 올릴 때 지운다
         $setOnInsert: {
           userId: user._id,
           clientId: d.id,

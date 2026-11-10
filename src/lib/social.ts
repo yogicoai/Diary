@@ -68,7 +68,6 @@ export function topicOf(dateKey: string): string {
   return TOPICS[((days % TOPICS.length) + TOPICS.length) % TOPICS.length];
 }
 
-/** 이름표 한 줄: "1995년 입학 3반 하늘이" */
 /* 어른이 초등학교 (11-10 사용자): 나이 두 자리가 학년·반 — 38살이면 3학년 8반, 번호는 없다.
  * 가입하면 이름과 생년월일을 받는다 (11-10 사용자: "가입 후에 생년월일과 이름, 생일엔 선생님이 축하").
  * 나이는 만 나이 → 생일이 오면 한 살 더 = 진급. 생년월일은 본인과 이름표 계산에만 쓰고 남에겐 학년·반만 보인다.

@@ -151,7 +151,8 @@ function PublishSheet({ open, diary, onClose, onChange, onToast }: Props & { ope
             {busy ? "선생님이 살펴보는 중…" : "게시판에 붙이기"}
           </button>
           <p className="note">
-            붙이기 전에 선생님(AI)이 게시판 약속을 확인해요. 전화번호·주소·실명과 회사처럼 누군지 알 수 있는 내용은 빼 주세요.
+            붙이기 전에 AI 선생님(미국 Anthropic 의 Claude)이 붙일 그림과 글을 보고 게시판 약속을 확인해요. 전화번호·주소·실명과 회사처럼
+            누군지 알 수 있는 내용은 빼 주세요.
           </p>
         </>
       )}

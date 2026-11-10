@@ -1,4 +1,4 @@
-// 교실 뒤 게시판 목록: 전체 / 오늘의 숙제 / 같은 해 입학
+// 교실 뒤 게시판 목록: 전체 / 오늘의 숙제 / 동갑 친구 (같은 해에 태어남)
 //   ?tab=all|topic|year&before=<시각 ms>
 
 import type { NextRequest } from "next/server";

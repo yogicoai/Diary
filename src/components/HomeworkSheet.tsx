@@ -201,7 +201,7 @@ export default function HomeworkSheet({ open, onClose, day, onDone }: { open: bo
           </span>
           <span>
             게시판 &lsquo;오늘의 숙제&rsquo;에 보여 주기
-            <small>다른 어른이들도 구경해요. 사진은 검사한 뒤에 보여요. 얼굴·이름이 나온 사진은 조심!</small>
+            <small>다른 어른이들도 구경해요. 보여 주기 전에 AI(미국 Anthropic)가 사진·한 줄을 검사해요. 얼굴·이름이 나온 사진은 조심!</small>
           </span>
         </label>
         {err && (

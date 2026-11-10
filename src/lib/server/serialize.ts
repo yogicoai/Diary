@@ -32,7 +32,6 @@ export function diaryToClient(d: DiaryDoc) {
     stickers: d.stickers ?? [],
     stamp: d.stamp ?? "cham",
     late: !!d.late,
-    care: d.care,
     secret: d.secret,
     topic: d.topic,
     topicText: d.topicText ?? null,

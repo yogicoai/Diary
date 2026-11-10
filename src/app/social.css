@@ -80,6 +80,11 @@
   cursor: default;
 }
 
+.login-age {
+  margin-top: 8px;
+  text-align: center;
+}
+
 .btn.google svg {
   width: 22px;
   height: 22px;

@@ -28,6 +28,8 @@ export function LoginButtons({ next }: { next: string }) {
         구글로 시작하기
       </a>
       {flags && !flags.google && <p className="note">구글 로그인은 준비 중이에요.</p>}
+      {/* 만 14세 미만은 보호자 동의가 필요해서 받지 않는다 (이름표 생년월일에서도 막는다). 구글에서는 이름·이메일만 받는다 */}
+      <p className="note login-age">만 14살 이상만 가입할 수 있어요 · 구글에서는 이름과 이메일만 받아요</p>
       {flags?.devLogin && (
         <form
           className="dev-login"
