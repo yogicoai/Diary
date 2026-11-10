@@ -105,6 +105,13 @@ export function isBirthday(birth: string | null | undefined, day = kstToday()): 
   return md === "02-29" && !leap && day.slice(5) === "02-28";
 }
 
+/** 그해의 생일 날짜 YYYY-MM-DD (2월 29일생은 평년엔 2월 28일) */
+export function birthdayIn(birth: string, year: number): string {
+  const md = birth.slice(5);
+  const leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  return `${year}-${md === "02-29" && !leap ? "02-28" : md}`;
+}
+
 /** 생년월일 확인: 진짜 있는 날짜인지, 14~99살인지. 괜찮으면 null */
 export function birthProblem(birth: string, today = kstToday()): string | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(birth)) return "생년월일을 다시 적어 주세요";

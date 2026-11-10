@@ -24,7 +24,7 @@ import DeleteSheet from "./DeleteSheet";
 import MineSheet from "./MineSheet";
 import DiaryActions from "./DiaryActions";
 import CrayonPad from "./CrayonPad";
-import { BrandMark, StampSvg, ColorWord } from "./Icons";
+import { BrandMark, CakeIcon, StampSvg, ColorWord } from "./Icons";
 import Manuscript, { READ_MS } from "./Manuscript";
 import LateSheet, { daysBetween } from "./LateSheet";
 import PraiseStickers from "./PraiseStickers";
@@ -228,6 +228,12 @@ export default function DiaryEditor() {
           <button type="button" className="page-date date-btn" onClick={() => !locked && setLateOpen(true)} disabled={locked}>
             {date ? koreanDate(date) : ""}
             {date && today && date < today && <span className="late-tag">밀린 숙제</span>}
+            {date && me?.birth && isBirthday(me.birth, date) && (
+              <span className="bday-tag">
+                <CakeIcon />
+                생일
+              </span>
+            )}
           </button>
           <WeatherPicker value={weather} onChange={setWeather} readOnly={locked} />
         </div>

@@ -13,7 +13,7 @@ import { useHomework } from "@/lib/homework";
 import { ageFromBirth, birthProblem, gradeClass, gradeText, isBirthday } from "@/lib/social";
 import { useTopic } from "@/lib/useTopic";
 import CoverPicSheet from "./CoverPicSheet";
-import { BrandMark, CrayonStick, PencilIcon, StampSvg, ColorWord } from "./Icons";
+import { BrandMark, CakeIcon, CrayonStick, PencilIcon, StampSvg, ColorWord } from "./Icons";
 import { kidChoice, setReadVoice } from "@/lib/readAloud";
 import { READ_VOICES, type ReadVoice } from "@/lib/readScript";
 import { LoginButtons } from "./LoginBox";
@@ -246,7 +246,8 @@ function Notice({ me, asking, children }: { me: Me; asking: boolean; children?: 
       <span className="al-tab">알림장</span>
       {today && (
         <span className="al-date">
-          {Number(today.slice(5, 7))}월 {Number(today.slice(8, 10))}일
+          {bday && <CakeIcon className="al-cake" />}
+          {Number(today.slice(5, 7))}월 {Number(today.slice(8, 10))}일{bday && " 생일"}
         </span>
       )}
       {asking ? (

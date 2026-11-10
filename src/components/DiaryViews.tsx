@@ -5,10 +5,12 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { koreanDate } from "@/lib/date";
+import { useMe } from "@/lib/me";
+import { isBirthday } from "@/lib/social";
 import type { Diary } from "@/lib/store";
 import { renderThumb } from "@/lib/thumb";
 import CrayonPad from "./CrayonPad";
-import { StampSvg } from "./Icons";
+import { CakeIcon, StampSvg } from "./Icons";
 import Manuscript from "./Manuscript";
 import PraiseStickers from "./PraiseStickers";
 import ReadAloud from "./ReadAloud";
@@ -44,6 +46,7 @@ export function MonthView({
   onPick: (d: Diary) => void;
 }) {
   const router = useRouter();
+  const { me } = useMe(); // 생일 날짜에 케이크 (11-10 사용자: 생일을 날짜에도 표시)
   const [y, m] = month.split("-").map(Number);
   const first = new Date(y, m - 1, 1);
   const days = new Date(y, m, 0).getDate();
@@ -85,16 +88,18 @@ export function MonthView({
         {Array.from({ length: days }, (_, i) => {
           const key = `${month}-${String(i + 1).padStart(2, "0")}`;
           const ds = byDate.get(key);
+          const bday = isBirthday(me?.birth, key);
           return (
             <button
               key={key}
               type="button"
-              className={`cal-day${ds ? " has" : ""}${key === today ? " today" : ""}`}
+              className={`cal-day${ds ? " has" : ""}${key === today ? " today" : ""}${bday ? " bday" : ""}`}
               disabled={!ds && key > today}
               onClick={() => (ds ? onPick(ds[0]) : router.push(`/?date=${key}`))}
-              aria-label={`${m}월 ${i + 1}일${ds ? ` 일기 ${ds.length}장` : ""}`}
+              aria-label={`${m}월 ${i + 1}일${bday ? " 생일" : ""}${ds ? ` 일기 ${ds.length}장` : ""}`}
             >
               <span className="cal-n">{i + 1}</span>
+              {bday && <CakeIcon className="cal-cake" />}
               {ds && (
                 <span className="cal-art">
                   <CellThumb d={ds[0]} />
@@ -130,6 +135,7 @@ export function DayView({
   onOpenCard: (d: Diary) => void;
   onDelete: (d: Diary) => void;
 }) {
+  const { me } = useMe();
   const sorted = daySorted(list);
   const idx = Math.max(0, current ? sorted.findIndex((d) => d.id === current) : sorted.length - 1);
   const d = sorted[idx];
@@ -164,7 +170,15 @@ export function DayView({
       </div>
       <article key={d.id} className="page turn" aria-label={`${koreanDate(d.date)} 그림일기`}>
         <div className="page-head">
-          <div className="page-date">{koreanDate(d.date)}</div>
+          <div className="page-date">
+            {koreanDate(d.date)}
+            {isBirthday(me?.birth, d.date) && (
+              <span className="bday-tag">
+                <CakeIcon />
+                생일
+              </span>
+            )}
+          </div>
           <WeatherPicker value={d.weather} onChange={() => {}} readOnly />
         </div>
         <CrayonPad strokes={d.strokes} bg={d.bg} onChange={() => {}} readOnly />

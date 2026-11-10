@@ -71,6 +71,28 @@ export function NotebookIcon() {
   );
 }
 
+/** 생일 케이크 (11-10 사용자: 생일을 날짜에도 표시). 초 불꽃은 빨간 색연필, 크림은 분홍 */
+export function CakeIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 2.8c1.3 1.4 1.4 2.6 0 3.6-1.4-1-1.3-2.2 0-3.6Z" style={{ fill: "var(--red)", stroke: "none" }} />
+      <path d="M12 7.6v3" />
+      <path d="M4.5 13.6c0-1.7 1.3-3 3-3h9c1.7 0 3 1.3 3 3V20h-15Z" style={{ fill: "var(--paper)" }} />
+      <path d="M4.6 15.6c1.2 1.1 2.5 1.1 3.7 0s2.5-1.1 3.7 0 2.5 1.1 3.7 0 2.5-1.1 3.7 0" stroke="#f06aa0" />
+      <path d="M3 20h18" />
+    </svg>
+  );
+}
+
 export function PencilIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

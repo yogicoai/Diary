@@ -7,12 +7,14 @@ import { renderStrokes } from "@/lib/crayon";
 import { shortDate, todayKey } from "@/lib/date";
 import { listDiaries, type Diary } from "@/lib/store";
 import { BOOK } from "@/lib/business";
+import { useMe } from "@/lib/me";
+import { isBirthday } from "@/lib/social";
 import BookSheet from "./BookSheet";
 import CardSheet from "./CardSheet";
 import DeleteSheet from "./DeleteSheet";
 import DiaryActions from "./DiaryActions";
 import { DayView, daySorted, MonthView } from "./DiaryViews";
-import { BrandMark, PencilIcon, StampSvg } from "./Icons";
+import { BrandMark, CakeIcon, PencilIcon, StampSvg } from "./Icons";
 
 const DAY_NAMES = ["월", "화", "수", "목", "금", "토", "일"];
 
@@ -45,6 +47,7 @@ function Thumb({ d }: { d: Diary }) {
 }
 
 export default function DiaryShelf() {
+  const { me } = useMe(); // 이번 주에 생일이 있으면 그날 칸에 케이크
   const [list, setList] = useState<Diary[] | null>(null);
   const [week, setWeek] = useState<string[]>([]);
   const [today, setToday] = useState("");
@@ -108,7 +111,10 @@ export default function DiaryShelf() {
         {week.map((k, i) => (
           <div key={k} className={`day${k === today ? " today" : ""}`}>
             {DAY_NAMES[i]}
-            <div className="slot">{written.has(k) && <StampSvg />}</div>
+            <div className="slot">
+              {written.has(k) && <StampSvg />}
+              {isBirthday(me?.birth, k) && <CakeIcon className="week-cake" />}
+            </div>
           </div>
         ))}
       </section>

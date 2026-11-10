@@ -2631,3 +2631,78 @@ html[data-intro] .tabbar {
 .nt-birth-row input:first-child {
   width: 84px;
 }
+
+/* 생일을 날짜에도 (11-10 사용자): 쓰기·하루씩 보기 날짜 옆 딱지, 달력·이번 주 칸·알림장 날짜에 케이크 */
+.bday-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 6px;
+  padding: 0 7px 0 4px;
+  border: 1.5px solid #f06aa0;
+  border-radius: 6px;
+  color: var(--red);
+  font-family: var(--font-pen), cursive;
+  font-size: 19px;
+  font-weight: 400;
+  vertical-align: middle;
+  transform: rotate(3deg);
+}
+.bday-tag svg {
+  width: 20px;
+  height: 20px;
+  color: var(--ink);
+}
+.cal-cake {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 15px;
+  height: 15px;
+  color: var(--ink);
+}
+.cal-day.bday {
+  border-color: #f06aa0;
+}
+.week .slot {
+  position: relative;
+}
+/* .day .slot svg(도장) 규칙보다 세게: 칸 오른쪽 위 모서리에 작게 */
+.day .slot svg.week-cake {
+  inset: auto;
+  top: -9px;
+  right: -12px;
+  width: 18px;
+  height: 18px;
+  color: var(--ink);
+  transform: rotate(8deg);
+}
+/* 밀린 숙제·생일 딱지가 함께 붙어 날짜 줄이 넘치면 다음 줄로 */
+.date-btn {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.al-cake {
+  width: 16px;
+  height: 16px;
+  margin-right: 3px;
+  vertical-align: -2px;
+  color: var(--ink);
+}
+.late-cake {
+  width: 16px;
+  height: 16px;
+  margin-right: 3px;
+  vertical-align: -3px;
+}
+.tab-btn.late-bday {
+  width: 100%;
+  margin-top: 8px;
+}
+.late-bday.on {
+  border-color: var(--ink);
+  background: var(--accent);
+}
+.note.bday-note {
+  color: var(--red);
+}
