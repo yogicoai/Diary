@@ -20,6 +20,7 @@
 - **시험 전에 6900 서버가 dev:mem 인지 npm run dev(진짜 Atlas) 인지 확인한다** — 사용자가 평소 npm run dev 로 켜 둔다. 진짜 DB 에서 개발용 로그인으로 시험하면 dev: 사용자가 진짜로 생긴다(11-10 에 시험 계정 13명을 지움, 사용자가 만든 '시험' 계정은 남김).
 - 화면 확인: `node scripts/shot.mjs http://localhost:6900 <출력폴더>` (390px, 테마 3종, 카드·시트·일기장 캡처)
 - 아이콘: `src/app/icon.svg` 고친 뒤 `node scripts/icons.mjs`
+- 링크 미리보기 그림(카카오톡 등, 11-10): `src/app/opengraph-image.jpg` = 표지(.c90)를 찍어 문구점 낙서 배경 가운데에 놓은 것. 표지를 바꾸면 6900 을 켜고 `node scripts/og-image.mjs`. 절대 주소는 AUTH_URL(운영 주소)로 만든다(layout metadataBase). `/d` 는 openGraph 를 따로 적어서 그림도 직접 적어 둠, 게시판 글(/board/[id])은 그 카드 그림
 - 커밋 전: `npx eslint src scripts` + `npx next build`
 
 ## 화면 원칙
