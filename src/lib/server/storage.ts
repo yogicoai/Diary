@@ -45,11 +45,20 @@ export async function putImage(buffer: Buffer, dir: string, ext = "webp"): Promi
   const name = fileName(ext);
 
   if (hasFtp()) {
-    return withFtp(async (client) => {
-      await client.ensureDir(`${ROOT}/${safeDir}`);
-      await client.uploadFrom(Readable.from(buffer), name);
-      return `${PUBLIC_BASE}/${safeDir}/${name}`;
-    });
+    try {
+      return await withFtp(async (client) => {
+        await client.ensureDir(`${ROOT}/${safeDir}`);
+        await client.uploadFrom(Readable.from(buffer), name);
+        return `${PUBLIC_BASE}/${safeDir}/${name}`;
+      });
+    } catch (e) {
+      // 왜 못 올렸는지 짧게만 돌려준다 (FTP 응답 번호 530 = 로그인 실패, ETIMEDOUT·ECONNREFUSED = 접속 막힘 등).
+      // 주소·계정은 내보내지 않는다. 자세한 건 서버 로그 (11-10: 배포 서버에서 숙제 사진이 '잠시 문제'로만 실패해서)
+      const err = e as { code?: unknown; message?: string };
+      const why = err.code != null ? String(err.code) : /timeout/i.test(err.message ?? "") ? "timeout" : "ftp";
+      console.error("그림 올리기 못 함:", why, (err.message ?? "").slice(0, 200));
+      throw new HttpError(502, `storage_${why.replace(/[^A-Za-z0-9]/g, "").slice(0, 20)}`, "그림을 저장하지 못했어요. 잠시 뒤에 다시 해 주세요");
+    }
   }
 
   if (process.env.NODE_ENV !== "production") {
