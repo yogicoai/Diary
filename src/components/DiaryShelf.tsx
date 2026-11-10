@@ -91,7 +91,7 @@ export default function DiaryShelf() {
   return (
     <main className="app">
       <header className="topbar">
-        <Link href="/" className="brand" aria-label="참 잘했어요 처음으로">
+        <Link href="/?cover=1" className="brand" aria-label="참 잘했어요 처음으로">
           <BrandMark className="brand-mark" />
           <span>
             <span className="brand-name">내 일기장</span>

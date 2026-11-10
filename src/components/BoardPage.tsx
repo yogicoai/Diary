@@ -69,7 +69,7 @@ export default function BoardPage() {
   return (
     <main className="app">
       <header className="topbar">
-        <Link href="/" className="brand">
+        <Link href="/?cover=1" className="brand">
           <BrandMark className="brand-mark" />
           <span>
             <span className="brand-name">교실 뒤 게시판</span>
