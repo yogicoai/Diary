@@ -1,8 +1,9 @@
-// 우리 반: 내 반 목록(GET) / 새 반 만들기(POST {name})
+// 우리 반: 내 반 목록(GET, 반마다 오늘 낸 친구 수·내가 냈나·오늘 반 숙제) / 새 반 만들기(POST {name})
 
 import crypto from "node:crypto";
 import type { NextRequest } from "next/server";
-import { MongoServerError } from "mongodb";
+import { MongoServerError, type ObjectId } from "mongodb";
+import { kstToday } from "@/lib/social";
 import { cols } from "@/lib/server/db";
 import { assertRate, assertSameOrigin, handle, HttpError, json, readJson } from "@/lib/server/http";
 import { classToClient } from "@/lib/server/serialize";
@@ -18,9 +19,39 @@ function newCode() {
 export async function GET(req: NextRequest) {
   return handle(async () => {
     const user = await requireUser(req);
-    const { classes } = await cols();
+    const { classes, diaries, brags } = await cols();
     const list = await classes.find({ memberIds: user._id }).sort({ createdAt: -1 }).limit(30).toArray();
-    return json({ classes: list.map((c) => classToClient(c, user._id.toHexString())) });
+    // 목록 카드에 오늘 반 소식: 오늘 낸 친구 수(출석부)·내가 냈나·오늘 반 숙제 (11-10 사용자: 반 목록 디자인)
+    const today = kstToday();
+    const ids = list.map((c) => c._id);
+    const todays = ids.length
+      ? await diaries
+          .aggregate<{ _id: ObjectId; users: ObjectId[] }>([
+            { $match: { classIds: { $in: ids }, date: today } },
+            { $unwind: "$classIds" },
+            { $match: { classIds: { $in: ids } } },
+            { $group: { _id: "$classIds", users: { $addToSet: "$userId" } } },
+          ])
+          .toArray()
+      : [];
+    // 이번 달 칭찬 스티커를 이 반에 자랑했나 (스티커판의 '우리 반에 자랑하기')
+    const bragged = new Set(
+      (await brags.find({ userId: user._id, month: today.slice(0, 7), classId: { $in: ids } }, { projection: { classId: 1 } }).toArray()).map((b) => b.classId.toHexString()),
+    );
+    return json({
+      classes: list.map((c) => {
+        const t = todays.find((x) => x._id.equals(c._id));
+        const members = new Set(c.memberIds.map((m) => m.toHexString()));
+        const handed = (t?.users ?? []).filter((u) => members.has(u.toHexString()));
+        return {
+          ...classToClient(c, user._id.toHexString()),
+          handedIn: handed.length,
+          mine: handed.some((u) => u.equals(user._id)),
+          homework: c.homework?.date === today ? c.homework.text : null,
+          bragged: bragged.has(c._id.toHexString()),
+        };
+      }),
+    });
   });
 }
 

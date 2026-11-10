@@ -1,7 +1,7 @@
 "use client";
 
 // 숙제 하기 (11-09 사용자: "숙제는 따로, 사진이나 한 줄로 인증하면 달아 주기").
-// 오늘의 숙제(어른이 미션)를 하고 사진 한 장이나 한 줄로 낸다 → 선생님 '검사 끝' 도장 + 숙제 스티커 1장(칭찬 스티커판).
+// 오늘의 숙제(어른이 미션)를 하고 사진 한 장이나 한 줄로 낸다 → 선생님 '검사 끝' 도장 + 숙제 스티커 1장(칭찬 스티커판, 달마다 새 판).
 // 숙제 검사는 이름표(구글 로그인)가 있어야 받는다. 게시판 '오늘의 숙제'에 보여 주기는 고른 사람만 (사진은 AI 검사 뒤).
 
 import Link from "next/link";
@@ -96,7 +96,7 @@ export default function HomeworkSheet({ open, onClose, day, onDone }: { open: bo
 
   // 2) 방금 냈으면: 검사 끝 도장 + 스티커
   if (result) {
-    const n = result.count % 10 || 10;
+    const month = Number(result.homework.date.slice(5, 7));
     return (
       <Sheet open={open} onClose={close} label="숙제 검사 끝">
         <div className="hw-done">
@@ -110,7 +110,7 @@ export default function HomeworkSheet({ open, onClose, day, onDone }: { open: bo
               <p>
                 숙제 스티커 1장을 받았어요.
                 <br />
-                칭찬 스티커판 <b>{n}/10</b>
+                {month}월 칭찬 스티커판 <b>{result.monthCount ?? 1}장</b>
               </p>
             </div>
           ) : (

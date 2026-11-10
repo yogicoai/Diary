@@ -13,7 +13,7 @@
 //     지난 10일 숙제 검사(칭찬 스티커판 한 판), 일주일·한 달 개근상·숙제 상, 게시판 2편. 오늘 일기·숙제는 비워 둔다 → 보여 줄 때 직접 써 보기(생일 축하 답장·생일 축하장)
 //   · 예제 친구 8명 (개발용 로그인 데모지민·데모도윤·데모서연·데모하준·데모유나 + fe 와 동갑 데모민준·데모수빈·데모예린)
 //     교실 뒤 게시판 10편(도장·스티커, 지난주 것은 '지난주 참 잘한 일기' 후보, 동갑 친구 탭), 오늘의 숙제 벽 3장
-//   · 우리 반 '퇴근 후 그림반': 반장 fe + 친구 6명, 오늘 반 숙제, 오늘 낸 친구 셋(출석부), 반에 낸 일기·도장·짝꿍 한마디
+//   · 우리 반 '퇴근 후 그림반': 반장 fe + 친구 6명, 오늘 반 숙제, 오늘 낸 친구 셋(출석부), 반에 낸 일기·도장·짝꿍 한마디, 이번 달 칭찬 스티커 자랑 셋
 //
 // 표시: 예제 사용자·반·숙제·상장은 demo: true, 일기는 clientId 가 demo- 로 시작한다.
 // 브라우저 일기장(IndexedDB)은 기기에 남으니, 보여 줄 땐 시크릿 창에서 교무실 문(/admin)으로 fe 로 들어가 / 로 가면 깔끔하다.
@@ -239,6 +239,9 @@ const NOTES = [
   ["seoyeon", 2, "hajun", "계란 두 개 인정합니다"],
 ];
 const HW_LINES = ["생각보다 금방 했다", "하고 나니 뿌듯", "가족이 칭찬해 줬다", "증거는 마음속에 있어요", "내일도 해 볼까", "한 번에 성공!", "퇴근길에 해치웠다", "동료도 같이 했다", "사진은 부끄러워서 한 줄로", "이번 주 숙제 개근!"];
+// 친구들 이번 달 지난 숙제 (며칠 전까지) · 반에 스티커 자랑한 친구
+const FRIEND_HW_DAYS = [["jimin", 6], ["minjun", 8], ["hajun", 4], ["doyun", 3]];
+const BRAGS = ["jimin", "minjun", "hajun"];
 const HW_STICKERS = ["best", "great", "cool", "thanks", "proud", "hundred", "bravo", "laugh"];
 const FRIEND_HW = [
   ["jimin", "점심시간에 해치웠어요. 생각보다 재밌다"],
@@ -286,6 +289,7 @@ async function remove() {
   const ds = await col("diaries").find(dq).project({ _id: 1, board: 1 }).toArray();
   const dIds = ds.map((d) => d._id);
   const byDiaryOrUser = { $or: [{ diaryId: { $in: dIds } }, { userId: { $in: ids } }] };
+  const demoClassIds = (await col("classes").find({ demo: true }).project({ _id: 1 }).toArray()).map((c) => c._id);
   const r = {
     reactions: (await col("reactions").deleteMany(byDiaryOrUser)).deletedCount,
     reports: (await col("reports").deleteMany(byDiaryOrUser)).deletedCount,
@@ -294,6 +298,7 @@ async function remove() {
     homework: (await col("homework").deleteMany({ $or: [{ userId: { $in: ids } }, { demo: true }] })).deletedCount,
     awards: (await col("awards").deleteMany({ $or: [{ userId: { $in: ids } }, { demo: true }] })).deletedCount,
     goneDiaries: (await col("goneDiaries").deleteMany({ $or: [{ userId: { $in: ids } }, ...(fe ? [{ userId: fe._id, clientId: /^demo-/ }] : [])] })).deletedCount,
+    brags: (await col("brags").deleteMany({ $or: [{ userId: { $in: ids } }, { classId: { $in: demoClassIds } }] })).deletedCount,
     classes: (await col("classes").deleteMany({ demo: true })).deletedCount,
     users: (await users.deleteMany({ demo: true })).deletedCount,
   };
@@ -398,7 +403,17 @@ async function build() {
   }
   const todayMission = await topicOf(TODAY);
   const frHw = FRIEND_HW.map(([who, text], i) => ({ userId: ids[who], date: TODAY, mission: todayMission, text, photoUrl: null, thumbUrl: null, sticker: HW_STICKERS[(i + 3) % HW_STICKERS.length], share: true, status: "visible", checked: true, at: at(0, 12 + i), updatedAt: at(0, 12 + i), demo: true }));
-  await col("homework").insertMany([...feHw, ...frHw]);
+  // 친구들 이번 달 숙제 기록 (반 화면 '칭찬 스티커 자랑' 용, 보여 주기는 안 함)
+  const frPast = [];
+  for (const [who, days] of FRIEND_HW_DAYS) {
+    for (let off = 1; off <= days; off++) {
+      if (dayKey(off).slice(0, 7) !== TODAY.slice(0, 7)) break;
+      frPast.push({ userId: ids[who], date: dayKey(off), mission: await topicOf(dayKey(off)), text: HW_LINES[(off + who.length) % HW_LINES.length], photoUrl: null, thumbUrl: null, sticker: HW_STICKERS[(off * 3 + who.length) % HW_STICKERS.length], share: false, status: "visible", checked: false, at: at(off, 20), updatedAt: at(off, 20), demo: true });
+    }
+  }
+  await col("homework").insertMany([...feHw, ...frHw, ...frPast]);
+  // 우리 반에 이번 달 칭찬 스티커 자랑
+  await col("brags").insertMany(BRAGS.map((who, i) => ({ classId: cls.insertedId, userId: ids[who], month: TODAY.slice(0, 7), at: at(0, 8, i) })));
 
   // 상장: 일주일·한 달 개근상 (어제까지 30일 연속), 숙제 10번 (칭찬 스티커판 한 판)
   await col("awards").insertMany([

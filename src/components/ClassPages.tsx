@@ -15,8 +15,18 @@ import { BrandMark, StampSvg } from "./Icons";
 import { LoginButtons } from "./LoginBox";
 import { StickerSvg } from "./PraiseStickers";
 import Reactions from "./Reactions";
+import Sheet from "./Sheet";
 
-type ClassLite = { id: string; name: string; code: string; members: number; owner: boolean };
+type ClassLite = {
+  id: string;
+  name: string;
+  code: string;
+  members: number;
+  owner: boolean;
+  handedIn?: number; // 목록에만: 오늘 반에 낸 친구 수
+  mine?: boolean; // 목록에만: 나도 오늘 냈나
+  homework?: string | null; // 목록에만: 오늘 반 숙제
+};
 
 function Header({ title, sub }: { title: string; sub: string }) {
   return (
@@ -41,21 +51,11 @@ function NeedLogin({ next, why }: { next: string; why: string }) {
   );
 }
 
-export function ClassList() {
-  const { me, loading } = useMe();
+/** 새 반 만들기 칸 (반이 없을 땐 화면에 바로, 있으면 시트 안에) */
+function CreateForm() {
   const router = useRouter();
-  const [classes, setClasses] = useState<ClassLite[] | null>(null);
   const [name, setName] = useState("");
-  const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!me) return;
-    api<{ classes: ClassLite[] }>("/api/classes")
-      .then((r) => setClasses(r.classes))
-      .catch(() => setClasses([]));
-  }, [me]);
-
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -66,7 +66,24 @@ export function ClassList() {
       setError(err instanceof Error ? err.message : "반을 못 만들었어요");
     }
   };
+  return (
+    <>
+      <form className="inline-form" onSubmit={create}>
+        <input value={name} maxLength={16} onChange={(e) => setName(e.target.value)} placeholder="예) 우리 가족, 입사 동기" aria-label="반 이름" />
+        <button type="submit" className="btn" disabled={!name.trim()}>
+          만들기
+        </button>
+      </form>
+      {error && <p className="form-error">{error}</p>}
+    </>
+  );
+}
 
+/** 초대 코드로 들어가기 칸 */
+function JoinForm() {
+  const router = useRouter();
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const join = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -77,43 +94,97 @@ export function ClassList() {
       setError(err instanceof Error ? err.message : "들어가지 못했어요");
     }
   };
+  return (
+    <>
+      <form className="inline-form" onSubmit={join}>
+        <input value={code} maxLength={8} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="6자리 코드" aria-label="초대 코드" />
+        <button type="submit" className="btn plain" disabled={code.length < 6}>
+          들어가기
+        </button>
+      </form>
+      {error && <p className="form-error">{error}</p>}
+    </>
+  );
+}
+
+export function ClassList() {
+  const { me, loading } = useMe();
+  const [classes, setClasses] = useState<ClassLite[] | null>(null);
+  const [sheet, setSheet] = useState<null | "create" | "join">(null);
+
+  useEffect(() => {
+    if (!me) return;
+    api<{ classes: ClassLite[] }>("/api/classes")
+      .then((r) => setClasses(r.classes))
+      .catch(() => setClasses([]));
+  }, [me]);
 
   return (
     <main className="app">
       <Header title="우리 반" sub="친구·연인·가족끼리 일기를 바꿔 봐요" />
       {loading && <div className="empty">…</div>}
       {!loading && !me && <NeedLogin next="/class" why="반을 만들거나 들어가려면 이름표가 필요해요." />}
-      {me && (
+      {me && classes === null && <div className="empty">반을 찾는 중…</div>}
+
+      {/* 반이 없으면: 만들기·들어가기를 바로 */}
+      {me && classes?.length === 0 && (
         <>
-          {classes === null && <div className="empty">반을 찾는 중…</div>}
-          {classes?.length === 0 && <p className="note">아직 들어간 반이 없어요. 반을 만들고 초대 링크를 보내 보세요.</p>}
+          <div className="empty class-empty">
+            아직 들어간 반이 없어요.
+            <br />
+            가족·입사 동기·동네 친구와 반을 만들고 일기를 바꿔 봐요.
+          </div>
+          <h2 className="section-title">새 반 만들기</h2>
+          <CreateForm />
+          <h2 className="section-title">초대 코드로 들어가기</h2>
+          <JoinForm />
+        </>
+      )}
+
+      {/* 반이 있으면 (11-10 사용자: "반을 만들었으면 만들기·코드 칸이 크게 자리 차지 안 해도"): 반 카드가 주인공, 만들기·들어가기는 작은 단추 → 시트 */}
+      {me && !!classes?.length && (
+        <>
           <div className="class-list">
-            {classes?.map((c) => (
+            {classes.map((c) => (
               <Link key={c.id} href={`/class/${c.id}`} className="class-card">
-                <b>{c.name}</b>
-                <span>
-                  친구 {c.members}명{c.owner ? " · 반장" : ""}
-                </span>
+                <div className="cc-main">
+                  <b>{c.name}</b>
+                  <div className="cc-sub">
+                    친구 {c.members}명{c.owner ? " · 반장" : ""}
+                  </div>
+                  {c.homework && <div className="cc-hw">오늘 반 숙제 · {c.homework}</div>}
+                </div>
+                <div className="cc-today" aria-label={`오늘 ${c.handedIn ?? 0}명 냈어요${c.mine ? ", 나도 냈어요" : ""}`}>
+                  {c.mine ? <StampSvg className="cc-stamp" /> : <div className="cc-dot" />}
+                  <div>
+                    오늘 {c.handedIn ?? 0}/{c.members}
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
-
-          <h2 className="section-title">새 반 만들기</h2>
-          <form className="inline-form" onSubmit={create}>
-            <input value={name} maxLength={16} onChange={(e) => setName(e.target.value)} placeholder="예) 우리 가족, 입사 동기" aria-label="반 이름" />
-            <button type="submit" className="btn" disabled={!name.trim()}>
-              만들기
+          <div className="class-actions">
+            <button type="button" className="btn plain" onClick={() => setSheet("create")}>
+              + 새 반 만들기
             </button>
-          </form>
-
-          <h2 className="section-title">초대 코드로 들어가기</h2>
-          <form className="inline-form" onSubmit={join}>
-            <input value={code} maxLength={8} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="6자리 코드" aria-label="초대 코드" />
-            <button type="submit" className="btn plain" disabled={code.length < 6}>
-              들어가기
+            <button type="button" className="btn plain" onClick={() => setSheet("join")}>
+              초대 코드로 들어가기
             </button>
-          </form>
-          {error && <p className="form-error">{error}</p>}
+          </div>
+          <Sheet open={sheet === "create"} onClose={() => setSheet(null)} label="새 반 만들기">
+            <h2>새 반 만들기</h2>
+            <p>가족, 입사 동기, 동네 친구… 반을 만들면 초대 링크로 친구를 불러요. 한 반에 30명까지예요.</p>
+            <div className="sheet-form">
+              <CreateForm />
+            </div>
+          </Sheet>
+          <Sheet open={sheet === "join"} onClose={() => setSheet(null)} label="초대 코드로 들어가기">
+            <h2>초대 코드로 들어가기</h2>
+            <p>친구가 보낸 6자리 코드를 넣어요. 초대 링크를 누르면 코드 없이 바로 들어가요.</p>
+            <div className="sheet-form">
+              <JoinForm />
+            </div>
+          </Sheet>
         </>
       )}
     </main>
@@ -140,7 +211,15 @@ type FeedItem = {
 };
 
 type Member = { id: string; nameTag: string; handedIn: boolean; me: boolean };
-type ClassData = { today: string; class: ClassLite; homework: string | null; members: Member[]; feed: FeedItem[] };
+type ClassData = {
+  today: string;
+  class: ClassLite;
+  homework: string | null;
+  month: string; // 이번 달 YYYY-MM
+  brags: { nameTag: string; stickers: string[]; mine: boolean }[]; // 이번 달 칭찬 스티커 자랑 (많이 모은 순)
+  members: Member[];
+  feed: FeedItem[];
+};
 
 function FeedThumb({ item }: { item: FeedItem }) {
   const [src, setSrc] = useState<string | null>(null);
@@ -321,6 +400,36 @@ export function ClassFeed({ id }: { id: string }) {
               ))}
             </div>
             {done < data.members.length && <p className="att-nudge">{done === 0 ? "아직 아무도 안 냈어요. 첫 번째로 내 볼까요?" : "아직 안 낸 친구가 있어요. 콕 찔러 볼까요?"}</p>}
+          </section>
+
+          {/* 이번 달 칭찬 스티커 자랑 (11-10 사용자: "이걸로 친구방에 자랑하기") — 나 → 칭찬 스티커판에서 건 친구만, 스티커만 */}
+          <section className="brag-wall" aria-label="이번 달 칭찬 스티커 자랑">
+            <div className="att-head">
+              <b>{Number(data.month.slice(5, 7))}월 칭찬 스티커 자랑</b>
+              {!data.brags.some((b) => b.mine) && (
+                <Link href="/me#stickers" className="linkish">
+                  나도 자랑하기
+                </Link>
+              )}
+            </div>
+            {data.brags.length === 0 ? (
+              <p className="note">아직 자랑한 친구가 없어요. 오늘의 숙제로 스티커를 모아 첫 번째로 자랑해 볼까요?</p>
+            ) : (
+              data.brags.map((b, i) => (
+                <div key={b.nameTag} className={`brag-row${b.mine ? " mine" : ""}`}>
+                  <div className="brag-who">
+                    {i === 0 && data.brags.length > 1 && <span className="brag-top">1등</span>}
+                    <b>{b.nameTag}</b>
+                    <span>{b.stickers.length}장</span>
+                  </div>
+                  <div className="brag-stickers">
+                    {b.stickers.map((s, j) => (
+                      <StickerSvg key={j} id={s} size={30} />
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
           </section>
 
           <div className="btn-row">

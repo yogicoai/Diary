@@ -2262,29 +2262,6 @@ html[data-intro] .tabbar {
   font-weight: 400;
   color: var(--muted);
 }
-.sb-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0 0 8px;
-  padding: 0;
-  list-style: none;
-}
-.sb-grid li {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 1;
-  border: 1.5px dashed var(--line-soft);
-  border-radius: 50%;
-}
-.sb-grid li.on {
-  border-style: solid;
-  border-color: transparent;
-}
-.sb-grid svg {
-  width: 100%;
-  height: auto;
-}
 .sb-num {
   font-family: var(--font-kid), cursive;
   font-size: 15px;
@@ -2705,4 +2682,180 @@ html[data-intro] .tabbar {
 }
 .note.bday-note {
   color: var(--red);
+}
+
+/* 우리 반 목록 (11-10 사용자: 반이 있으면 만들기·코드 칸이 크게 자리 차지하지 않게) — 반 카드가 주인공, 만들기·들어가기는 작은 단추 → 시트 */
+.class-card {
+  gap: 12px;
+  color: inherit;
+}
+.cc-main {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.cc-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+.cc-hw {
+  overflow: hidden;
+  font-family: var(--font-pen), cursive;
+  font-size: 18px;
+  color: var(--red);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cc-today {
+  display: grid;
+  flex: none;
+  justify-items: center;
+  gap: 2px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.cc-stamp,
+.cc-dot {
+  width: 34px;
+  height: 34px;
+}
+.cc-stamp {
+  color: var(--red);
+  transform: rotate(-12deg);
+}
+.cc-dot {
+  border: 1.5px dashed var(--line-soft);
+  border-radius: 50%;
+}
+.class-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+.class-actions .btn {
+  margin-top: 0;
+  min-height: 46px;
+  font-size: 16px;
+}
+.sheet-form {
+  margin-top: 14px;
+}
+.class-empty {
+  line-height: 1.7;
+}
+
+/* 칭찬 스티커판 = 달마다 달력 한 장 (11-10 사용자: 월별로, 달이 지나면 새 판, 지난 판은 월별로) */
+.sb-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.sb-head .sb-title {
+  margin: 0;
+  text-align: center;
+}
+.sb-cal {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0 0 8px;
+}
+.sb-w {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+}
+.sb-w.sun {
+  color: var(--red);
+}
+.sb-day {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border: 1.5px dashed var(--line-soft);
+  border-radius: 50%;
+}
+.sb-day.on {
+  border-color: transparent;
+}
+.sb-day.today:not(.on) {
+  border: 2px solid var(--red);
+}
+.sb-day.later {
+  opacity: 0.4;
+}
+.sb-day svg {
+  width: 112%;
+  height: auto;
+}
+.sb-day .sb-num {
+  font-size: 12px;
+}
+.btn.sb-brag {
+  margin-top: 8px;
+  min-height: 46px;
+  font-size: 17px;
+}
+.brag-picks {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.brag-picks .btn {
+  margin-top: 0;
+}
+.brag-picks .btn.on {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* 우리 반: 이번 달 칭찬 스티커 자랑 */
+.brag-wall {
+  margin-top: 14px;
+  padding: 12px 12px 8px;
+  border: 1.5px dashed var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+}
+.brag-wall .note {
+  margin: 6px 0 4px;
+}
+.brag-row {
+  padding: 8px 0 6px;
+}
+.brag-row + .brag-row {
+  border-top: 1px dashed var(--line-soft);
+}
+.brag-who {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.brag-who b {
+  font-family: var(--font-kid), cursive;
+  font-size: 17px;
+}
+.brag-who > span:last-child {
+  color: var(--red);
+  font-family: var(--font-pen), cursive;
+  font-size: 19px;
+}
+.brag-who .brag-top {
+  padding: 1px 7px;
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+.brag-stickers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: 4px;
 }

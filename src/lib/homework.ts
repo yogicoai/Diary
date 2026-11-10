@@ -31,7 +31,7 @@ export type HomeworkDay = {
   noServer?: boolean;
 };
 
-export type HomeworkResult = { homework: Homework; first: boolean; count: number; awards: { label: string; detail: string }[] };
+export type HomeworkResult = { homework: Homework; first: boolean; count: number; monthCount: number; awards: { label: string; detail: string }[] };
 
 /** 그날 숙제 + 내 숙제 + 보여 주기 숙제들. date 가 없으면 서버의 오늘 */
 export function useHomework(date: string | null | undefined, enabled = true) {

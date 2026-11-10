@@ -102,11 +102,14 @@ export async function POST(req: NextRequest) {
     const saved = await homework.findOne({ userId: me._id, date });
     if (!saved) throw new HttpError(500, "save");
     const count = await homework.countDocuments({ userId: me._id });
+    // 칭찬 스티커판은 달마다 새 판 (11-10 사용자) → 이번 달 장수도 알려 준다
+    const monthCount = await homework.countDocuments({ userId: me._id, date: { $gte: `${date.slice(0, 7)}-01`, $lte: `${date.slice(0, 7)}-31` } });
     const awards = before ? [] : await grantHomework(me._id, count);
     return json({
       homework: homeworkToClient(saved),
       first: !before,
       count,
+      monthCount,
       awards: awards.map((a) => ({ label: a.label, detail: a.detail })),
     });
   });
