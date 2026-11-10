@@ -1,12 +1,13 @@
 // 내 이름표 + 간단한 기록. 로그인 안 했으면 user:null 과 사용할 수 있는 로그인 방법만.
 
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { streakOf } from "@/lib/server/awards";
 import { cols, NoDbError } from "@/lib/server/db";
 import { assertSameOrigin, handle, HttpError, json, readJson } from "@/lib/server/http";
 import { meToClient } from "@/lib/server/serialize";
 import { birthProblem } from "@/lib/social";
-import { currentUser, isAdmin, requireUser } from "@/lib/server/session";
+import { removeAccount } from "@/lib/server/removeAccount";
+import { clearSession, currentUser, isAdmin, requireUser } from "@/lib/server/session";
 
 function flags() {
   return {
@@ -95,5 +96,21 @@ export async function PATCH(req: NextRequest) {
     const updated = await users.findOneAndUpdate({ _id: user._id }, { $set: set }, { returnDocument: "after" });
     if (!updated) throw new HttpError(404, "user");
     return json({ user: meToClient(updated, isAdmin(updated)) });
+  });
+}
+
+/** 회원 탈퇴: 이 사람의 일기·그림·숙제·상장·반 기록을 모두 지우고 이름표를 없앤다 (되돌릴 수 없음).
+ *  선생님 아이디(fe·yogico)는 여기서 못 지운다. 잘못 누르지 않게 화면에서 { confirm: "탈퇴" } 를 같이 보낸다 */
+export async function DELETE(req: NextRequest) {
+  return handle(async () => {
+    assertSameOrigin(req);
+    const user = await requireUser(req);
+    if (isAdmin(user)) throw new HttpError(400, "staff", "선생님 아이디는 탈퇴할 수 없어요");
+    const body = await readJson<{ confirm?: string }>(req);
+    if (body.confirm !== "탈퇴") throw new HttpError(400, "confirm", "탈퇴를 한 번 더 확인해 주세요");
+    const done = await removeAccount(user);
+    const res = NextResponse.json({ ok: true, ...done });
+    clearSession(res);
+    return res;
   });
 }

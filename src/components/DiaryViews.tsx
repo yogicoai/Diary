@@ -103,7 +103,7 @@ export function MonthView({
               {ds && (
                 <span className="cal-art">
                   <CellThumb d={ds[0]} />
-                  <StampSvg className="cal-stamp" />
+                  <StampSvg className="cal-stamp" stamp={ds[0].stamp} />
                 </span>
               )}
               {ds && ds.length > 1 && <span className="cal-more">+{ds.length - 1}</span>}

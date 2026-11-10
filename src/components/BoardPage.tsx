@@ -1,6 +1,6 @@
 "use client";
 
-// 교실 뒤 게시판: 지난주 참 잘한 일기 + 전체 / 오늘의 숙제 / 같은 해 입학
+// 교실 뒤 게시판: 지난주 참 잘한 일기 + 전체 / 오늘의 숙제 / 동갑 친구
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -108,7 +108,7 @@ export default function BoardPage() {
       {error && <div className="empty">{error}</div>}
       {tab === "year" && needYear && (
         <div className="empty">
-          {me ? "이름표에 나이를 적으면 같은 학년·반(동갑) 친구들 일기를 모아 볼 수 있어요." : "가입하면 같은 학년·반(동갑) 친구들 일기를 모아 볼 수 있어요."}
+          {me ? "이름표에 생년월일을 적으면 같은 학년·반(동갑) 친구들 일기를 모아 볼 수 있어요." : "가입하면 같은 학년·반(동갑) 친구들 일기를 모아 볼 수 있어요."}
           <Link href="/me" className="btn" style={{ marginTop: 16 }}>
             {me ? "이름표 고치기" : "이름표 만들기"}
           </Link>

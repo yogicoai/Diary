@@ -128,6 +128,11 @@ export async function deleteDiary(id: string): Promise<void> {
   );
 }
 
+/** 이 기기에서 한 사람의 일기장 칸을 비운다 (회원 탈퇴 뒤) */
+export async function dropDiariesOf(owner: string): Promise<void> {
+  await del(keyOf(owner));
+}
+
 /** 손님 때 이 기기에 쓴 일기를 지금 로그인한 사람 일기장으로 옮긴다. 옮긴 일기를 돌려준다 */
 export async function adoptGuestDiaries(): Promise<Diary[]> {
   const owner = diaryOwner();

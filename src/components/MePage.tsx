@@ -3,6 +3,7 @@
 // 나: 이름표(이름·나이 → 어른이 초등학교 O학년 O반) + 기록 + 개근 + 상장함
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { canvasToBlob } from "@/lib/card";
@@ -11,6 +12,7 @@ import { useMe } from "@/lib/me";
 import { READ_ALOUD } from "@/lib/business";
 import { setReadVoice } from "@/lib/readAloud";
 import { ageFromBirth, birthProblem, gradeText, SCHOOL } from "@/lib/social";
+import { dropDiariesOf, setDiaryOwner } from "@/lib/store";
 import { BrandMark, StampSvg } from "./Icons";
 import StickerBoard from "./StickerBoard";
 import { LoginButtons } from "./LoginBox";
@@ -19,6 +21,60 @@ import Sheet from "./Sheet";
 
 type Award = { id: string; kind: string; label: string; detail: string; rank: number | null; at: number };
 const GOALS = [7, 30, 100];
+
+/** 회원 탈퇴 (11-10): 무엇이 지워지는지 알리고, 알았다고 체크해야 누를 수 있다. 끝나면 이 기기의 내 일기장도 비운다 */
+function QuitSheet({ open, onClose, userId }: { open: boolean; onClose: () => void; userId: string }) {
+  const router = useRouter();
+  const { refresh } = useMe();
+  const [agree, setAgree] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const quit = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await api("/api/me", { method: "DELETE", json: { confirm: "탈퇴" } });
+      await dropDiariesOf(userId).catch(() => {});
+      setDiaryOwner(null);
+      await refresh(); // 이제 손님
+      onClose();
+      router.push("/?cover=1");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "탈퇴하지 못했어요. 잠시 뒤에 다시 해 주세요");
+      setBusy(false);
+    }
+  };
+  return (
+    <Sheet open={open} onClose={onClose} label="회원 탈퇴">
+      <h2>정말 탈퇴할까요?</h2>
+      <p>탈퇴하면 아래가 모두 지워지고 되돌릴 수 없어요. 남기고 싶은 일기는 먼저 카드로 저장해 두세요.</p>
+      <ul className="del-list">
+        <li>내 일기와 그림, 게시판에 붙인 카드, 받은 도장·짝꿍 한마디</li>
+        <li>오늘의 숙제 기록·사진, 칭찬 스티커, 상장</li>
+        <li>이름표(이름·생년월일)와 로그인 정보</li>
+        <li>우리 반에서는 빠져요. 반장이면 다음 친구가 반장이 돼요.</li>
+      </ul>
+      <label className="check" style={{ marginTop: 14 }}>
+        <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
+        <span className="box">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M3 8.5 6.5 12 13 4" />
+          </svg>
+        </span>
+        <span style={{ fontSize: 14 }}>모두 지워지고 되돌릴 수 없다는 걸 알았어요</span>
+      </label>
+      {error && <p className="form-error">{error}</p>}
+      <div className="btn-row">
+        <button type="button" className="btn plain" onClick={onClose} disabled={busy}>
+          그만둘래요
+        </button>
+        <button type="button" className="btn plain erase" onClick={() => void quit()} disabled={!agree || busy}>
+          {busy ? "지우는 중…" : "탈퇴하기"}
+        </button>
+      </div>
+    </Sheet>
+  );
+}
 
 export default function MePage() {
   const { me, stats, loading, refresh, logout } = useMe();
@@ -31,6 +87,7 @@ export default function MePage() {
   const [error, setError] = useState<string | null>(null);
   const [awards, setAwards] = useState<Award[]>([]);
   const [cert, setCert] = useState<{ award: Award; url: string; blob: Blob } | null>(null);
+  const [quit, setQuit] = useState(false); // 회원 탈퇴 확인
 
   useEffect(() => {
     if (!me) return;
@@ -184,7 +241,13 @@ export default function MePage() {
             <button type="button" className="linkish" onClick={() => logout()}>
               로그아웃
             </button>
+            {!me.admin && (
+              <button type="button" className="linkish" onClick={() => setQuit(true)}>
+                회원 탈퇴
+              </button>
+            )}
           </div>
+          <QuitSheet open={quit} onClose={() => setQuit(false)} userId={me.id} />
         </>
       )}
 

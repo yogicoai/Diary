@@ -1,4 +1,4 @@
-// 상장: 개근상(7·30·100일 연속) + 이번 주 참 잘한 일기(게시판 도장·스티커 많이 받은 1~3등) + 생일 축하장.
+// 상장: 개근상(7·30·100일 연속) + 지난주 참 잘한 일기(게시판 도장·스티커 많이 받은 1~3등) + 생일 축하장.
 // 날짜는 한국 시간 기준.
 
 import type { ObjectId } from "mongodb";
@@ -129,7 +129,7 @@ export async function weeklyWinners(): Promise<{ week: string; awards: AwardDoc[
       key,
       rank: i + 1,
       diaryId: t._id,
-      label: `이번 주 참 잘한 일기 ${i + 1}등`,
+      label: `지난주 참 잘한 일기 ${i + 1}등`, // 게시판 제목과 같은 이름 (11-10, 예전엔 '이번 주')
       detail: `「${t.title || "제목 없는 날"}」로 친구들 도장을 ${t.total}개 받았어요`,
       at: new Date(),
     };

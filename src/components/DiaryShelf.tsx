@@ -203,7 +203,7 @@ export default function DiaryShelf() {
             <Thumb d={d} />
             <div className="when">{shortDate(d.date)}</div>
             <div className="ttl">{d.title || d.body.slice(0, 10) || "그림만 그린 날"}</div>
-            <StampSvg className="mini-stamp" />
+            <StampSvg className="mini-stamp" stamp={d.stamp} />
             {d.board?.status === "visible" && <span className="mini-badge">게시판</span>}
             {!!d.classIds?.length && <span className="mini-badge cls">우리 반</span>}
           </button>
