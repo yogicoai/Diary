@@ -2,6 +2,7 @@
 // 그림은 public/web-bg/<id>.webp + public/web-bg/thumb/<id>.webp(240×135).
 // 고른 id 를 이 기기 localStorage chamjal.webBg 에 저장하니 id 는 바꾸거나 지우지 말고, 새 그림은 끝에 붙인다
 // (scripts/webbg-import.mjs 가 docs/넓은화면-배경-프롬프트.md 의 이름·묶음으로 붙인다).
+// 고르는 화면은 이 순서대로 보인다 — 맨 앞 = 무지개 하늘 (문구점 테마 기본, 11-10 사용자 "첫번째로").
 
 export type WebBackdrop = { id: string; name: string; group: string };
 
@@ -9,12 +10,12 @@ export type WebBackdrop = { id: string; name: string; group: string };
 export const WEB_BACKDROP_GROUPS = ["종이·낙서", "책상 위", "동네·나들이", "계절·날씨"];
 
 export const WEB_BACKDROPS: WebBackdrop[] = [
+  { id: "pc-rainbow", name: "무지개 하늘", group: "종이·낙서" },
   { id: "doodle", name: "크라프트 낙서", group: "종이·낙서" },
   { id: "town", name: "크레파스 동네", group: "동네·나들이" },
   { id: "desk", name: "교실 책상", group: "책상 위" },
   { id: "pc-notebook", name: "줄공책 낙서", group: "종이·낙서" },
   { id: "pc-origami", name: "색종이 접기", group: "종이·낙서" },
-  { id: "pc-rainbow", name: "무지개 하늘", group: "종이·낙서" },
   { id: "pc-crayons", name: "크레파스 낙서장", group: "종이·낙서" },
   { id: "pc-art-desk", name: "미술 시간 책상", group: "책상 위" },
   { id: "pc-pencil-case", name: "필통 책상", group: "책상 위" },

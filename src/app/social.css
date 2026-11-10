@@ -839,10 +839,11 @@
   color: var(--muted);
 }
 
-/* ---------- 넓은 화면: 일기장 뒤 크레파스 배경 (힉스필드 생성, public/web-bg) ---------- */
+/* ---------- 넓은 화면: 일기장 뒤 크레파스 배경 (힉스필드 생성, public/web-bg) ----------
+   '일기장에 맞춤'(처음 온 사람 기본값): 문구점 = 무지개 하늘 (11-10 사용자 "최초 무지개 하늘 스킨이 좋은데, 첫번째로") */
 @media (min-width: 520px) {
   html[data-theme="stationery"] body {
-    background: var(--desk) url("/web-bg/doodle.webp") center / cover fixed no-repeat;
+    background: var(--desk) url("/web-bg/pc-rainbow.webp") center / cover fixed no-repeat;
   }
   html[data-theme="drawing"] body {
     background: var(--desk) url("/web-bg/town.webp") center / cover fixed no-repeat;
@@ -1042,7 +1043,7 @@
   }
 }
 .web-bg.theme .wb-thumb {
-  background-image: url("/web-bg/thumb/doodle.webp"), url("/web-bg/thumb/town.webp");
+  background-image: url("/web-bg/thumb/pc-rainbow.webp"), url("/web-bg/thumb/town.webp");
   background-size: 50% 100%, 50% 100%;
   background-position: left, right;
   background-repeat: no-repeat;

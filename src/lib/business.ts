@@ -9,6 +9,12 @@ export const SALES_READY = false; // true 가 되면 실제 결제 흐름으로 
 // 소리 내어 읽기 단추와 가입할 때 남자아이·여자아이 고르기도 안 보인다. 유료판에서 켜려면 true + 이 앱 전용 TYPECAST_API_KEY.
 export const READ_ALOUD = false;
 
+// 베타 (11-10 사용자: "서버 올릴 땐 그냥 개발자 모드 활성화", "베타라 이후 없앨 것"): 배포한 서버(운영 빌드)에서
+// "이름만 적고 시작하기"(개발용 로그인)를 열고, 처음 온 사람은 예제 일기장(fe = 3학년 8반 길동)으로 로그인된 채 둘러본다(읽기만).
+// 환경변수 없이 배포하면 켜진다. 로컬 개발 서버(next dev)는 꺼진 채 (인트로 시험). 환경변수 BETA=1/0 이 있으면 그게 먼저.
+// 정식 출시 전에 false (docs/ROADMAP.md '출시 전에 꼭 할 것') — 자세한 규칙은 lib/server/beta.ts
+export const BETA = true;
+
 // 실물 그림일기 책: 50장이 한 권. 가격은 인쇄 견적 전 가설
 export const BOOK = { pages: 50, priceFrom: 24900, priceTo: 29900 };
 

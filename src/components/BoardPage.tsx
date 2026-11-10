@@ -85,7 +85,7 @@ export default function BoardPage() {
           </h2>
           <div className="winner-row">
             {winners.map((w) => (
-              <Link key={w.item.id} href={`/board/${w.item.id}`} className="winner">
+              <Link key={w.item.id} href={`/board/${w.item.id}`} className="winner" prefetch={false}>
                 <span className={`medal m${w.rank}`}>{w.rank}등</span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={w.item.thumbUrl} alt="" />
@@ -127,7 +127,7 @@ export default function BoardPage() {
 
       <div className="pinboard">
         {tab !== "topic" && items?.map((it, i) => (
-          <Link key={it.id} href={`/board/${it.id}`} className="pinned" style={{ rotate: `${((i * 37) % 5) - 2}deg` }}>
+          <Link key={it.id} href={`/board/${it.id}`} className="pinned" prefetch={false} style={{ rotate: `${((i * 37) % 5) - 2}deg` }}>
             <span className="pin" aria-hidden="true" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={it.thumbUrl} alt="" loading="lazy" />

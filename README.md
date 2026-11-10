@@ -5,6 +5,6 @@
 - 앱 소개: `/about`
 - 실행: `npm run dev:mem` → http://localhost:6900 (임시 DB) · `npm run dev` (실제 DB, 변수 목록은 `.env.example`)
 - 개발 규칙·구조: [CLAUDE.md](CLAUDE.md) · 다음 단계와 출시 전 체크리스트: [docs/ROADMAP.md](docs/ROADMAP.md)
-- 배포: Vercel (서버 지역 서울 `icn1`, `vercel.json`). 베타 서버는 환경변수 `BETA=1` — 정식 출시 전에 지운다
+- 배포: Vercel (서버 지역 서울 `icn1`, `vercel.json`). 베타는 `src/lib/business.ts` BETA (배포하면 켜짐) — 정식 출시 전에 false
 
 Next.js 16 · React 19 · MongoDB Atlas · Cafe24 FTP · Claude (선생님 한 줄)
