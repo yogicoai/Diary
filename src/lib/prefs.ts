@@ -1,6 +1,7 @@
 // 이 기기의 기본 설정 ("나" → 기본 설정). 서버로 가지 않는다.
 
 import { BACKGROUNDS, defaultBg } from "./backgrounds";
+import { webBackdropById } from "./webBackdrops";
 
 const BG_KEY = "chamjal.defaultBg";
 
@@ -24,22 +25,19 @@ export function setPreferredBg(id: string | null) {
   }
 }
 
-// 넓은 화면(PC) 일기장 뒤 배경
-export const WEB_BGS = [
-  { id: "theme", name: "일기장에 맞춤" },
-  { id: "doodle", name: "크라프트 낙서" },
-  { id: "town", name: "크레파스 동네" },
-  { id: "desk", name: "교실 책상" },
-  { id: "random", name: "그때그때 바뀜" },
-  { id: "mine", name: "내 그림으로" },
+// 넓은 화면(PC) 일기장 뒤 배경: 그림 하나(lib/webBackdrops.ts 의 id) 또는 아래 세 가지
+export const WEB_BG_MODES = [
+  { id: "theme", name: "일기장에 맞춤" }, // 테마마다 정해진 그림 (CSS)
+  { id: "random", name: "그때그때 바뀜" }, // 들어올 때마다 그림 전부 중에서
+  { id: "mine", name: "내 그림으로" }, // 내가 그린 일기 그림들을 양옆에 붙인 책상
 ] as const;
-export type WebBgId = (typeof WEB_BGS)[number]["id"];
+export type WebBgId = string;
 const WEB_KEY = "chamjal.webBg";
 
 export function webBg(): WebBgId {
   try {
     const v = localStorage.getItem(WEB_KEY);
-    if (v && WEB_BGS.some((b) => b.id === v)) return v as WebBgId;
+    if (v && (WEB_BG_MODES.some((b) => b.id === v) || webBackdropById(v))) return v;
   } catch {
     /* 기본값 */
   }

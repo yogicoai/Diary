@@ -1,15 +1,15 @@
 "use client";
 
 // 넓은 화면(760px 이상) 일기장 뒤 배경. "나 → 기본 설정"에서 고른 것을 입힌다.
-//   theme = 일기장 테마에 맞춤(CSS) / doodle·town·desk = 힉스필드로 만든 그림 / random = 들어올 때마다
+//   theme = 일기장 테마에 맞춤(CSS) / 그림 id = lib/webBackdrops.ts 의 그림 하나 / random = 들어올 때마다 그림 전부 중에서
 //   mine = 내가 그린 일기 그림들을 양옆에 사진처럼 붙인 책상 (이 기기에서 그려서 입힘)
+//   그림은 html[data-webbg] + --web-bg 변수로 입힌다 (social.css)
 
 import { useEffect } from "react";
 import { webBg } from "@/lib/prefs";
 import { listDiaries } from "@/lib/store";
 import { renderThumb } from "@/lib/thumb";
-
-const FIXED = ["doodle", "town", "desk"];
+import { WEB_BACKDROPS, webBackdropById, webBackdropSrc } from "@/lib/webBackdrops";
 
 function mulberry(seed: number) {
   return () => {
@@ -75,9 +75,14 @@ export default function WebBackdrop() {
     const apply = async () => {
       const pref = webBg();
       document.body.style.backgroundImage = "";
-      if (pref === "random") html.dataset.webbg = FIXED[Math.floor(Math.random() * FIXED.length)];
-      else if (pref === "mine" || pref === "theme") delete html.dataset.webbg;
-      else html.dataset.webbg = pref;
+      const pick = pref === "random" ? WEB_BACKDROPS[Math.floor(Math.random() * WEB_BACKDROPS.length)].id : pref;
+      if (webBackdropById(pick)) {
+        html.dataset.webbg = pick;
+        html.style.setProperty("--web-bg", `url("${webBackdropSrc(pick)}")`);
+      } else {
+        delete html.dataset.webbg; // theme(테마 CSS) · mine(아래에서 그림)
+        html.style.removeProperty("--web-bg");
+      }
 
       if (pref === "mine" && wide.matches) {
         const url = await mineDesk(Math.min(2560, window.innerWidth), Math.min(1600, window.innerHeight));

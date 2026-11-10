@@ -985,16 +985,10 @@
   color: var(--muted);
 }
 
-/* 넓은 화면 배경 고르기 */
+/* 넓은 화면 배경 고르기: 그림은 WebBackdrop 이 html 에 --web-bg(그림 주소)와 data-webbg(id)를 넣는다 */
 @media (min-width: 760px) {
-  html[data-webbg="doodle"] body {
-    background: var(--desk) url("/web-bg/doodle.webp") center / cover fixed no-repeat;
-  }
-  html[data-webbg="town"] body {
-    background: var(--desk) url("/web-bg/town.webp") center / cover fixed no-repeat;
-  }
-  html[data-webbg="desk"] body {
-    background: var(--desk) url("/web-bg/desk.webp") center / cover fixed no-repeat;
+  html[data-webbg]:not([data-webbg="mine"]) body {
+    background: var(--desk) var(--web-bg) center / cover fixed no-repeat;
   }
   html[data-webbg="mine"] body {
     background-color: var(--desk);
@@ -1030,14 +1024,16 @@
   border: 2.5px solid var(--red);
 }
 
-.web-bg.doodle .wb-thumb {
-  background-image: url("/web-bg/thumb/doodle.webp");
+.web-bg-group {
+  margin: 14px 0 6px;
+  font-size: 13px;
+  color: var(--muted);
 }
-.web-bg.town .wb-thumb {
-  background-image: url("/web-bg/thumb/town.webp");
-}
-.web-bg.desk .wb-thumb {
-  background-image: url("/web-bg/thumb/desk.webp");
+/* 휴대폰에선 안 쓰이는 설정 (넓은 화면 이 기기에만 저장) */
+@media (max-width: 759px) {
+  .web-bg-set {
+    display: none;
+  }
 }
 .web-bg.theme .wb-thumb {
   background-image: url("/web-bg/thumb/doodle.webp"), url("/web-bg/thumb/town.webp");

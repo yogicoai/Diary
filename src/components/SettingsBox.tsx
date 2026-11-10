@@ -4,7 +4,8 @@
 
 import { useEffect, useState } from "react";
 import { BACKGROUNDS, bgThumb } from "@/lib/backgrounds";
-import { preferredBg, setPreferredBg, setWebBg, WEB_BGS, webBg, type WebBgId } from "@/lib/prefs";
+import { preferredBg, setPreferredBg, setWebBg, WEB_BG_MODES, webBg, type WebBgId } from "@/lib/prefs";
+import { WEB_BACKDROP_GROUPS, WEB_BACKDROPS, webBackdropThumb } from "@/lib/webBackdrops";
 import { hapticOn, setHaptic, setSound, soundOn } from "@/lib/feel";
 import { getConsent, setConsent, type Consent } from "@/lib/teacherAi";
 import { PencilIcon } from "./Icons";
@@ -29,6 +30,11 @@ export default function SettingsBox() {
   const pickBg = (id: string | null) => {
     setPreferredBg(id);
     setBg(id);
+  };
+
+  const pickWeb = (id: WebBgId) => {
+    setWebBg(id);
+    setWeb(id);
   };
 
   return (
@@ -57,24 +63,46 @@ export default function SettingsBox() {
         ))}
       </div>
 
-      <h3 className="set-title">넓은 화면(PC) 일기장 뒤 배경</h3>
-      <div className="web-bgs" role="radiogroup" aria-label="넓은 화면 배경">
-        {WEB_BGS.map((b) => (
-          <button
-            key={b.id}
-            type="button"
-            role="radio"
-            aria-checked={web === b.id}
-            className={`web-bg ${b.id}`}
-            onClick={() => {
-              setWebBg(b.id);
-              setWeb(b.id);
-            }}
-          >
-            <span className="wb-thumb" />
-            <span className="bg-name">{b.name}</span>
-          </button>
-        ))}
+      {/* 넓은 화면에서만 보이는 설정이라(이 기기 저장) 휴대폰 화면에선 감춘다 */}
+      <div className="web-bg-set">
+        <h3 className="set-title">넓은 화면(PC) 일기장 뒤 배경</h3>
+        <div role="radiogroup" aria-label="넓은 화면 배경">
+          <div className="web-bgs">
+            {WEB_BG_MODES.map((b) => (
+              <button
+                key={b.id}
+                type="button"
+                role="radio"
+                aria-checked={web === b.id}
+                className={`web-bg ${b.id}`}
+                onClick={() => pickWeb(b.id)}
+              >
+                <span className="wb-thumb" />
+                <span className="bg-name">{b.name}</span>
+              </button>
+            ))}
+          </div>
+          {WEB_BACKDROP_GROUPS.map((g) => (
+            <div key={g} role="group" aria-label={g}>
+              <p className="web-bg-group">{g}</p>
+              <div className="web-bgs">
+                {WEB_BACKDROPS.filter((b) => b.group === g).map((b) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={web === b.id}
+                    className="web-bg"
+                    onClick={() => pickWeb(b.id)}
+                  >
+                    <span className="wb-thumb" style={{ backgroundImage: `url("${webBackdropThumb(b.id)}")` }} />
+                    <span className="bg-name">{b.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <h3 className="set-title">소리·진동</h3>
