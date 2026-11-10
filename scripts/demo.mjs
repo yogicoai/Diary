@@ -5,15 +5,15 @@
 //   임시 DB 로: --uri <dev:mem 이 찍은 주소>   다른 서버: --base http://localhost:6900
 //
 // build 는 6900 에 같은 DB 를 쓰는 서버가 켜져 있어야 한다 (게시판 붙이기를 화면에서 진짜로 해서 카드 그림을 만든다.
-//   붙일 때마다 AI 게시판 검사 한 번 ≈ 0.4원, 모두 6번. 진짜 DB(npm run dev)면 그림은 카페24 FTP 에 올라간다)
+//   붙일 때마다 AI 게시판 검사 한 번 ≈ 0.4원, 모두 12번. 진짜 DB(npm run dev)면 그림은 카페24 FTP 에 올라간다)
 //
 // 만드는 것
-//   · fe(개발자 계정): 이름표 '길동', 생일 = 만든 날(오늘부터 3학년 8반). 원래 이름표는 demoBackup 에 두었다가 remove 때 되돌린다
-//     지난 12일 하루도 안 빠진 일기 12편 + 밀린 숙제 1편(날씨·배경·크레파스 그림·선생님 답장·칭찬 스티커·도장 여러 가지, 비밀 일기 하나),
-//     지난 6일 숙제 검사(칭찬 스티커판), 일주일 개근상. 오늘 일기·숙제는 비워 둔다 → 보여 줄 때 직접 써 보기(생일 축하 답장·생일 축하장)
-//   · 예제 친구 5명 (개발용 로그인 이름 데모지민·데모도윤·데모서연·데모하준·데모유나 → 이름표 지민·도윤·서연·하준·유나)
-//     교실 뒤 게시판 6편(도장·스티커, 지난주 것은 '지난주 참 잘한 일기' 후보), 오늘의 숙제 벽 3장
-//   · 우리 반 '퇴근 후 그림반': 반장 fe + 친구 4명, 오늘 반 숙제, 오늘 낸 친구 둘(출석부), 반에 낸 일기·짝꿍 한마디
+//   · fe(개발자 계정): 이름표 '길동'(1988년생), 생일 = 만든 날(오늘부터 3학년 8반). 원래 이름표는 demoBackup 에 두었다가 remove 때 되돌린다
+//     어제까지 30일 하루도 안 빠진 일기 + 밀린 숙제 1편(날씨·배경·크레파스 그림·선생님 답장·칭찬 스티커·도장 여러 가지, 비밀 일기 하나),
+//     지난 10일 숙제 검사(칭찬 스티커판 한 판), 일주일·한 달 개근상·숙제 상, 게시판 2편. 오늘 일기·숙제는 비워 둔다 → 보여 줄 때 직접 써 보기(생일 축하 답장·생일 축하장)
+//   · 예제 친구 8명 (개발용 로그인 데모지민·데모도윤·데모서연·데모하준·데모유나 + fe 와 동갑 데모민준·데모수빈·데모예린)
+//     교실 뒤 게시판 10편(도장·스티커, 지난주 것은 '지난주 참 잘한 일기' 후보, 동갑 친구 탭), 오늘의 숙제 벽 3장
+//   · 우리 반 '퇴근 후 그림반': 반장 fe + 친구 6명, 오늘 반 숙제, 오늘 낸 친구 셋(출석부), 반에 낸 일기·도장·짝꿍 한마디
 //
 // 표시: 예제 사용자·반·숙제·상장은 demo: true, 일기는 clientId 가 demo- 로 시작한다.
 // 브라우저 일기장(IndexedDB)은 기기에 남으니, 보여 줄 땐 시크릿 창에서 교무실 문(/admin)으로 fe 로 들어가 / 로 가면 깔끔하다.
@@ -165,7 +165,31 @@ const FE_DIARIES = [
   { off: 3, weather: "partly", bg: "cafe", title: "새로 생긴 카페", body: "동네에 새 카페가 생겼다. 케이크가 너무 예뻐서 사진만 열 장 찍었다.", teacher: "사진 찍는 동안 케이크가 기다려 줬네요. 착한 케이크!", stickers: ["yum", "cool"], stamp: "great", draw: () => [...cakeSlice(0.42, 0.78), ...person(0.7, 0.95, 0.95, "pink")] },
   { off: 2, weather: "sun", bg: "bedroom", secret: true, title: "아무도 모르는 일", body: "다음 달에 회사를 옮긴다. 아직 아무한테도 말 안 했다. 떨리고 설렌다.", teacher: "새 출발 응원해요. 이 비밀은 선생님이 꼭 지킬게요.", stickers: ["cool", "cheer"], stamp: "brave", draw: () => [heart(0.5, 0.45, 0.09, "red"), ...person(0.3, 0.95, 0.9, "sky")] },
   { off: 1, weather: "snow", bg: "snow-day", title: "첫눈", body: "올해 첫눈이 왔다. 출근길이 미끄러웠지만 하루 종일 기분이 좋았다.", teacher: "첫눈에 안 미끄러진 발목에게도 상장을 줘요.", stickers: ["proud", "cozy"], stamp: "great", cls: true, draw: () => [...person(0.5, 0.95, 1, "red"), ...snow(0.1, 0.9, 0.05, 0.55, 14)] },
-  { off: 15, late: true, createdOff: 1, weather: "cloud", bg: "living-room", title: "밀린 일기", body: "이날 일기를 깜빡했다. 사실 하루 종일 소파와 한 몸이었다.", teacher: "밀린 숙제 발견! 소파와 한 몸이었던 것도 기록이죠.", stickers: ["rest", "laugh"], stamp: "cham", draw: () => [...person(0.55, 0.93, 0.9, "orange"), ...zzz(0.62, 0.4)] },
+  // 13~30일 전 (11-10 사용자: "일기장이나 나 부분도 채워 놔") → 30일 연속 = 한 달 개근상, 달력이 꽉 찬다
+  { off: 13, weather: "rain", bg: "rainy-street", title: "비 오는 출근길", body: "버스를 놓쳐서 비를 맞으며 뛰었다. 머리가 미역이 됐다.", teacher: "미역 머리로 출근하다니, 오늘의 용감상은 정해졌네요.", stickers: ["brave", "laugh"], stamp: "brave", draw: () => [...person(0.5, 0.95, 1, "blue"), ...rain(0.1, 0.9, 0.05, 0.5, 14)] },
+  { off: 14, weather: "sun", bg: "beach", title: "바다 보고 싶은 날", body: "점심시간에 바다 사진을 찾아봤다. 파도 소리를 틀어 놓고 일했다.", teacher: "책상 위 바다 여행, 비행기 값 아꼈네요.", stickers: ["dream", "envy"], stamp: "envy", draw: () => [...sun(0.82, 0.15, 0.04), ...person(0.35, 0.93, 0.95, "sky")] },
+  { off: 15, weather: "cloud", bg: "snack-bar", title: "떡볶이 회식", body: "팀 회식으로 떡볶이를 먹었다. 순대를 누가 다 먹었는지 아무도 모른다.", teacher: "순대 실종 사건, 범인은 아마 모두였을 거예요.", stickers: ["yum", "laugh"], stamp: "cham", draw: () => [...bowl(0.5, 0.75, "red"), ...person(0.2, 0.95, 0.85, "green"), ...person(0.8, 0.95, 0.85, "orange")] },
+  { off: 16, weather: "partly", bg: "living-room", title: "대청소", body: "주말에 대청소를 했다. 소파 밑에서 작년 귤이 나왔다.", teacher: "작년 귤 발굴 성공! 고고학자 상을 드려요.", stickers: ["thanks", "laugh"], stamp: "thanks", draw: () => [...person(0.35, 0.95, 1, "pink"), circle(0.65, 0.85, 0.03, "orange", 2)] },
+  { off: 17, weather: "sun", bg: "autumn-leaves", title: "은행나무", body: "회사 앞 은행나무가 노랗게 물들었다. 냄새는 모른 척했다.", teacher: "냄새는 비밀로 하고 노란 것만 기억해요.", stickers: ["envy", "cozy"], stamp: "envy", draw: () => [...person(0.5, 0.95, 1, "orange"), circle(0.3, 0.3, 0.015, "yellow", 2), circle(0.7, 0.25, 0.015, "yellow", 2), circle(0.6, 0.45, 0.015, "yellow", 2)] },
+  { off: 18, weather: "cloud", bg: "movie-night", title: "이불 속 영화", body: "금요일 밤에 이불 속에서 영화를 봤다. 반쯤 보다 잠들었다.", teacher: "영화가 자장가였네요. 결말은 꿈에서 봐요.", stickers: ["rest", "cozy"], stamp: "thanks", draw: () => [...person(0.6, 0.95, 0.9, "blue"), ...zzz(0.66, 0.42)] },
+  { off: 19, weather: "sun", bg: "grandma-house", title: "할머니 댁", body: "할머니 댁에 갔다. 밥을 세 그릇 먹고도 더 먹으라는 말을 들었다.", teacher: "할머니 밥 세 그릇이면 효도 완료예요.", stickers: ["yum", "sweet"], stamp: "great", draw: () => [...bowl(0.6, 0.78, "brown"), ...person(0.3, 0.95, 1, "green")] },
+  { off: 20, weather: "partly", bg: "cafe", title: "카공 실패", body: "카페에서 공부하려고 했는데 케이크만 먹고 왔다.", teacher: "케이크도 공부예요. 단맛 연구 수고했어요.", stickers: ["yum", "laugh"], stamp: "cham", draw: () => [...cakeSlice(0.6, 0.78), ...person(0.3, 0.95, 0.95, "sky")] },
+  { off: 21, weather: "cloud", bg: "office", title: "새 프로젝트", body: "새 프로젝트를 맡았다. 회의실 화이트보드가 꽉 찼다.", teacher: "화이트보드를 다 채운 어른이, 칭찬 스티커 두 장!", stickers: ["great", "cool"], stamp: "best", draw: () => [...person(0.62, 0.95, 1, "black"), ...book(0.3, 0.7)] },
+  { off: 22, weather: "rain", bg: "rainy-window", title: "비 오는 주말", body: "비가 와서 하루 종일 집에 있었다. 라면 물 조절에 실패했다.", teacher: "국물 라면도 괜찮아요. 비 오는 날엔 그게 정답!", stickers: ["cozy", "laugh"], stamp: "cheer", draw: () => [...bowl(0.5, 0.78, "orange"), ...rain(0.1, 0.9, 0.05, 0.45)] },
+  { off: 23, weather: "sun", bg: "park", title: "자전거", body: "강변에서 자전거를 탔다. 엉덩이가 아직도 아프다.", teacher: "엉덩이도 같이 운동했네요. 운동 두 배 인정!", stickers: ["brave", "laugh"], stamp: "cool", draw: () => [...sun(0.15, 0.15, 0.04), ...person(0.55, 0.95, 1, "red")] },
+  { off: 24, weather: "partly", bg: "library", title: "자격증 공부", body: "자격증 문제집을 샀다. 첫 장에 이름만 쓰고 덮었다.", teacher: "이름 쓰기가 제일 어려운 단계예요. 이미 시작했네요!", stickers: ["proud", "cheer"], stamp: "cheer", draw: () => [...book(0.6, 0.7), ...person(0.3, 0.95, 0.95, "blue")] },
+  { off: 25, weather: "sun", bg: "home-table", title: "엄마표 반찬", body: "엄마가 반찬을 택배로 보내 줬다. 냉장고가 꽉 찼다.", teacher: "냉장고에 사랑이 꽉 찼네요. 아껴 먹어요.", stickers: ["sweet", "yum"], stamp: "great", draw: () => [...bowl(0.5, 0.75, "green"), heart(0.75, 0.3, 0.04), heart(0.25, 0.3, 0.03)] },
+  { off: 26, weather: "cloud", bg: "train-window", title: "출장 가는 기차", body: "출장 가는 기차에서 창밖만 봤다. 노트북은 한 번도 안 열었다.", teacher: "창밖 구경도 일이에요. 영감 충전 완료!", stickers: ["dream", "envy"], stamp: "envy", draw: () => [...person(0.55, 0.95, 0.9, "green")] },
+  { off: 27, weather: "sun", bg: "amusement-park", title: "놀이공원", body: "회사 동기들이랑 놀이공원에 갔다. 바이킹에서 목소리를 다 썼다.", teacher: "목소리는 두고 왔어도 추억은 챙겨 왔네요.", stickers: ["laugh", "bravo"], stamp: "best", draw: () => [...person(0.4, 0.95, 0.9, "pink"), ...person(0.6, 0.95, 0.9, "blue"), star(0.5, 0.2, 0.04)] },
+  { off: 28, weather: "partly", bg: "sunny-balcony", title: "화분 물 주기", body: "베란다 화분에 물을 줬다. 새 잎이 하나 났다.", teacher: "새 잎이 '참 잘했어요' 하고 인사했네요.", stickers: ["proud", "cozy"], stamp: "thanks", draw: () => [...flower(0.65, 0.72, "red"), ...person(0.35, 0.95, 0.95, "green")] },
+  { off: 29, weather: "cloud", bg: "alley", title: "동네 산책", body: "저녁 먹고 동네를 한 바퀴 돌았다. 처음 보는 빵집을 발견했다.", teacher: "빵집 발견은 동네 탐험대 1등이에요.", stickers: ["dream", "yum"], stamp: "cool", draw: () => [...person(0.5, 0.95, 1, "orange")] },
+  { off: 30, weather: "sun", bg: "picnic", title: "가을 소풍", body: "회사 워크숍으로 소풍을 갔다. 김밥 꼬다리를 다 내가 먹었다.", teacher: "김밥 꼬다리는 원래 제일 맛있는 부분이죠. 승리!", stickers: ["yum", "bravo"], stamp: "best", draw: () => [...person(0.35, 0.95, 1, "red"), ...flower(0.7, 0.8, "yellow")] },
+  { off: 33, late: true, createdOff: 1, weather: "cloud", bg: "living-room", title: "밀린 일기", body: "이날 일기를 깜빡했다. 사실 하루 종일 소파와 한 몸이었다.", teacher: "밀린 숙제 발견! 소파와 한 몸이었던 것도 기록이죠.", stickers: ["rest", "laugh"], stamp: "cham", draw: () => [...person(0.55, 0.93, 0.9, "orange"), ...zzz(0.62, 0.4)] },
+];
+// fe 일기 중 게시판에 붙일 것 (fe 는 비밀번호로만 들어와서, 같은 일기를 가진 임시 예제 친구로 붙인 뒤 게시판 상태를 fe 일기로 옮긴다)
+const FE_BOARD = [
+  { off: 8, board: "drawing", likes: 7 },
+  { off: 6, board: "full", likes: 3 },
 ];
 
 const FRIENDS = [
@@ -174,6 +198,10 @@ const FRIENDS = [
   { key: "seoyeon", login: "데모서연", nickname: "서연", birth: "1994-01-21", kid: "girl", cls: true, shirt: "green" },
   { key: "hajun", login: "데모하준", nickname: "하준", birth: "1985-06-02", kid: "boy", cls: true, shirt: "orange" },
   { key: "yuna", login: "데모유나", nickname: "유나", birth: "1998-12-24", kid: "girl", cls: false, shirt: "sky" },
+  // fe(길동)와 동갑(1988년생) → 게시판 '동갑 친구' 탭 (11-10 사용자: "동갑 친구도 채워")
+  { key: "minjun", login: "데모민준", nickname: "민준", birth: "1988-02-17", kid: "boy", cls: true, shirt: "red" },
+  { key: "subin", login: "데모수빈", nickname: "수빈", birth: "1988-07-03", kid: "girl", cls: true, shirt: "yellow" },
+  { key: "yerin", login: "데모예린", nickname: "예린", birth: "1988-10-29", kid: "girl", cls: false, shirt: "pink" },
 ];
 
 // board: "full"(글까지) / "drawing"(그림만), cls: 우리 반에 냄. likes: 게시판에서 받을 도장·스티커 수(지난주 1~3등 순서)
@@ -188,6 +216,13 @@ const FRIEND_DIARIES = [
   { who: "hajun", off: 3, cls: true, weather: "cloud", bg: "home-table", title: "아내 생일상", body: "아내 생일이라 미역국을 끓였다. 간을 세 번 봤는데 세 번 다 싱거웠다.", teacher: "싱거운 미역국도 마음은 짭짤하게 전해졌을 거예요.", stickers: ["sweet", "great"], stamp: "cool", draw: (s) => [...bowl(0.55, 0.72, "green"), ...person(0.25, 0.95, 0.9, s), heart(0.75, 0.3, 0.04)] },
   { who: "yuna", off: 1, board: "drawing", likes: 2, weather: "partly", bg: "store-parasol", title: "편의점 신상", body: "편의점 신상 디저트를 다 사 먹어 봤다. 1등은 크림빵.", teacher: "신상 심사위원 수고했어요. 크림빵에게 금메달을!", stickers: ["yum", "hundred"], stamp: "best", draw: (s) => [...person(0.3, 0.95, 0.95, s), ...cakeSlice(0.62, 0.8)] },
   { who: "yuna", off: 6, board: "full", likes: 8, weather: "sun", bg: "flower-field", title: "합격 발표", body: "기다리던 자격증 합격 문자가 왔다. 엄마한테 제일 먼저 전화했다.", teacher: "합격 축하해요! 엄마가 제일 먼저 알게 된 것도 참 예뻐요.", stickers: ["bravo", "best"], stamp: "best", draw: (s) => [...person(0.5, 0.95, 1, s), ...phone(0.56, 0.5), ...flower(0.2, 0.75), ...flower(0.8, 0.78, "red")] },
+  // 동갑 친구(1988년생)
+  { who: "minjun", off: 2, board: "full", likes: 4, weather: "sun", bg: "park", title: "첫 마라톤", body: "10킬로 마라톤에 나갔다. 걷다 뛰다 했지만 완주 메달을 받았다.", teacher: "걷다 뛰다도 완주예요. 메달이 제일 잘 어울려요!", stickers: ["bravo", "brave"], stamp: "best", draw: (s) => [...person(0.5, 0.95, 1, s), star(0.75, 0.25, 0.04), star(0.25, 0.3, 0.03)] },
+  { who: "minjun", off: 0, cls: true, likes: 3, weather: "partly", bg: "snack-bar", title: "점심 돈가스", body: "회사 근처 돈가스 집에 줄을 서서 먹었다. 오늘 제일 맛있던 것!", teacher: "줄 선 보람이 바삭하게 났네요. 오늘 숙제 통과!", stickers: ["yum", "great"], stamp: "great", draw: (s) => [...bowl(0.55, 0.76, "brown"), ...person(0.25, 0.95, 0.9, s)] },
+  { who: "subin", off: 1, board: "drawing", likes: 5, weather: "cloud", bg: "living-room", title: "고양이 입양", body: "보호소에서 고양이를 데려왔다. 이름은 두부.", teacher: "두부야 반가워! 오늘부터 집사 일기도 기대할게요.", stickers: ["sweet", "bravo"], stamp: "best", draw: (s) => [...person(0.35, 0.95, 1, s), ...cat(0.65, 0.68)] },
+  { who: "subin", off: 4, cls: true, likes: 2, weather: "rain", bg: "rainy-window", title: "야근 후 라면", body: "야근하고 들어와서 라면을 끓였다. 세상에서 제일 맛있었다.", teacher: "야근 끝 라면은 반칙 맛이죠. 오늘 정말 수고했어요.", stickers: ["rest", "yum"], stamp: "thanks", draw: (s) => [...bowl(0.5, 0.78, "orange"), ...person(0.22, 0.95, 0.85, s)] },
+  { who: "yerin", off: 3, board: "full", likes: 3, weather: "sun", bg: "home-table", title: "이직 첫 월급", body: "이직하고 첫 월급으로 부모님께 내복을 사 드렸다. 엄마가 웃으셨다.", teacher: "내복 선물은 전설의 효도템이에요. 참 잘했어요!", stickers: ["sweet", "great"], stamp: "great", draw: (s) => [...person(0.4, 0.95, 1, s), heart(0.7, 0.35, 0.05, "red")] },
+  { who: "yerin", off: 5, board: "drawing", likes: 2, weather: "partly", bg: "flower-field", title: "구름 강아지", body: "점심 먹고 하늘을 봤는데 구름이 강아지 모양이었다.", teacher: "구름 강아지 목격담, 선생님도 보고 싶어요.", stickers: ["dream", "laugh"], stamp: "envy", draw: (s) => [...person(0.5, 0.95, 1, s), ...sun(0.85, 0.15, 0.04)] },
 ];
 
 // 짝꿍 한마디: [일기 주인 key 또는 "fe", 그 일기 off, 쓴 사람 key 또는 "fe", 글]
@@ -198,8 +233,12 @@ const NOTES = [
   ["jimin", 0, "fe", "계란말이 서비스 부럽다!"],
   ["doyun", 0, "seoyeon", "저도 그 하늘 봤어요. 진짜 예뻤죠"],
   ["hajun", 3, "jimin", "싱거워도 감동이었을 거예요"],
+  ["minjun", 0, "fe", "돈가스 집 위치 공유 부탁해요!"],
+  ["subin", 4, "seoyeon", "야근 라면은 국룰이죠"],
+  ["fe", 1, "minjun", "첫눈 사진도 올려 줘요"],
+  ["seoyeon", 2, "hajun", "계란 두 개 인정합니다"],
 ];
-const HW_LINES = ["생각보다 금방 했다", "하고 나니 뿌듯", "가족이 칭찬해 줬다", "증거는 마음속에 있어요", "내일도 해 볼까", "한 번에 성공!"];
+const HW_LINES = ["생각보다 금방 했다", "하고 나니 뿌듯", "가족이 칭찬해 줬다", "증거는 마음속에 있어요", "내일도 해 볼까", "한 번에 성공!", "퇴근길에 해치웠다", "동료도 같이 했다", "사진은 부끄러워서 한 줄로", "이번 주 숙제 개근!"];
 const HW_STICKERS = ["best", "great", "cool", "thanks", "proud", "hundred", "bravo", "laugh"];
 const FRIEND_HW = [
   ["jimin", "점심시간에 해치웠어요. 생각보다 재밌다"],
@@ -354,30 +393,53 @@ async function build() {
 
   // 숙제 검사: fe 는 지난 6일, 친구 셋은 오늘 '보여 주기'
   const feHw = [];
-  for (let off = 1; off <= 6; off++) {
+  for (let off = 1; off <= 10; off++) {
     feHw.push({ userId: fe._id, date: dayKey(off), mission: await topicOf(dayKey(off)), text: HW_LINES[off - 1], photoUrl: null, thumbUrl: null, sticker: HW_STICKERS[off % HW_STICKERS.length], share: false, status: "visible", checked: false, at: at(off, 19), updatedAt: at(off, 19), demo: true });
   }
   const todayMission = await topicOf(TODAY);
   const frHw = FRIEND_HW.map(([who, text], i) => ({ userId: ids[who], date: TODAY, mission: todayMission, text, photoUrl: null, thumbUrl: null, sticker: HW_STICKERS[(i + 3) % HW_STICKERS.length], share: true, status: "visible", checked: true, at: at(0, 12 + i), updatedAt: at(0, 12 + i), demo: true }));
   await col("homework").insertMany([...feHw, ...frHw]);
 
-  // 일주일 개근상 (어제까지 12일 연속)
-  await col("awards").insertOne({ userId: fe._id, kind: "streak7", key: `streak7:${dayKey(12)}`, label: "일주일 개근상", detail: "7일 동안 하루도 빠짐없이 그림일기를 썼어요", at: at(6, 21, 40), demo: true });
+  // 상장: 일주일·한 달 개근상 (어제까지 30일 연속), 숙제 10번 (칭찬 스티커판 한 판)
+  await col("awards").insertMany([
+    { userId: fe._id, kind: "streak7", key: `streak7:${dayKey(30)}`, label: "일주일 개근상", detail: "7일 동안 하루도 빠짐없이 그림일기를 썼어요", at: at(24, 21, 40), demo: true },
+    { userId: fe._id, kind: "streak30", key: `streak30:${dayKey(30)}`, label: "한 달 개근상", detail: "30일 동안 하루도 빠짐없이 그림일기를 썼어요", at: at(1, 21, 40), demo: true },
+    { userId: fe._id, kind: "homework10", key: "homework10", label: "숙제 잘하는 어른이 상", detail: "오늘의 숙제를 10번이나 해냈어요", at: at(1, 19, 5), demo: true },
+  ]);
 
   console.log(`예제 일기 ${feDocs.length + frDocs.length}편, 반 '퇴근 후 그림반'(초대 코드 ${code}), 짝꿍 한마디 ${NOTES.length}, 숙제 검사 ${feHw.length + frHw.length}`);
 
-  // 게시판: 친구로 개발용 로그인해서 화면에서 진짜로 붙인다 (카드·미리보기 그림이 앱 그대로)
+  // 게시판: 친구로 개발용 로그인해서 화면에서 진짜로 붙인다 (카드·미리보기 그림이 앱 그대로).
+  // fe 는 비밀번호로만 들어오니, 같은 일기를 가진 임시 예제 친구(데모대신)로 붙인 뒤 게시판 상태(카드 그림)를 fe 일기로 옮긴다
+  const tempId = (
+    await users.insertOne({ googleSub: "dev:데모대신", email: "demo@dev.local", nickname: "길동", birth: feBirth, birthYear: Number(feBirth.slice(0, 4)), createdAt: at(1, 12), lastSeenAt: at(0, 9), demo: true })
+  ).insertedId;
+  const tempDocs = FE_BOARD.map((b) => {
+    const src = { ...feDocs.find((x) => x.clientId === `demo-fe-${b.off}`) };
+    delete src._id; // insertMany 가 붙인 _id 는 빼고 새로
+    return { ...src, userId: tempId, clientId: `demo-tmp-${b.off}`, classIds: [] };
+  });
+  await col("diaries").insertMany(tempDocs);
+  const jobs = [
+    ...FRIENDS.map((f) => ({
+      login: f.login,
+      id: ids[f.key],
+      name: f.nickname,
+      posts: FRIEND_DIARIES.filter((d) => d.who === f.key && d.board),
+      want: FRIEND_DIARIES.filter((d) => d.who === f.key).length,
+    })),
+    { login: "데모대신", id: tempId, name: "길동(fe)", posts: FE_BOARD.map((b) => ({ ...FE_DIARIES.find((d) => d.off === b.off), board: b.board })), want: tempDocs.length },
+  ].filter((j) => j.posts.length);
+
   const edge = ["C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", "C:/Program Files/Microsoft/Edge/Application/msedge.exe"].find((p) => fs.existsSync(p));
   const browser = await puppeteer.launch({ executablePath: edge, headless: true });
   try {
-    for (const f of FRIENDS) {
-      const posts = FRIEND_DIARIES.filter((d) => d.who === f.key && d.board);
-      if (!posts.length) continue;
+    for (const j of jobs) {
       const p = await (await browser.createBrowserContext()).newPage();
       await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
-      await p.goto(`${BASE}/api/auth/dev?name=${encodeURIComponent(f.login)}&next=/diary`, { waitUntil: "networkidle0" });
+      await p.goto(`${BASE}/api/auth/dev?name=${encodeURIComponent(j.login)}&next=/diary`, { waitUntil: "networkidle0" });
       const me = await p.evaluate(async () => (await (await fetch("/api/me")).json()).user);
-      if (me?.id !== ids[f.key].toHexString()) throw new Error(`${BASE} 서버가 다른 DB 를 쓰고 있어요 (개발용 로그인이 예제 친구와 안 맞음)`);
+      if (me?.id !== j.id.toHexString()) throw new Error(`${BASE} 서버가 다른 DB 를 쓰고 있어요 (개발용 로그인이 예제 친구와 안 맞음)`);
       await p.evaluate((d) => {
         localStorage.setItem("chamjal.intro", "1");
         localStorage.setItem("chamjal.coverDay", d);
@@ -385,19 +447,18 @@ async function build() {
         localStorage.setItem("chamjal.shelfView", "grid");
       }, new Date().toISOString().slice(0, 10));
       // 로그인하면 서버 일기를 이 기기로 받아 온다 → 내 일기장에 다 보일 때까지
-      const want = FRIEND_DIARIES.filter((d) => d.who === f.key).length;
       for (let i = 0; i < 8; i++) {
         await p.goto(`${BASE}/diary`, { waitUntil: "networkidle0" });
         await sleep(1500);
-        if ((await p.$$(".shelf .mini")).length >= want) break;
+        if ((await p.$$(".shelf .mini")).length >= j.want) break;
       }
-      for (const d of posts) {
+      for (const d of j.posts) {
         const opened = await p.evaluate((t) => {
           const el = [...document.querySelectorAll(".shelf .mini")].find((b) => b.querySelector(".ttl")?.textContent === t);
           el?.click();
           return !!el;
         }, d.title);
-        if (!opened) throw new Error(`${f.nickname}의 '${d.title}' 를 일기장에서 못 찾았어요`);
+        if (!opened) throw new Error(`${j.name}의 '${d.title}' 를 일기장에서 못 찾았어요`);
         await p.waitForSelector(".card-preview", { timeout: 30000 });
         await p.evaluate(() => [...document.querySelectorAll("button.btn.plain")].find((b) => b.textContent?.trim() === "게시판에 붙이기")?.click());
         await p.waitForSelector(".plans .plan", { timeout: 10000 });
@@ -406,9 +467,9 @@ async function build() {
         const done = p.waitForResponse((r) => r.url().endsWith("/publish") && r.request().method() === "POST", { timeout: 90000 });
         await p.evaluate(() => [...document.querySelectorAll(".sheet-panel button.btn:not(.plain)")].find((b) => b.textContent?.trim() === "게시판에 붙이기")?.click());
         const res = await done;
-        if (!res.ok()) throw new Error(`${f.nickname}의 '${d.title}' 게시판 붙이기 실패 (${res.status()})`);
+        if (!res.ok()) throw new Error(`${j.name}의 '${d.title}' 게시판 붙이기 실패 (${res.status()})`);
         await p.waitForSelector(".plans", { hidden: true, timeout: 10000 });
-        console.log(`  게시판: ${f.nickname} · ${d.title} (${d.board === "full" ? "글까지" : "그림만"})`);
+        console.log(`  게시판: ${j.name} · ${d.title} (${d.board === "full" ? "글까지" : "그림만"})`);
         await p.keyboard.press("Escape");
         await sleep(800);
       }
@@ -418,25 +479,40 @@ async function build() {
     await browser.close();
   }
 
-  // 게시판에 붙인 날 = 일기 날 밤, 도장·스티커 (지난주 것은 '지난주 참 잘한 일기' 후보)
+  // 임시 친구가 붙인 게시판 상태(카드 그림)를 fe 일기로 옮기고 임시 친구는 지운다 (그림은 이제 fe 일기가 쓴다)
+  for (const b of FE_BOARD) {
+    const t = await col("diaries").findOne({ userId: tempId, clientId: `demo-tmp-${b.off}` });
+    if (t?.board) await col("diaries").updateOne({ _id: idOf("fe", b.off) }, { $set: { board: t.board } });
+  }
+  await col("diaries").deleteMany({ userId: tempId });
+  await col("goneDiaries").deleteMany({ userId: tempId });
+  await users.deleteOne({ _id: tempId });
+
+  // 도장·스티커: 게시판 글(누구나) + 반에 낸 일기(반 친구끼리). 게시판에 붙인 날 = 일기 날 밤 (지난주 것은 '지난주 참 잘한 일기' 후보)
   const kinds = ["cham", "best", "heart", "star", "smile", "cheer"];
-  const voters = [fe._id, ...FRIENDS.map((f) => ids[f.key])];
-  for (const d of FRIEND_DIARIES.filter((x) => x.board)) {
-    const diaryId = idOf(d.who, d.off);
-    const owner = ids[d.who];
+  const everyone = [fe._id, ...FRIENDS.map((f) => ids[f.key])];
+  const classmates = [fe._id, ...FRIENDS.filter((f) => f.cls).map((f) => ids[f.key])];
+  const targets = [
+    ...FRIEND_DIARIES.filter((d) => d.board || d.cls).map((d) => ({ who: d.who, off: d.off, board: !!d.board, likes: d.likes ?? 2 })),
+    ...FE_BOARD.map((b) => ({ who: "fe", off: b.off, board: true, likes: b.likes })),
+    ...FE_DIARIES.filter((d) => d.cls).map((d) => ({ who: "fe", off: d.off, board: false, likes: 3 })),
+  ];
+  for (const t of targets) {
+    const diaryId = idOf(t.who, t.off);
+    const owner = ids[t.who];
     const rows = [];
     let n = 0;
-    for (const v of voters.filter((x) => !x.equals(owner))) {
+    for (const v of (t.board ? everyone : classmates).filter((x) => !x.equals(owner))) {
       for (const k of kinds) {
-        if (n >= d.likes) break;
+        if (n >= t.likes) break;
         if (rnd() < 0.5) continue;
-        rows.push({ diaryId, userId: v, kind: k, at: at(Math.max(0, d.off - 1), 9 + n) });
+        rows.push({ diaryId, userId: v, kind: k, at: at(Math.max(0, t.off - 1), 9 + (n % 12)) });
         n++;
       }
     }
     if (rows.length) await col("reactions").insertMany(rows);
     const counts = rows.reduce((m, r) => ({ ...m, [r.kind]: (m[r.kind] ?? 0) + 1 }), {});
-    await col("diaries").updateOne({ _id: diaryId }, { $set: { reactions: counts, "board.at": at(d.off, 21, 45) } });
+    await col("diaries").updateOne({ _id: diaryId }, { $set: { reactions: counts, ...(t.board ? { "board.at": at(t.off, 21, 45) } : {}) } });
   }
   console.log("게시판 도장·스티커 붙임. 끝!");
   console.log("보는 법: 시크릿 창 → /admin 에서 fe 로 들어가기 → / (표지: 생일 축하) · 내 일기장 · 우리 반 · 게시판 · 나(스티커판·상장)");
