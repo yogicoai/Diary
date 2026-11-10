@@ -77,16 +77,17 @@ export function isAdmin(user: UserDoc | null): boolean {
 export async function upsertUser(sub: string, email: string, name: string): Promise<UserDoc> {
   const { users } = await cols();
   const now = new Date();
-  const base = (name || "어른이").replace(/\s+/g, "").slice(0, 2) || "어른";
+  // 이름표 이름 = 구글 이름(성 빼고, 11-10 사용자 "아이디 이름으로"). 게시판에 보이니 표지·나 화면에서 별명으로 바꿀 수 있다
+  const clean = (name || "").replace(/[^\p{L}\p{N}]/gu, "").slice(0, 8);
+  const nickname = clean.length >= 2 ? clean : "어른이";
   const res = await users.findOneAndUpdate(
     { googleSub: sub },
     {
       $set: { email, lastSeenAt: now },
       $setOnInsert: {
         googleSub: sub,
-        nickname: `${base}${Math.floor(10 + Math.random() * 90)}`,
-        entryYear: null,
-        classNo: 1 + Math.floor(Math.random() * 9),
+        nickname,
+        birthYear: null,
         createdAt: now,
       },
     },

@@ -1,10 +1,11 @@
-// 대시보드 숫자: 회원·일기·게시판·반, 최근 14일, 입학 연도별. 개발자 계정엔 연결 상태·처리 기록도.
+// 대시보드 숫자: 회원·일기·게시판·반, 최근 14일, 나이별(어른이 초등학교 학년·반). 개발자 계정엔 연결 상태·처리 기록도.
 // 회원 숫자는 운영자 아이디(fe·yogico)를 빼고 센다.
 
 import type { NextRequest } from "next/server";
 import { adminJson, kstDateExpr, kstDayStart, kstDays, requireStaff, seesSystem } from "@/lib/server/admin";
 import { cols } from "@/lib/server/db";
 import { handle } from "@/lib/server/http";
+import { ageOf } from "@/lib/social";
 import { STAFF_LOGIN_IDS } from "@/lib/staff";
 
 const MEMBER = { loginId: { $nin: STAFF_LOGIN_IDS } }; // 학생 수에서 선생님(fe·yogico) 빼기
@@ -69,7 +70,7 @@ export async function GET(req: NextRequest) {
       users
         .aggregate<{ _id: number | null; n: number }>([
           { $match: MEMBER },
-          { $group: { _id: "$entryYear", n: { $sum: 1 } } },
+          { $group: { _id: "$birthYear", n: { $sum: 1 } } },
           { $sort: { n: -1 } },
         ])
         .toArray(),
@@ -106,7 +107,7 @@ export async function GET(req: NextRequest) {
       reactions: reactionTotal,
       notes: noteTotal,
       days: { diaries: byDay(diaryDays), members: byDay(memberDays) },
-      cohorts: cohorts.map((c) => ({ year: c._id, n: c.n })),
+      cohorts: cohorts.map((c) => ({ age: ageOf(c._id), n: c.n })),
       system,
     });
   });

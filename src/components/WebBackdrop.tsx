@@ -1,6 +1,6 @@
 "use client";
 
-// 넓은 화면(760px 이상) 일기장 뒤 배경. "나 → 기본 설정"에서 고른 것을 입힌다.
+// 넓은 화면(520px 이상 = 일기장 480px 양옆이 보일 때) 일기장 뒤 배경. "나 → 기본 설정"에서 고른 것을 입힌다.
 //   theme = 일기장 테마에 맞춤(CSS) / 그림 id = lib/webBackdrops.ts 의 그림 하나 / random = 들어올 때마다 그림 전부 중에서
 //   mine = 내가 그린 일기 그림들을 양옆에 사진처럼 붙인 책상 (이 기기에서 그려서 입힘)
 //   그림은 html[data-webbg] + --web-bg 변수로 입힌다 (social.css)
@@ -70,7 +70,7 @@ export default function WebBackdrop() {
   useEffect(() => {
     const html = document.documentElement;
     let alive = true;
-    const wide = window.matchMedia("(min-width: 760px)");
+    const wide = window.matchMedia("(min-width: 520px)"); // 일기장(480px) 양옆이 보이면
 
     const apply = async () => {
       const pref = webBg();

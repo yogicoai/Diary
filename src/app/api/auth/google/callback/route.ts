@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     });
     if (!payload.sub || typeof payload.email !== "string" || payload.email_verified === false) return fail(req, "email");
 
-    const user = await upsertUser(`google:${payload.sub}`, payload.email, String(payload.name ?? ""));
+    const user = await upsertUser(`google:${payload.sub}`, payload.email, String(payload.given_name || payload.name || ""));
     const res = NextResponse.redirect(new URL(safeNext(saved.next), authOrigin(req)));
     await setSession(res, user._id.toHexString());
     res.cookies.set("cj_oauth", "", { path: "/", maxAge: 0 });

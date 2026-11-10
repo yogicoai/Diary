@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       homework.find({ share: true }).sort({ updatedAt: -1 }).limit(30).toArray(),
     ]);
     const owners = await users
-      .find({ _id: { $in: recent.map((h) => h.userId) } }, { projection: { nickname: 1, entryYear: 1, classNo: 1 } })
+      .find({ _id: { $in: recent.map((h) => h.userId) } }, { projection: { nickname: 1, birthYear: 1 } })
       .toArray();
     const tagOf = (id: (typeof recent)[number]["userId"]) => {
       const o = owners.find((u) => u._id.equals(id));

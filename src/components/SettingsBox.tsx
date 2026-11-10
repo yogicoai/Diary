@@ -1,13 +1,15 @@
 "use client";
 
-// "나" → 기본 설정: 일기장(테마) / 새 일기의 처음 배경 / 선생님이 직접 읽기(AI 동의)
+// "나" → 기본 설정: 일기장(테마) / 표지 그림 / 새 일기의 처음 배경 / 넓은 화면 배경 / 소리·진동 / 선생님이 직접 읽기(AI 동의)
 
 import { useEffect, useState } from "react";
 import { BACKGROUNDS, bgThumb } from "@/lib/backgrounds";
+import { setCoverPic, useCoverPic } from "@/lib/coverPic";
 import { preferredBg, setPreferredBg, setWebBg, WEB_BG_MODES, webBg, type WebBgId } from "@/lib/prefs";
 import { WEB_BACKDROP_GROUPS, WEB_BACKDROPS, webBackdropThumb } from "@/lib/webBackdrops";
 import { hapticOn, setHaptic, setSound, soundOn } from "@/lib/feel";
 import { getConsent, setConsent, type Consent } from "@/lib/teacherAi";
+import CoverPicSheet from "./CoverPicSheet";
 import { PencilIcon } from "./Icons";
 import ThemePicker from "./ThemePicker";
 
@@ -17,6 +19,8 @@ export default function SettingsBox() {
   const [web, setWeb] = useState<WebBgId>("theme");
   const [sound, setSnd] = useState(true);
   const [haptic, setHap] = useState(true);
+  const cover = useCoverPic(320, 240); // 그림일기장 표지 그림 (내 그림 / 학교 운동장)
+  const [coverOpen, setCoverOpen] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 이 기기 설정을 한 번 읽는다
@@ -43,6 +47,31 @@ export default function SettingsBox() {
 
       <h3 className="set-title">일기장</h3>
       <ThemePicker />
+
+      <h3 className="set-title">그림일기장 표지 그림</h3>
+      <div className="bg-tray wrap" role="radiogroup" aria-label="표지 그림">
+        <button type="button" role="radio" aria-checked={!cover.id} className="bg-tile" onClick={() => setCoverPic(null)}>
+          <span className="bg-thumb">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={bgThumb("schoolyard")} alt="" loading="lazy" />
+          </span>
+          <span className="bg-name">학교 운동장</span>
+        </button>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={!!cover.id}
+          className={`bg-tile${cover.src ? "" : " blank"}`}
+          onClick={() => setCoverOpen(true)}
+        >
+          <span className="bg-thumb">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {cover.src ? <img src={cover.src} alt="" /> : <PencilIcon />}
+          </span>
+          <span className="bg-name">{cover.src ? "내 그림 바꾸기" : "내 그림 고르기"}</span>
+        </button>
+      </div>
+      <CoverPicSheet open={coverOpen} onClose={() => setCoverOpen(false)} current={cover.id} />
 
       <h3 className="set-title">새 일기의 처음 배경</h3>
       <div className="bg-tray wrap" role="radiogroup" aria-label="처음 배경">

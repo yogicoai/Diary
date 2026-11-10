@@ -16,8 +16,9 @@ export type UserDoc = {
   googleSub: string; // 개발용 로그인은 "dev:이름"
   email: string;
   nickname: string;
-  entryYear: number | null; // 초등학교 입학 연도 (이름표)
-  classNo: number; // 반
+  birthYear?: number | null; // 이름표의 나이 → 어른이 초등학교 학년·반 (적은 해 - 적은 나이, 해가 바뀌면 한 살 더). 11-10 부터
+  entryYear?: number | null; // 예전 이름표 (초등학교 입학 연도) — 11-10 부터 안 씀
+  classNo?: number; // 예전 이름표 (반) — 11-10 부터 안 씀
   kid?: "girl" | "boy"; // 가입할 때 고른 나 — 일기를 이 아이 목소리로 읽어 준다 (11-09 사용자)
   createdAt: Date;
   lastSeenAt: Date;

@@ -1,14 +1,13 @@
 // DB 문서 → 화면으로 보내는 모양
 
 import type { AwardDoc, ClassDoc, DiaryDoc, UserDoc } from "./db";
-import { nameTag } from "@/lib/social";
+import { ageOf, nameTag } from "@/lib/social";
 
 export function meToClient(u: UserDoc, admin: boolean) {
   return {
     id: u._id.toHexString(),
     nickname: u.nickname,
-    entryYear: u.entryYear,
-    classNo: u.classNo,
+    age: ageOf(u.birthYear),
     kid: u.kid ?? null,
     email: u.email,
     nameTag: nameTag(u),
@@ -46,7 +45,7 @@ export function diaryToClient(d: DiaryDoc) {
 }
 
 /** 게시판에 보이는 일기 (글은 "글까지" 붙인 경우만) */
-export function boardItem(d: DiaryDoc, owner: Pick<UserDoc, "nickname" | "entryYear" | "classNo"> | null) {
+export function boardItem(d: DiaryDoc, owner: Pick<UserDoc, "nickname" | "birthYear"> | null) {
   const full = d.board?.mode === "full" && !d.secret;
   return {
     id: d._id.toHexString(),
@@ -67,7 +66,7 @@ export function boardItem(d: DiaryDoc, owner: Pick<UserDoc, "nickname" | "entryY
 }
 
 /** 우리 반 피드: 반 친구끼리라 그림을 획 그대로 보낸다 (비밀 일기는 글을 뺀다) */
-export function classItem(d: DiaryDoc, owner: Pick<UserDoc, "nickname" | "entryYear" | "classNo"> | null) {
+export function classItem(d: DiaryDoc, owner: Pick<UserDoc, "nickname" | "birthYear"> | null) {
   return {
     id: d._id.toHexString(),
     date: d.date,

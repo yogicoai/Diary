@@ -1,4 +1,4 @@
-// 넓은 화면(PC, 760px 이상) 일기장 뒤 배경 그림 목록 (16:9).
+// 넓은 화면(PC·창을 줄여도 일기장 양옆이 보이는 520px 이상) 일기장 뒤 배경 그림 목록 (16:9).
 // 그림은 public/web-bg/<id>.webp + public/web-bg/thumb/<id>.webp(240×135).
 // 고른 id 를 이 기기 localStorage chamjal.webBg 에 저장하니 id 는 바꾸거나 지우지 말고, 새 그림은 끝에 붙인다
 // (scripts/webbg-import.mjs 가 docs/넓은화면-배경-프롬프트.md 의 이름·묶음으로 붙인다).

@@ -28,7 +28,7 @@ export type BoardItem = {
 };
 
 type Tab = "all" | "topic" | "year";
-const TAB_NAMES: Record<Tab, string> = { all: "전체", topic: "오늘의 숙제", year: "같은 해 입학" };
+const TAB_NAMES: Record<Tab, string> = { all: "전체", topic: "오늘의 숙제", year: "동갑 친구" };
 
 export default function BoardPage() {
   const { me } = useMe();
@@ -108,7 +108,7 @@ export default function BoardPage() {
       {error && <div className="empty">{error}</div>}
       {tab === "year" && needYear && (
         <div className="empty">
-          {me ? "이름표에 입학 연도를 적으면 같은 해 입학한 친구들 일기를 모아 볼 수 있어요." : "가입하면 같은 해 입학한 친구들 일기를 모아 볼 수 있어요."}
+          {me ? "이름표에 나이를 적으면 같은 학년·반(동갑) 친구들 일기를 모아 볼 수 있어요." : "가입하면 같은 학년·반(동갑) 친구들 일기를 모아 볼 수 있어요."}
           <Link href="/me" className="btn" style={{ marginTop: 16 }}>
             {me ? "이름표 고치기" : "이름표 만들기"}
           </Link>

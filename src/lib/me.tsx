@@ -9,8 +9,7 @@ import { syncAll } from "./sync";
 export type Me = {
   id: string;
   nickname: string;
-  entryYear: number | null;
-  classNo: number;
+  age: number | null; // 이름표의 나이 → 어른이 초등학교 학년·반 (lib/social.ts gradeClass)
   kid: "girl" | "boy" | null; // 가입할 때 고른 나 (읽어 주는 목소리)
   email: string;
   nameTag: string;

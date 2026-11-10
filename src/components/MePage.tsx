@@ -1,6 +1,6 @@
 "use client";
 
-// 나: 이름표(닉네임·입학 연도·반) + 기록 + 개근 + 상장함
+// 나: 이름표(이름·나이 → 어른이 초등학교 O학년 O반) + 기록 + 개근 + 상장함
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -9,6 +9,7 @@ import { canvasToBlob } from "@/lib/card";
 import { renderCertificate } from "@/lib/certificate";
 import { useMe } from "@/lib/me";
 import { setReadVoice } from "@/lib/readAloud";
+import { gradeText, SCHOOL } from "@/lib/social";
 import { BrandMark, StampSvg } from "./Icons";
 import StickerBoard from "./StickerBoard";
 import { LoginButtons } from "./LoginBox";
@@ -16,15 +17,13 @@ import SettingsBox from "./SettingsBox";
 import Sheet from "./Sheet";
 
 type Award = { id: string; kind: string; label: string; detail: string; rank: number | null; at: number };
-const YEARS = Array.from({ length: 2020 - 1965 + 1 }, (_, i) => 2020 - i);
 const GOALS = [7, 30, 100];
 
 export default function MePage() {
   const { me, stats, loading, refresh, logout } = useMe();
   const [edit, setEdit] = useState(false);
   const [nickname, setNickname] = useState("");
-  const [entryYear, setEntryYear] = useState<string>("");
-  const [classNo, setClassNo] = useState(1);
+  const [age, setAge] = useState("");
   const [kid, setKid] = useState<"girl" | "boy" | "">("");
   const [error, setError] = useState<string | null>(null);
   const [awards, setAwards] = useState<Award[]>([]);
@@ -40,8 +39,7 @@ export default function MePage() {
   const startEdit = () => {
     if (!me) return;
     setNickname(me.nickname);
-    setEntryYear(me.entryYear ? String(me.entryYear) : "");
-    setClassNo(me.classNo);
+    setAge(me.age ? String(me.age) : "");
     setKid(me.kid ?? "");
     setError(null);
     setEdit(true);
@@ -50,7 +48,7 @@ export default function MePage() {
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api("/api/me", { method: "PATCH", json: { nickname, entryYear: entryYear ? Number(entryYear) : null, classNo, ...(kid ? { kid } : {}) } });
+      await api("/api/me", { method: "PATCH", json: { nickname, age: age ? Number(age) : null, ...(kid ? { kid } : {}) } });
       if (kid) setReadVoice(kid);
       await refresh();
       setEdit(false);
@@ -119,10 +117,7 @@ export default function MePage() {
             <span className="nt-hole" aria-hidden="true" />
             <span className="nt-label">이름표</span>
             <b className="nt-name">{me.nickname}</b>
-            <span className="nt-sub">
-              {me.entryYear ? `${me.entryYear}년 입학 · ` : "입학 연도를 적어 주세요 · "}
-              {me.classNo}반
-            </span>
+            <span className="nt-sub">{me.age ? `${SCHOOL} ${gradeText(me.age)}` : "나이를 적으면 학년·반이 생겨요"}</span>
             <button type="button" className="linkish nt-edit" onClick={startEdit}>
               고치기
             </button>
@@ -189,29 +184,18 @@ export default function MePage() {
         <h2>이름표 고치기</h2>
         <form className="nt-form" onSubmit={save}>
           <label>
-            이름 (게시판에 보여요, 실명 말고 별명)
+            이름 (게시판·우리 반에 보여요, 별명으로 바꿔도 돼요)
             <input value={nickname} maxLength={8} onChange={(e) => setNickname(e.target.value)} />
           </label>
           <label>
-            초등학교 입학 연도 (같은 해 입학한 친구를 찾아요)
-            <select value={entryYear} onChange={(e) => setEntryYear(e.target.value)}>
-              <option value="">비밀이에요</option>
-              {YEARS.map((y) => (
-                <option key={y} value={y}>
-                  {y}년
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            반
-            <select value={classNo} onChange={(e) => setClassNo(Number(e.target.value))}>
-              {Array.from({ length: 15 }, (_, i) => i + 1).map((n) => (
-                <option key={n} value={n}>
-                  {n}반
-                </option>
-              ))}
-            </select>
+            나이 (두 자리가 학년·반이 돼요{gradeText(Number(age)) ? ` → ${SCHOOL} ${gradeText(Number(age))}` : ", 38살이면 3학년 8반"})
+            <input
+              inputMode="numeric"
+              value={age}
+              maxLength={2}
+              placeholder="예: 38"
+              onChange={(e) => setAge(e.target.value.replace(/\D/g, "").slice(0, 2))}
+            />
           </label>
           <label>
             나는 (일기를 이 아이 목소리로 읽어 줘요)

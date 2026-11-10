@@ -60,7 +60,11 @@ export default function HomeGate() {
     return (
       <Intro
         first={first}
-        me={me ? { nickname: me.nickname, classNo: me.classNo } : null}
+        me={me ? { nickname: me.nickname, age: me.age } : null}
+        onSaveTag={async (nickname, age) => {
+          await api("/api/me", { method: "PATCH", json: { nickname, age } });
+          await refresh();
+        }}
         onOpen={open}
         onGuest={() => {
           setIntroSeen();

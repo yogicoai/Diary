@@ -1,8 +1,9 @@
 "use client";
 
-// 대시보드: 오늘 숫자 · 최근 14일 막대 · 입학 연도별 · 참여 / 개발자 계정엔 연결 상태·처리 기록
+// 대시보드: 오늘 숫자 · 최근 14일 막대 · 나이별(학년·반) · 참여 / 개발자 계정엔 연결 상태·처리 기록
 
 import { Card, ErrorBox, fmtAgo, fmtDateKey, Loading, PageHead, Stat, useAdminGet } from "./kit";
+import { gradeText } from "@/lib/social";
 
 type Day = { date: string; n: number };
 type Dash = {
@@ -13,7 +14,7 @@ type Dash = {
   reactions: number;
   notes: number;
   days: { diaries: Day[]; members: Day[] };
-  cohorts: { year: number | null; n: number }[];
+  cohorts: { age: number | null; n: number }[]; // 나이별 (어른이 초등학교 학년·반)
   system: {
     checks: { key: string; label: string; on: boolean; note: string }[];
     log: { at: number; by: string; action: "ban" | "unban" | "approve" | "hide"; target: string; note: string | null }[];
@@ -57,7 +58,7 @@ export default function Dashboard() {
           </div>
 
           <div className="adm-grid2">
-            <Card title="입학 연도별 학생" aside="이름표의 초등학교 입학 연도">
+            <Card title="학년·반별 학생" aside="이름표의 나이 = 어른이 초등학교 학년·반">
               <Cohorts rows={data.cohorts} />
             </Card>
             <Card title="학교생활">
@@ -162,15 +163,15 @@ function Bars({ rows, unit }: { rows: Day[]; unit: string }) {
   );
 }
 
-function Cohorts({ rows }: { rows: { year: number | null; n: number }[] }) {
+function Cohorts({ rows }: { rows: { age: number | null; n: number }[] }) {
   if (!rows.length) return <p className="adm-empty">아직 학생이 없어요</p>;
   const top = rows.slice(0, 8);
   const max = Math.max(1, ...top.map((r) => r.n));
   return (
     <ul className="adm-hbars">
       {top.map((r) => (
-        <li key={String(r.year)}>
-          <span>{r.year ? `${r.year}년 입학` : "입학 연도 안 적음"}</span>
+        <li key={String(r.age)}>
+          <span>{r.age ? `${gradeText(r.age)} (${r.age}살)` : "나이 안 적음"}</span>
           <span className="adm-hbar" style={{ width: `${(r.n / max) * 100}%` }} />
           <span className="n">{r.n}명</span>
         </li>

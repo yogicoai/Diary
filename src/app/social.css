@@ -834,7 +834,7 @@
 }
 
 /* ---------- 넓은 화면: 일기장 뒤 크레파스 배경 (힉스필드 생성, public/web-bg) ---------- */
-@media (min-width: 760px) {
+@media (min-width: 520px) {
   html[data-theme="stationery"] body {
     background: var(--desk) url("/web-bg/doodle.webp") center / cover fixed no-repeat;
   }
@@ -986,7 +986,7 @@
 }
 
 /* 넓은 화면 배경 고르기: 그림은 WebBackdrop 이 html 에 --web-bg(그림 주소)와 data-webbg(id)를 넣는다 */
-@media (min-width: 760px) {
+@media (min-width: 520px) {
   html[data-webbg]:not([data-webbg="mine"]) body {
     background: var(--desk) var(--web-bg) center / cover fixed no-repeat;
   }
@@ -1030,7 +1030,7 @@
   color: var(--muted);
 }
 /* 휴대폰에선 안 쓰이는 설정 (넓은 화면 이 기기에만 저장) */
-@media (max-width: 759px) {
+@media (max-width: 519px) {
   .web-bg-set {
     display: none;
   }
@@ -2449,4 +2449,150 @@ html[data-intro] .tabbar {
 .btn.erase {
   border-color: var(--red);
   color: var(--red);
+}
+
+/* 표지 아래 알림장 쪽지 (11-10 사용자: "이 부분도 디자인이 필요") — 줄 공책 + 빨간 여백 줄 + '알림장' 딱지.
+   이름표 쓰기 칸도 폼이 아니라 공책 빈칸(밑줄)으로 */
+.al-note {
+  position: relative;
+  margin: 32px 2px 0;
+  padding: 16px 14px 8px 46px;
+  border: 2px solid var(--ink);
+  border-radius: 4px 4px 12px 4px;
+  background: var(--paper);
+  box-shadow: 4px 5px 0 var(--line-soft);
+  transform: rotate(-0.6deg);
+  font-family: var(--font-kid), cursive;
+  word-break: keep-all;
+}
+.al-note::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 33px;
+  border-left: 1.5px solid var(--red);
+  opacity: 0.55;
+}
+.al-tab {
+  position: absolute;
+  top: -16px;
+  left: 12px;
+  padding: 1px 12px 3px;
+  border: 2px solid var(--ink);
+  border-radius: 7px;
+  background: var(--red);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  transform: rotate(-3deg);
+}
+.al-date {
+  position: absolute;
+  top: -12px;
+  right: 12px;
+  padding: 0 8px;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 700;
+}
+.al-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 6px;
+  margin: 0;
+  min-height: 38px;
+  padding-top: 4px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 34px;
+}
+.al-no {
+  flex: none;
+  min-width: 1.3em;
+  color: var(--red);
+  font-family: var(--font-pen), cursive;
+  font-size: 22px;
+  font-weight: 400;
+}
+.al-pen,
+.al-head {
+  color: var(--red);
+  font-family: var(--font-pen), cursive;
+  font-size: 23px;
+  font-style: normal;
+  font-weight: 400;
+}
+.al-line.al-pen {
+  border-bottom: 0;
+}
+.al-fill {
+  width: 5.4em;
+  min-width: 0;
+  margin: 0 2px;
+  padding: 0 4px;
+  border: 0;
+  border-bottom: 2px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: #2f5fb3;
+  font: inherit;
+  font-size: 22px;
+  line-height: 1.2;
+  text-align: center;
+}
+.al-fill.age {
+  width: 2.2em;
+}
+.al-fill::placeholder {
+  color: var(--line-soft);
+}
+.al-fill:focus {
+  outline: none;
+  border-bottom-color: var(--red);
+}
+.al-small {
+  margin: 8px 0 6px;
+  color: var(--muted);
+  font-family: var(--font-ui), sans-serif;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.al-done {
+  margin-left: auto;
+  padding: 0 6px;
+  border: 1.5px solid var(--red);
+  border-radius: 4px;
+  color: var(--red);
+  font-family: var(--font-pen), cursive;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.3;
+  transform: rotate(-6deg);
+}
+
+/* 표지 그림 바꾸기 (11-10 사용자: 내가 그린 그림으로도) — 표지 그림 아래 가운데 작은 딱지 */
+.c90-change {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 11px 4px 9px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--c90-paper);
+  color: var(--ink);
+  font-size: 12px;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.c90-change svg {
+  width: 14px;
+  height: 14px;
 }

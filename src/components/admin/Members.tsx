@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useAdmin } from "./AdminShell";
 import DiaryDrawer from "./DiaryDrawer";
+import { gradeText } from "@/lib/social";
 import {
   Badge,
   Card,
@@ -191,7 +192,7 @@ type DiaryRow = {
   reactions: number;
 };
 type Detail = {
-  person: Person & { id: string; nameTag: string; nickname: string; entryYear: number | null; classNo: number; createdAt: number; lastSeenAt: number };
+  person: Person & { id: string; nameTag: string; nickname: string; age: number | null; createdAt: number; lastSeenAt: number };
   counts: { diaries: number; board: number; classShared: number; alone: number; stampsGot: number; stampsGiven: number; reportsOn: number; reportsMade: number };
   classes: { id: string; name: string; owner: boolean; members: number; code: string }[];
   diaries: DiaryRow[];
@@ -276,7 +277,7 @@ export function MemberDetail({ id }: { id: string }) {
             <div>
               <dt>이름표</dt>
               <dd>
-                {p.entryYear ? `${p.entryYear}년 입학` : "입학 연도 안 적음"} · {p.classNo}반 · {p.nickname}
+                {p.age ? `${p.age}살 · ${gradeText(p.age)}` : "나이 안 적음"} · {p.nickname}
               </dd>
             </div>
             <div>

@@ -5,7 +5,7 @@ import { adminJson, diaryRow, logAction, personBrief, requireStaff, USER_SAFE } 
 import { cols } from "@/lib/server/db";
 import { oid } from "@/lib/server/find";
 import { assertSameOrigin, handle, HttpError, readJson } from "@/lib/server/http";
-import { nameTag } from "@/lib/social";
+import { ageOf, nameTag } from "@/lib/social";
 import { staffOfLoginId } from "@/lib/staff";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
     const reportsOn = await reports.countDocuments({ diaryId: { $in: list.map((d) => d._id) } });
 
     return adminJson({
-      person: { ...personBrief(u), entryYear: u.entryYear, classNo: u.classNo },
+      person: { ...personBrief(u), age: ageOf(u.birthYear) },
       counts: {
         diaries: list.length,
         board: list.filter((d) => d.board?.status === "visible").length,

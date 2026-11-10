@@ -27,9 +27,9 @@ export async function GET(req: NextRequest) {
     if (tab === "topic") q.topic = today;
     if (tab === "year") {
       const me = await currentUser(req);
-      year = me?.entryYear ?? null;
+      year = me?.birthYear ?? null;
       if (!year) return json({ items: [], today, topic: (await resolveTopic(today)).text, year: null, needYear: true });
-      const peers = await users.find({ entryYear: year }, { projection: { _id: 1 } }).limit(5000).toArray();
+      const peers = await users.find({ birthYear: year }, { projection: { _id: 1 } }).limit(5000).toArray();
       q.userId = { $in: peers.map((p) => p._id) };
     }
 

@@ -69,6 +69,35 @@ export function topicOf(dateKey: string): string {
 }
 
 /** 이름표 한 줄: "1995년 입학 3반 하늘이" */
-export function nameTag(u: { nickname: string; entryYear: number | null; classNo: number }): string {
-  return `${u.entryYear ? `${u.entryYear}년 입학 ` : ""}${u.classNo}반 ${u.nickname}`;
+/* 어른이 초등학교 (11-10 사용자): 나이 두 자리가 학년·반 — 38살이면 3학년 8반, 번호는 없다.
+ * 이름표에 나이를 적으면 birthYear = 그해 - 나이 로 두고, 해가 바뀌면 한 살 더 (= 진급). */
+export const SCHOOL = "어른이 초등학교";
+export const AGE_MIN = 14;
+export const AGE_MAX = 99;
+
+/** 지금 한국 시간의 해 */
+export function kstYear(now = Date.now()): number {
+  return new Date(now + 9 * 3600_000).getUTCFullYear();
+}
+
+export function ageOf(birthYear: number | null | undefined, year = kstYear()): number | null {
+  return birthYear ? year - birthYear : null;
+}
+
+/** 나이 → 학년·반 (38 → 3학년 8반) */
+export function gradeClass(age: number | null | undefined): { grade: number; ban: number } | null {
+  if (!age || age < 10) return null;
+  return { grade: Math.floor(age / 10), ban: age % 10 };
+}
+
+/** "3학년 8반" (나이를 안 적었으면 빈 글) */
+export function gradeText(age: number | null | undefined): string {
+  const g = gradeClass(age);
+  return g ? `${g.grade}학년 ${g.ban}반` : "";
+}
+
+/** 게시판·우리 반에 보이는 이름표: "3학년 8반 길동" (나이를 안 적었으면 이름만) */
+export function nameTag(u: { nickname: string; birthYear?: number | null }): string {
+  const g = gradeText(ageOf(u.birthYear));
+  return g ? `${g} ${u.nickname}` : u.nickname;
 }

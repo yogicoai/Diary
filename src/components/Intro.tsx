@@ -7,7 +7,13 @@
 import { useEffect, useState } from "react";
 import { bgSrc } from "@/lib/backgrounds";
 import { CRAYONS } from "@/lib/crayon";
-import { BrandMark, CrayonStick, StampSvg, ColorWord } from "./Icons";
+import { useCoverPic } from "@/lib/coverPic";
+import { todayKey } from "@/lib/date";
+import { useHomework } from "@/lib/homework";
+import { AGE_MAX, AGE_MIN, gradeClass, gradeText } from "@/lib/social";
+import { useTopic } from "@/lib/useTopic";
+import CoverPicSheet from "./CoverPicSheet";
+import { BrandMark, CrayonStick, PencilIcon, StampSvg, ColorWord } from "./Icons";
 import { kidChoice, setReadVoice } from "@/lib/readAloud";
 import { READ_VOICES, type ReadVoice } from "@/lib/readScript";
 import { LoginButtons } from "./LoginBox";
@@ -17,11 +23,38 @@ const HOW = 3; // 쓰는 법 장 수
 const SAMPLE_ROWS = ["오늘은 떡볶이를", "먹었다. 맛있었다."]; // 원고지 10칸씩, 낱말이 줄에서 안 잘리게
 const SAMPLE = SAMPLE_ROWS.join(" ");
 
-type Me = { nickname: string; classNo: number } | null;
+type Me = { nickname: string; age: number | null } | null;
 
-export default function Intro({ first, me, onOpen, onGuest }: { first: boolean; me: Me; onOpen: () => void; onGuest: () => void }) {
+export default function Intro({
+  first,
+  me,
+  onOpen,
+  onGuest,
+  onSaveTag,
+}: {
+  first: boolean;
+  me: Me;
+  onOpen: () => void;
+  onGuest: () => void;
+  onSaveTag: (nickname: string, age: number) => Promise<void>; // 표지에서 이름표(이름·나이) 쓰기
+}) {
   const [step, setStep] = useState(0); // 0 표지 · 1~3 쓰는 법 · 4 이름표
   const [next, setNext] = useState("/");
+  // 로그인했는데 나이가 없으면 표지 알림장에서 이름·나이를 받는다 (11-10 사용자: 나이 → 어른이 초등학교 O학년 O반)
+  const asking = !!me && !me.age;
+  const [name, setName] = useState(me?.nickname ?? "");
+  const [age, setAge] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const ageNum = Number(age);
+  const ageOk = Number.isInteger(ageNum) && ageNum >= AGE_MIN && ageNum <= AGE_MAX;
+  const nameOk = /^[\p{L}\p{N}]{2,8}$/u.test(name.trim());
+  const cover = useCoverPic(); // 표지 그림: 내가 고른 내 그림 → 없으면 학교 운동장
+  const [picOpen, setPicOpen] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 로그인 확인이 늦게 오면 그때 이름 칸을 채운다
+    if (me?.nickname) setName((n) => n || me.nickname);
+  }, [me?.nickname]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 로그인 뒤 돌아올 주소 (?class= 반 숙제 같은 것도 그대로)
@@ -32,30 +65,76 @@ export default function Intro({ first, me, onOpen, onGuest }: { first: boolean; 
   }, [step]);
 
   if (step === 0) {
+    const open = async () => {
+      if (first) return setStep(1);
+      if (!asking) return onOpen();
+      setSaving(true);
+      setError(null);
+      try {
+        await onSaveTag(name.trim(), ageNum);
+        onOpen();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "이름표를 못 적었어요. 다시 해 볼까요?");
+      } finally {
+        setSaving(false);
+      }
+    };
     return (
       <main className="app intro">
-        <Cover90 me={me} />
-        <p className="intro-lead">
-          {first || !me ? (
+        <Cover90
+          name={asking ? name.trim() : (me?.nickname ?? "")}
+          age={asking ? (ageOk ? ageNum : null) : (me?.age ?? null)}
+          pic={cover.src}
+          onChangePic={first ? undefined : () => setPicOpen(true)}
+        />
+        <CoverPicSheet open={picOpen} onClose={() => setPicOpen(false)} current={cover.id} />
+        <Notice me={first ? null : me} asking={asking}>
+          {asking && (
             <>
-              크레파스로 그리고 세 줄 쓰면,
-              <br />
-              선생님이 &ldquo;참 잘했어요&rdquo; 도장을 찍어 줘요.
-            </>
-          ) : (
-            <>
-              {me.nickname}, 오늘도 왔네요!
-              <br />
-              오늘 그림일기를 펼쳐 볼까요?
+              <p className="al-line">
+                내 이름은
+                <input
+                  className="al-fill name"
+                  value={name}
+                  maxLength={8}
+                  aria-label="이름"
+                  onChange={(e) => setName(e.target.value.replace(/\s/g, ""))}
+                />
+                이에요.
+              </p>
+              <p className="al-line">
+                나이는
+                <input
+                  className="al-fill age"
+                  inputMode="numeric"
+                  value={age}
+                  maxLength={2}
+                  placeholder="38"
+                  aria-label="나이"
+                  onChange={(e) => setAge(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                />
+                살이에요.
+                {ageOk && <em className="al-pen">→ {gradeText(ageNum)}!</em>}
+              </p>
+              <p className="al-small">
+                {age && !ageOk
+                  ? `${AGE_MIN}살부터 쓸 수 있어요.`
+                  : "나이 두 자리가 학년·반이 돼요. 게시판·우리 반에도 이 이름표가 보이니 이름은 별명으로 바꿔도 돼요."}
+              </p>
             </>
           )}
-        </p>
-        <button type="button" className="btn" onClick={() => (first ? setStep(1) : onOpen())}>
-          일기장 펼치기
+        </Notice>
+        {error && <p className="form-error">{error}</p>}
+        <button type="button" className="btn" onClick={() => void open()} disabled={asking && (!ageOk || !nameOk || saving)}>
+          {saving ? "이름표 다는 중…" : "일기장 펼치기"}
         </button>
         {first ? (
           <button type="button" className="linkish intro-skip" onClick={() => setStep(HOW + 1)}>
             이미 이름표가 있어요
+          </button>
+        ) : asking ? (
+          <button type="button" className="linkish intro-skip" onClick={onOpen}>
+            이름표는 나중에 쓸게요
           </button>
         ) : (
           <button type="button" className="linkish intro-skip" onClick={() => setStep(1)}>
@@ -131,9 +210,65 @@ function Star({ className, twinkle }: { className: string; twinkle?: boolean }) 
   );
 }
 
+/** 표지 아래 알림장 쪽지 (11-10 사용자: "이 부분도 디자인이 필요"). 줄 공책 + 빨간 여백 줄 + '알림장' 딱지.
+ *  처음 온 사람 = 쓰는 법 1·2·3 / 다시 온 사람 = 인사·오늘의 숙제·준비물 / 나이 없는 사람 = 이름표 쓰기(children) */
+function Notice({ me, asking, children }: { me: Me; asking: boolean; children?: React.ReactNode }) {
+  const [today, setToday] = useState<string | null>(null);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 오늘 날짜는 기기 시계 기준
+    setToday(todayKey());
+  }, []);
+  const topic = useTopic(today);
+  const hw = useHomework(today, !!today && !!me && !asking); // 오늘 숙제 검사 받았나
+  return (
+    <section className="al-note" aria-label="알림장">
+      <span className="al-tab">알림장</span>
+      {today && (
+        <span className="al-date">
+          {Number(today.slice(5, 7))}월 {Number(today.slice(8, 10))}일
+        </span>
+      )}
+      {asking ? (
+        <>
+          <p className="al-line al-head">이름표를 써 주세요</p>
+          {children}
+        </>
+      ) : me ? (
+        <>
+          <p className="al-line">{me.nickname}, 오늘도 왔네요!</p>
+          <p className="al-line">
+            <span className="al-no">숙제</span>
+            {topic?.text ?? "오늘 있었던 일 그리기"}
+            {hw.data?.mine && <span className="al-done">검사 끝</span>}
+          </p>
+          {topic?.note && <p className="al-line al-pen">{topic.note}</p>}
+          <p className="al-line">
+            <span className="al-no">준비물</span>
+            크레파스, 오늘 있었던 일
+          </p>
+        </>
+      ) : (
+        <>
+          <p className="al-line">
+            <span className="al-no">1.</span>그날 날씨에 동그라미
+          </p>
+          <p className="al-line">
+            <span className="al-no">2.</span>크레파스로 그림 한 장
+          </p>
+          <p className="al-line">
+            <span className="al-no">3.</span>세 줄 쓰고 선생님께 내기
+          </p>
+          <p className="al-line al-pen">→ &ldquo;참 잘했어요&rdquo; 도장 쾅!</p>
+        </>
+      )}
+    </section>
+  );
+}
+
 /** 처음 표지: 90년대 그림일기장·알림장 느낌 (11-09 사용자 "90년대 일기장이나 알림장 느낌")
  *  색 동그라미 제목 · 항공우편 줄무늬 · 크레파스 학교 운동장 · 별·반짝이 · 알림장식 이름 띠 · 천 테이프 책등 */
-function Cover90({ me }: { me: Me }) {
+function Cover90({ name, age, pic, onChangePic }: { name: string; age: number | null; pic?: string | null; onChangePic?: () => void }) {
+  const g = gradeClass(age); // 38살 → 3학년 8반 (번호는 없다, 11-10 사용자)
   return (
     <section className="c90" aria-label="그림일기장 표지">
       <span className="c90-spine" aria-hidden="true" />
@@ -152,24 +287,29 @@ function Cover90({ me }: { me: Me }) {
         <span className="c90-air" aria-hidden="true" />
         <div className="c90-pic">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={bgSrc("schoolyard")} alt="크레파스로 그린 학교 운동장" />
+          <img src={pic ?? bgSrc("schoolyard")} alt={pic ? "내가 그린 그림" : "크레파스로 그린 학교 운동장"} />
           <Star className="s1" />
           <Star className="s2" />
           <Star className="s3" />
           <Star className="t1" twinkle />
           <Star className="t2" twinkle />
           <StampSvg className="c90-stamp" />
+          {onChangePic && (
+            <button type="button" className="c90-change" onClick={onChangePic}>
+              <PencilIcon />
+              표지 그림 바꾸기
+            </button>
+          )}
         </div>
         <div className="c90-info">
           <span className="c90-tag">그림일기</span>
           <div className="c90-fields">
             <p>
-              <b>어른이</b>&nbsp;초등학교 <span className="c90-blank" />
-              학년 <span className="c90-blank">{me && <i className="c90-hand">{me.classNo}</i>}</span>
-              반 <span className="c90-blank" />번
+              <b>어른이</b>&nbsp;초등학교 <span className="c90-blank">{g && <i className="c90-hand">{g.grade}</i>}</span>
+              학년 <span className="c90-blank">{g && <i className="c90-hand">{g.ban}</i>}</span>반
             </p>
             <p>
-              이름 <span className="c90-blank">{me && <i className="c90-hand">{me.nickname}</i>}</span>
+              이름 <span className="c90-blank">{name && <i className="c90-hand">{name}</i>}</span>
             </p>
           </div>
         </div>

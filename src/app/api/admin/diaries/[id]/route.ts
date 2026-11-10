@@ -15,7 +15,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
     await requireStaff(req);
     const d = await diaryById((await params).id);
     const { users, classes, notes, reports } = await cols();
-    const owner = await users.findOne({ _id: d.userId }, { projection: { nickname: 1, entryYear: 1, classNo: 1 } });
+    const owner = await users.findOne({ _id: d.userId }, { projection: { nickname: 1, birthYear: 1 } });
     const who = { id: d.userId.toHexString(), nameTag: owner ? nameTag(owner) : "전학 간 친구" };
     if (!canOpen(d)) return adminJson({ private: true, id: d._id.toHexString(), date: d.date, createdAt: d.createdAt.getTime(), owner: who });
 
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
       reports.find({ diaryId: d._id }).toArray(),
     ]);
     const authors = await users
-      .find({ _id: { $in: [...new Set(nl.map((n) => n.userId.toHexString()))].map(oid) } }, { projection: { nickname: 1, entryYear: 1, classNo: 1 } })
+      .find({ _id: { $in: [...new Set(nl.map((n) => n.userId.toHexString()))].map(oid) } }, { projection: { nickname: 1, birthYear: 1 } })
       .toArray();
 
     return adminJson({
