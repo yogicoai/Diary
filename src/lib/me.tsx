@@ -4,6 +4,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api } from "./api";
+import { setDiaryOwner } from "./store";
 import { syncAll } from "./sync";
 
 export type Me = {
@@ -46,6 +47,8 @@ export function MeProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const data = await api<{ user: Me | null; stats?: MeStats; flags: Flags }>("/api/me");
+      // 이 기기 일기장 주인 = 로그인한 사람 (없으면 손님 칸). 인터넷이 안 되면(catch) 그대로 둔다 — 오프라인에도 내 일기
+      setDiaryOwner(data.user ? data.user.id : null);
       setMe(data.user);
       setStats(data.stats ?? null);
       setFlags(data.flags);
@@ -59,6 +62,7 @@ export function MeProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     await api("/api/auth/logout", { method: "POST" }).catch(() => {});
+    setDiaryOwner(null); // 손님 칸으로 — 방금 사람의 일기는 이 기기에 남아도 화면엔 안 나온다
     setMe(null);
     setStats(null);
   }, []);

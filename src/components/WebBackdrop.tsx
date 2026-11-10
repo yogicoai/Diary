@@ -7,7 +7,7 @@
 
 import { useEffect } from "react";
 import { webBg } from "@/lib/prefs";
-import { listDiaries } from "@/lib/store";
+import { listDiaries, onDiariesChange } from "@/lib/store";
 import { renderThumb } from "@/lib/thumb";
 import { WEB_BACKDROPS, webBackdropById, webBackdropSrc } from "@/lib/webBackdrops";
 
@@ -102,10 +102,12 @@ export default function WebBackdrop() {
     };
     window.addEventListener("chamjal:webbg", apply);
     window.addEventListener("resize", onResize);
+    const off = onDiariesChange(() => webBg() === "mine" && void apply()); // 내 그림 책상은 지금 로그인한 사람 그림으로
     return () => {
       alive = false;
       window.removeEventListener("chamjal:webbg", apply);
       window.removeEventListener("resize", onResize);
+      off();
     };
   }, []);
   return null;

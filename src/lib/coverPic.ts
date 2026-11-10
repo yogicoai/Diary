@@ -5,7 +5,7 @@
 // 이 기기 설정(localStorage chamjal.coverPic = 일기 id). 그 일기를 지우면 다시 기본 그림.
 
 import { useEffect, useState } from "react";
-import { getDiary } from "./store";
+import { getDiary, onDiariesChange } from "./store";
 import { renderThumb } from "./thumb";
 
 const KEY = "chamjal.coverPic";
@@ -42,9 +42,11 @@ export function useCoverPic(w = 800, h = 600): { id: string | null; src: string 
     };
     void load();
     window.addEventListener(EVENT, load);
+    const off = onDiariesChange(() => void load()); // 다른 계정으로 바뀌면 그 사람 그림으로 (없으면 기본)
     return () => {
       alive = false;
       window.removeEventListener(EVENT, load);
+      off();
     };
   }, [w, h]);
   return pic;

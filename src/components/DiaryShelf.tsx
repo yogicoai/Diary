@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { bgById, bgSrc } from "@/lib/backgrounds";
 import { renderStrokes } from "@/lib/crayon";
 import { shortDate, todayKey } from "@/lib/date";
-import { listDiaries, type Diary } from "@/lib/store";
+import { listDiaries, onDiariesChange, type Diary } from "@/lib/store";
 import { BOOK } from "@/lib/business";
 import { useMe } from "@/lib/me";
 import { isBirthday } from "@/lib/social";
@@ -81,6 +81,20 @@ export default function DiaryShelf() {
       /* 기본은 모아 보기 */
     }
   }, []);
+
+  // 로그인한 사람이 바뀌거나 서버에서 받아 오면 다시 읽는다 (내 계정 일기만, 11-10 사용자)
+  useEffect(
+    () =>
+      onDiariesChange(() => {
+        void listDiaries().then((l) => {
+          setList(l);
+          setOpen((o) => (o && l.some((x) => x.id === o.id) ? o : null));
+          setDel((x) => (x && l.some((y) => y.id === x.id) ? x : null));
+          setDayId((id) => (id && l.some((y) => y.id === id) ? id : null));
+        });
+      }),
+    [],
+  );
 
   useEffect(() => {
     if (!toast) return;

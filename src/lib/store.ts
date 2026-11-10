@@ -1,7 +1,6 @@
-// 일기 저장 (이 기기 IndexedDB). 서버로 가는 데이터 없음.
-// 계정·동기화가 생기면 이 파일만 바꾸면 된다.
+// 일기 저장 (이 기기 IndexedDB, 사람마다 따로). 서버와 맞추기는 lib/sync.ts.
 
-import { get, set } from "idb-keyval";
+import { del, get, set } from "idb-keyval";
 import type { Stroke } from "./crayon";
 import type { WeatherId } from "./weather";
 
@@ -30,11 +29,76 @@ export type Diary = {
   createdAt: number;
 };
 
-const KEY = "chamjal.diaries.v1";
+/* ---------- 이 기기 일기장은 사람마다 따로 (11-10 사용자: "본인 계정에 있는 일기만 보여야지") ----------
+ * 로그인한 사람은 chamjal.diaries.v1:u:<id>, 손님은 chamjal.diaries.v1:guest. 지금 주인은 localStorage chamjal.owner
+ * (lib/me.tsx 가 로그인 확인 때 맞춘다 → 바뀌면 'chamjal:diaries' 알림으로 일기장 화면이 다시 읽는다).
+ * 손님 때 쓴 일기는 로그인하면 그 계정으로 합친다(lib/sync.ts adoptGuestDiaries). 다른 사람 칸은 화면에 안 나온다. */
+const LEGACY_KEY = "chamjal.diaries.v1"; // 11-10 전: 기기 하나에 한 칸 (계정이 섞였다)
+const GUEST_KEY = "chamjal.diaries.v1:guest";
+const OWNER_KEY = "chamjal.owner";
+const DIARIES_EVENT = "chamjal:diaries";
+
+/** 지금 이 기기 일기장의 주인 (로그인한 사람 id, 손님이면 null) */
+export function diaryOwner(): string | null {
+  try {
+    return localStorage.getItem(OWNER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** 로그인·로그아웃 때 일기장 주인을 바꾼다. 바뀌면 일기장 화면들에 알린다 */
+export function setDiaryOwner(id: string | null) {
+  if (diaryOwner() === id) return;
+  try {
+    if (id) localStorage.setItem(OWNER_KEY, id);
+    else localStorage.removeItem(OWNER_KEY);
+  } catch {
+    /* 못 적으면 손님 칸 */
+  }
+  notifyDiaries();
+}
+
+/** 일기장이 바뀌었다고 알리기 (주인이 바뀌었거나 서버에서 받아 왔을 때) */
+export function notifyDiaries() {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(DIARIES_EVENT));
+}
+
+/** 일기장이 바뀌면 다시 읽기 (화면에서 씀) */
+export function onDiariesChange(fn: () => void): () => void {
+  window.addEventListener(DIARIES_EVENT, fn);
+  return () => window.removeEventListener(DIARIES_EVENT, fn);
+}
+
+const keyOf = (owner = diaryOwner()) => (owner ? `${LEGACY_KEY}:u:${owner}` : GUEST_KEY);
+
+/** 예전 한 칸 일기장 나누기 (한 번): 서버에 간 일기(serverId)는 뺀다 — 주인이 로그인하면 서버에서 다시 받아 온다.
+ *  서버에 안 간 일기만 손님 칸으로 (로그인하면 그 계정으로 합쳐진다) */
+let migrated: Promise<void> | null = null;
+function migrate(): Promise<void> {
+  migrated ??= (async () => {
+    const legacy = (await get(LEGACY_KEY)) as Diary[] | undefined;
+    if (!legacy) return;
+    const local = legacy.filter((d) => !d.serverId);
+    if (local.length) {
+      const guest = ((await get(GUEST_KEY)) as Diary[] | undefined) ?? [];
+      await set(GUEST_KEY, [...guest, ...local.filter((d) => !guest.some((g) => g.id === d.id))]);
+    }
+    await del(LEGACY_KEY);
+  })().catch(() => {
+    migrated = null; // 다음에 다시
+  });
+  return migrated;
+}
+
+async function readAll(owner?: string | null): Promise<Diary[]> {
+  await migrate();
+  return ((await get(keyOf(owner))) as Diary[] | undefined) ?? [];
+}
 
 export async function listDiaries(): Promise<Diary[]> {
   try {
-    const all = ((await get(KEY)) as Diary[] | undefined) ?? [];
+    const all = await readAll();
     return [...all].sort((a, b) => b.createdAt - a.createdAt);
   } catch {
     return [];
@@ -42,24 +106,40 @@ export async function listDiaries(): Promise<Diary[]> {
 }
 
 export async function saveDiary(d: Diary): Promise<void> {
-  const all = ((await get(KEY)) as Diary[] | undefined) ?? [];
+  const key = keyOf();
+  const all = await readAll();
   const i = all.findIndex((x) => x.id === d.id);
   if (i >= 0) all[i] = d;
   else all.push(d);
-  await set(KEY, all);
+  await set(key, all);
 }
 
 export async function getDiary(id: string): Promise<Diary | undefined> {
-  const all = ((await get(KEY)) as Diary[] | undefined) ?? [];
+  const all = await readAll();
   return all.find((x) => x.id === id);
 }
 
 export async function deleteDiary(id: string): Promise<void> {
-  const all = ((await get(KEY)) as Diary[] | undefined) ?? [];
+  const key = keyOf();
+  const all = await readAll();
   await set(
-    KEY,
+    key,
     all.filter((x) => x.id !== id),
   );
+}
+
+/** 손님 때 이 기기에 쓴 일기를 지금 로그인한 사람 일기장으로 옮긴다. 옮긴 일기를 돌려준다 */
+export async function adoptGuestDiaries(): Promise<Diary[]> {
+  const owner = diaryOwner();
+  if (!owner) return [];
+  await migrate();
+  const guest = ((await get(GUEST_KEY)) as Diary[] | undefined) ?? [];
+  if (!guest.length) return [];
+  const mine = await readAll(owner);
+  const moved = guest.filter((g) => !mine.some((m) => m.id === g.id));
+  await set(keyOf(owner), [...mine, ...moved]);
+  await del(GUEST_KEY);
+  return moved;
 }
 
 // 가벼운 이용 기록 (분석 도구 붙기 전까지 기기 안에만)
