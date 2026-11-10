@@ -20,6 +20,7 @@
 - **시험 전에 6900 서버가 dev:mem 인지 npm run dev(진짜 Atlas) 인지 확인한다** — 사용자가 평소 npm run dev 로 켜 둔다. 진짜 DB 에서 개발용 로그인으로 시험하면 dev: 사용자가 진짜로 생긴다(11-10 에 시험 계정 13명을 지움, 사용자가 만든 '시험' 계정은 남김).
 - 화면 확인: `node scripts/shot.mjs http://localhost:6900 <출력폴더>` (390px, 테마 3종, 카드·시트·일기장 캡처)
 - **베타 서버 = 호스팅 환경변수 `BETA=1`** (11-10 사용자: "서버 올릴 땐 개발자 모드로 이미 로그인된 상태로 보여 주기", "베타라 이후 없앨 것"): 운영에서도 개발용 로그인을 "이름만 적고 시작하기"로 열고, 처음 온 사람은 예제 일기장(fe = 3학년 8반 길동, demo.mjs build 가 있어야)으로 **로그인된 채** 둘러본다. 시험은 `npx next build` → `BETA=1 npx next start -p 6901`(6900 사용자 서버는 그대로). 로컬 .env.local 엔 넣지 않는다(인트로 대신 예제가 열림). **정식 출시 전에 지운다**
+- **배포** (11-10) = GitHub `yogicoai/Diary`(비공개) → Vercel 프로젝트 Diary. `vercel.json` regions icn1(서울 — Atlas 도 서울, 국외 이전·속도). 환경변수는 `.env.example` 목록(AUTH_SECRET·MONGODB_URI·MONGODB_DB·ANTHROPIC_API_KEY·FTP_*·PUBLIC_ASSET_BASE) + 베타면 BETA=1, DEV_LOGIN 은 넣지 않는다. AUTH_URL 은 비워도 링크 미리보기는 Vercel 운영 주소(VERCEL_PROJECT_PRODUCTION_URL)로 잡힌다 — 구글 로그인 붙일 때 운영 주소로 넣는다. Atlas 접속 허용 목록에 Vercel(고정 IP 없음 → 0.0.0.0/0)이 있어야 DB 에 붙는다
 - 아이콘: `src/app/icon.svg` 고친 뒤 `node scripts/icons.mjs`
 - 링크 미리보기 그림(카카오톡 등, 11-10): `src/app/opengraph-image.jpg` = 표지(.c90)를 찍어 문구점 낙서 배경 가운데에 놓은 것. 표지를 바꾸면 6900 을 켜고 `node scripts/og-image.mjs`. 절대 주소는 AUTH_URL(운영 주소)로 만든다(layout metadataBase). `/d` 는 openGraph 를 따로 적어서 그림도 직접 적어 둠, 게시판 글(/board/[id])은 그 카드 그림
 - 커밋 전: `npx eslint src scripts` + `npx next build`
