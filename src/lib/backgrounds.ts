@@ -67,6 +67,20 @@ export function bgById(id: string | null | undefined): Background | undefined {
   return BACKGROUNDS.find((b) => b.id === id);
 }
 
+/** AI 그림(일기 글로 그려 받은 그림, 11-11) = 저장소 주소가 bg 에 그대로 들어 있다 */
+export function isAiPic(bg: string | null | undefined): bg is string {
+  return !!bg && (bg.startsWith("https://") || bg.startsWith("/_dev-uploads/"));
+}
+
+/** 그림칸 배경 그림 주소: 고른 배경(id) 또는 AI 그림. 카페24 그림은 우리 사이트(/api/img)를 거쳐 받는다 —
+ *  카페24 가 CORS 를 주지 않아서, 카드·미리보기 캔버스에 그리려면 같은 사이트 주소여야 한다 */
+export function bgImage(bg: string | null | undefined): string | null {
+  if (!bg) return null;
+  if (isAiPic(bg)) return bg.startsWith("/") ? bg : `/api/img?u=${encodeURIComponent(bg)}`;
+  const b = bgById(bg);
+  return b ? bgSrc(b.id) : null;
+}
+
 /** 새 일기의 첫 배경 = 직접 그리기(흰 종이) (11-10 사용자: "처음엔 직접 그리기 쪽으로"). 배경 그림은 골라서 깐다.
  *  나 → 기본 설정에서 처음 배경을 고른 사람은 그것 (lib/prefs.ts preferredBg) */
 export function defaultBg(): string | null {

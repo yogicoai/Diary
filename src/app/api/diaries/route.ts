@@ -1,6 +1,7 @@
 // 내 일기: 목록(GET) / 저장(POST, 기기 id 로 덮어쓰기) / 지우기(DELETE ?clientId=, 기기 id 로).
 // 저장하면 개근상을 확인한다.
 
+import type { ObjectId } from "mongodb";
 import type { NextRequest } from "next/server";
 import { grantBirthday, grantStreak } from "@/lib/server/awards";
 import { cols } from "@/lib/server/db";
@@ -8,6 +9,7 @@ import { assertRate, assertSameOrigin, handle, HttpError, json, readJson } from 
 import { removeMyDiary } from "@/lib/server/removeDiary";
 import { awardToClient, diaryToClient } from "@/lib/server/serialize";
 import { requireUser } from "@/lib/server/session";
+import { isStoredImage } from "@/lib/server/storage";
 import type { Stroke } from "@/lib/crayon";
 import { cleanStickers } from "@/lib/stickers";
 import { cleanStamp } from "@/lib/stamps";
@@ -52,13 +54,14 @@ export async function POST(req: NextRequest) {
     if (!Array.isArray(d.strokes) || JSON.stringify(d.strokes).length > 600_000)
       throw new HttpError(413, "strokes", "그림이 너무 커서 저장하지 못했어요");
     const now = new Date();
+    const bg = await cleanBg(d.bg, user._id);
     const fields = {
       date: d.date,
       weather: typeof d.weather === "string" ? d.weather.slice(0, 20) : null,
       title: String(d.title ?? "").slice(0, 30),
       body: String(d.body ?? "").slice(0, 240),
       strokes: d.strokes,
-      bg: typeof d.bg === "string" ? d.bg.slice(0, 40) : null,
+      bg,
       teacher: String(d.teacher ?? "").slice(0, 60),
       teacherBy: d.teacherBy === "ai" ? ("ai" as const) : ("rule" as const),
       // 위험 신호(care)는 받지 않는다 — 109 안내는 답장을 받은 그 화면에서만 쓰고 이 기기에만 남는다 (민감정보 줄이기)
@@ -94,6 +97,16 @@ export async function POST(req: NextRequest) {
     const awards = [...(await grantStreak(user._id)), ...(await grantBirthday(user, fields.date))];
     return json({ diary: diaryToClient(saved), awards: awards.map(awardToClient) });
   });
+}
+
+/** 그림칸 배경: 고른 배경 id, 또는 이 사람이 그려 받은 AI 그림 주소 (11-11, api/picture) */
+async function cleanBg(bg: unknown, userId: ObjectId): Promise<string | null> {
+  if (typeof bg !== "string" || !bg) return null;
+  if (isStoredImage(bg, "ai")) {
+    const { pictures } = await cols();
+    return (await pictures.findOne({ userId, url: bg }, { projection: { _id: 1 } })) ? bg : null;
+  }
+  return bg.slice(0, 40);
 }
 
 /** 기기 id 로 내 일기 지우기 (?clientId=). 서버에 없던 일기여도 지운 표시는 남겨서 늦게 온 올리기를 막는다 */

@@ -3164,3 +3164,125 @@ html[data-intro] .tabbar {
   line-height: 1.15;
   white-space: nowrap;
 }
+
+/* ---------- AI 그림 (11-11, 배경 줄의 [AI 그려 줘] → 그림칸 안내 판 → 글을 쓰고 [그림 그려 줘]) ---------- */
+.ai-panel,
+.ai-busy {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 10px 14px;
+  background: var(--paper);
+  text-align: center;
+}
+.ai-panel-in {
+  max-width: 300px;
+}
+.ai-panel-h {
+  margin: 0 0 6px;
+  font-family: var(--font-kid), cursive;
+  font-size: 21px;
+  font-weight: 700;
+}
+.ai-panel-p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+.ai-panel-step {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  text-align: left;
+  word-break: keep-all;
+}
+.ai-panel-step .al-no {
+  font-size: 19px;
+}
+.ai-panel-btn,
+.ai-under-btn {
+  margin-top: 10px;
+  padding: 6px 16px 7px;
+  border: 2px solid var(--ink);
+  border-radius: 12px 14px 11px 15px / 14px 11px 15px 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-kid), cursive;
+  font-size: 17px;
+  font-weight: 700;
+}
+.ai-panel-btn:disabled,
+.ai-under-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.ai-panel-note {
+  margin: 8px 0 0;
+  color: var(--red);
+  font-family: var(--font-pen), cursive;
+  font-size: 17px;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+/* 그리는 중: 크레파스 선이 종이 위를 쓱쓱 */
+.ai-scribble {
+  width: 150px;
+  height: 66px;
+  overflow: visible;
+}
+.ai-scribble path {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 420;
+  stroke-dashoffset: 420;
+  opacity: 0.85;
+  animation: ai-scribble 2.4s ease-in-out infinite;
+}
+@keyframes ai-scribble {
+  60% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+.ai-busy-h {
+  margin: 6px 0 0;
+  font-family: var(--font-kid), cursive;
+  font-size: 19px;
+  font-weight: 700;
+}
+.ai-busy-note {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.bg-tile.ai .bg-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* 원고지 아래: 다 쓰면 바로 누를 수 있게 */
+.ai-under {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 12px;
+}
+.ai-under-btn {
+  margin-top: 0;
+}
+.ai-under-note {
+  color: var(--muted);
+  font-size: 12px;
+}

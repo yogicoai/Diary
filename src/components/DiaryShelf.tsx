@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { bgById, bgSrc } from "@/lib/backgrounds";
+import { bgImage } from "@/lib/backgrounds";
 import { renderStrokes } from "@/lib/crayon";
 import { shortDate, todayKey } from "@/lib/date";
 import { listDiaries, onDiariesChange, type Diary } from "@/lib/store";
@@ -35,11 +35,11 @@ function Thumb({ d }: { d: Diary }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- 캔버스는 브라우저에서만 그릴 수 있다
     setSrc(c.toDataURL("image/png"));
   }, [d]);
-  const b = bgById(d.bg);
+  const bgUrl = bgImage(d.bg); // 고른 배경 또는 AI 그림
   return (
     <div className="thumb">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {b && <img src={bgSrc(b.id)} alt="" />}
+      {bgUrl && <img src={bgUrl} alt="" />}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {src && <img src={src} alt="" />}
     </div>

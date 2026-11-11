@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { BACKGROUNDS, bgById, bgSrc, bgThumb, BG_PACKS } from "@/lib/backgrounds";
+import { BACKGROUNDS, bgImage, bgThumb, BG_PACKS, isAiPic } from "@/lib/backgrounds";
 import { CRAYONS, drawStroke, type Point, type Stroke } from "@/lib/crayon";
 import { addWear, newCrayon, wearMap } from "@/lib/crayonWear";
 import { crayonStroke, pencilTick } from "@/lib/feel";
@@ -10,17 +10,43 @@ import { CrayonStick, PencilIcon } from "./Icons";
 
 const SIZES = [0.012, 0.022, 0.04]; // 그림칸 너비 대비 굵기
 
+/** AI 그림 (11-11 클라이언트 피드백 "글을 쓰면 AI 가 그림을", 사용자 "직접 그리기랑 AI 그려 줘를 고르게, 누르면 바로 그리지 말고 오늘 일상을 적으면 된다고"):
+ *  배경 줄의 [AI 그려 줘]를 고르면 그림칸 위에 안내 판(panel, 쓰기 화면이 채움)이 뜨고, 글을 다 쓴 뒤 [그림 그려 줘]로 그린다 */
+export type AiPictureProps = {
+  on: boolean; // [AI 그려 줘]를 고른 상태
+  pic: string | null; // 오늘 그려 받은 그림 (있으면 줄에 그 그림이 보이고 다시 깔 수 있다)
+  busy: boolean; // 그리는 중
+  onPick: () => void;
+  panel: React.ReactNode; // 그림을 아직 안 받았을 때 그림칸 위 안내 판
+};
+
 type Props = {
   strokes: Stroke[];
   onChange: (next: Stroke[]) => void;
-  bg?: string | null; // null = 직접 그리기(흰 종이)
+  bg?: string | null; // null = 직접 그리기(흰 종이), 배경 id, 또는 AI 그림 주소
   onBg?: (id: string | null) => void;
   readOnly?: boolean;
   onPickMine?: () => void; // 내가 예전에 그린 그림 가져오기
+  ai?: AiPictureProps;
 };
 
-export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly, onPickMine }: Props) {
-  const bgItem = bgById(bg);
+/** 그림 그리는 중: 크레파스가 종이 위를 쓱쓱 */
+function AiBusy() {
+  return (
+    <div className="ai-busy" role="status" onPointerDown={(e) => e.stopPropagation()}>
+      <svg className="ai-scribble" viewBox="0 0 200 90" aria-hidden="true">
+        <path d="M10 60 C 30 10, 50 85, 70 40 S 110 15, 125 55 S 165 80, 190 25" />
+      </svg>
+      <p className="ai-busy-h">선생님이 그림을 그리는 중이에요</p>
+      <p className="ai-busy-note">15초쯤 걸려요</p>
+    </div>
+  );
+}
+
+export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly, onPickMine, ai }: Props) {
+  const bgUrl = bgImage(bg);
+  const aiBg = isAiPic(bg);
+  const aiPanel = !!ai && !readOnly && !ai.busy && ai.on && !aiBg; // 그림을 아직 안 받았다 → 안내 판
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef<Stroke | null>(null);
@@ -220,9 +246,9 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
       onPointerLeave={(e) => moveCursor(e, false)}
       aria-label="그림칸. 손가락으로 그려요"
     >
-      {bgItem && (
+      {bgUrl && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img className="draw-bg" src={bgSrc(bgItem.id)} alt="" draggable={false} />
+        <img className="draw-bg" src={bgUrl} alt="" draggable={false} />
       )}
       <canvas ref={canvasRef} />
       {!readOnly && (
@@ -239,7 +265,7 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
           )}
         </div>
       )}
-      {empty && !readOnly && !bgItem && (
+      {empty && !readOnly && !bgUrl && !aiPanel && (
         <div className="draw-hint">
           <div>
             여기에 오늘을 그려요
@@ -247,8 +273,17 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
           </div>
         </div>
       )}
-      {empty && !readOnly && bgItem && <div className="draw-hint-chip">배경 위에 오늘의 나를 그려 넣어요</div>}
-      {!readOnly && !big && (
+      {empty && !readOnly && bgUrl && (
+        <div className="draw-hint-chip">{aiBg ? "그림 위에 크레파스로 더 그려도 돼요" : "배경 위에 오늘의 나를 그려 넣어요"}</div>
+      )}
+      {aiPanel && (
+        // 안내 판을 누른 손가락이 그림으로 번지지 않게 막는다
+        <div className="ai-panel" onPointerDown={(e) => e.stopPropagation()}>
+          {ai?.panel}
+        </div>
+      )}
+      {!readOnly && ai?.busy && <AiBusy />}
+      {!readOnly && !big && !aiPanel && !ai?.busy && (
         // 그림칸 귀퉁이 단추 — 누른 손가락이 그림으로 번지지 않게 막는다
         <button type="button" className="draw-big" aria-label="크게 그리기 (가로 전체 화면)" onPointerDown={(e) => e.stopPropagation()} onClick={openBig}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -344,7 +379,7 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
           <button
             type="button"
             role="radio"
-            aria-checked={!bgItem}
+            aria-checked={!bg && !ai?.on}
             className="bg-tile blank"
             onClick={() => onBg?.(null)}
           >
@@ -353,6 +388,22 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
             </span>
             <span className="bg-name">직접 그리기</span>
           </button>
+          {ai && (
+            // AI 그려 줘: 누르면 바로 그리지 않고 그림칸에 "오늘 있었던 일을 적으면 그려 줘요" 안내가 뜬다
+            <button type="button" role="radio" aria-checked={ai.on || aiBg} className="bg-tile blank ai" onClick={ai.onPick}>
+              <span className="bg-thumb">
+                {ai.pic ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={bgImage(ai.pic) ?? ""} alt="" />
+                ) : (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 20l1-4.5L13.5 7a2 2 0 0 1 2.8 0l.7.7a2 2 0 0 1 0 2.8L8.5 19 4 20Z M16.5 2.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6Z M20 9l.4 1 1 .4-1 .4-.4 1-.4-1-1-.4 1-.4Z" />
+                  </svg>
+                )}
+              </span>
+              <span className="bg-name">{ai.pic ? "AI 그림" : "AI 그려 줘"}</span>
+            </button>
+          )}
           {onPickMine && (
             <button type="button" className="bg-tile blank mine" onClick={onPickMine}>
               <span className="bg-thumb">
@@ -368,7 +419,7 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
               key={b.id}
               type="button"
               role="radio"
-              aria-checked={bgItem?.id === b.id}
+              aria-checked={bg === b.id}
               className="bg-tile"
               onClick={() => onBg?.(b.id)}
             >

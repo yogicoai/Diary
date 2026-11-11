@@ -1,6 +1,6 @@
 // 그림칸 미리보기 (배경 + 크레파스 획) → 캔버스. 게시판 미리보기·우리 반 피드에 쓴다.
 
-import { bgById, bgSrc, loadImage } from "./backgrounds";
+import { bgImage, loadImage } from "./backgrounds";
 import { renderStrokes, type Stroke } from "./crayon";
 
 export async function renderThumb(d: { strokes: Stroke[]; bg?: string | null }, w = 480, h = 360) {
@@ -11,10 +11,10 @@ export async function renderThumb(d: { strokes: Stroke[]; bg?: string | null }, 
   const paper = getComputedStyle(document.documentElement).getPropertyValue("--paper").trim() || "#fffaf0";
   ctx.fillStyle = paper;
   ctx.fillRect(0, 0, w, h);
-  const b = bgById(d.bg);
-  if (b) {
+  const bgUrl = bgImage(d.bg); // 고른 배경 또는 AI 그림
+  if (bgUrl) {
     try {
-      const img = await loadImage(bgSrc(b.id));
+      const img = await loadImage(bgUrl);
       const s = Math.max(w / img.width, h / img.height);
       const sw = w / s,
         sh = h / s;

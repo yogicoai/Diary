@@ -1,7 +1,7 @@
 // 공유 카드 (1080×1920, 인스타 스토리 비율)를 캔버스로 그린다.
 // 글꼴과 색은 지금 화면의 CSS 변수에서 읽어서, 고른 일기장 테마가 그대로 카드에 나온다.
 
-import { bgById, bgSrc, loadImage } from "./backgrounds";
+import { bgImage, loadImage } from "./backgrounds";
 import { crayonPattern, renderStrokes } from "./crayon";
 import { drawSticker, STICKERS } from "./stickers";
 import { stampDraw } from "./stamps";
@@ -129,10 +129,10 @@ export async function renderCard(d: Diary): Promise<HTMLCanvasElement> {
   y += 24;
   const dh = Math.round(cw * 0.75);
   ctx.lineWidth = 3;
-  const bgItem = bgById(d.bg);
-  if (bgItem) {
+  const bgUrl = bgImage(d.bg); // 고른 배경 또는 AI 그림 (같은 사이트 주소라 캔버스에 그릴 수 있다)
+  if (bgUrl) {
     try {
-      const img = await loadImage(bgSrc(bgItem.id));
+      const img = await loadImage(bgUrl);
       // 4:3 칸에 꽉 차게
       const s = Math.max(cw / img.width, dh / img.height);
       const sw = cw / s,

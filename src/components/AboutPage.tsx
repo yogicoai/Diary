@@ -316,7 +316,7 @@ export default function AboutPage() {
         </div>
         <p>
           달력에 도장이 하나씩 쌓여요. 깜빡한 날은 밀린 일기로 지난 90일까지 쓰고, 아무에게도 안 보이는 비밀 일기도 있어요. 크레파스는 칠할수록
-          닳아서 몽당 크레파스가 돼요. 일기장 {THEMES.length}가지, 그림칸 배경 {BACKGROUNDS.length}장, 표지는 내 그림으로 바꿀 수 있어요.
+          닳아서 몽당 크레파스가 돼요. 그림이 어려운 날엔 오늘 있었던 일만 쓰고 AI 에게 그려 받을 수도 있어요(하루 한 장). 일기장 {THEMES.length}가지, 그림칸 배경 {BACKGROUNDS.length}장, 표지는 내 그림으로 바꿀 수 있어요.
         </p>
       </section>
 
@@ -337,7 +337,7 @@ export default function AboutPage() {
         </p>
         <p className="al-small">
           운영하는 선생님도 혼자 쓴 일기는 날짜만 봐요. 선생님 한 줄은 AI(미국 Anthropic 의 Claude)가 쓰는데, 처음에 동의한 기기만 일기 글을 보내고
-          그림은 보내지 않아요. 게시판에 붙이기 전엔 AI 가 한 번 살펴보고, 신고가 3번 모이면 숨겨요.
+          그림은 보내지 않아요. AI 그림을 그려 받으면 그릴 장면 설명만 미국 OpenAI 로 가요. 게시판에 붙이기 전엔 AI 가 한 번 살펴보고, 신고가 3번 모이면 숨겨요.
         </p>
       </section>
 

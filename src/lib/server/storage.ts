@@ -82,6 +82,12 @@ function storedPath(url: string | null | undefined): string | null {
   return rel && /^[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/[a-z0-9]+-[a-f0-9]+\.[a-z]+$/.test(rel) ? rel : null;
 }
 
+/** 이 앱이 저장소에 올린 그림 주소인가. folder 를 주면 그 폴더(예: "ai") 안만 — AI 그림 확인·그림 통로(/api/img)에 쓴다 */
+export function isStoredImage(url: string | null | undefined, folder?: string): boolean {
+  const rel = storedPath(url);
+  return !!rel && (!folder || rel.startsWith(`${folder}/`));
+}
+
 /** 이 앱이 올린 그림 지우기 (일기 지우기·게시판에서 떼기). 못 지워도 조용히 넘어간다 */
 export async function removeImages(urls: (string | null | undefined)[]): Promise<void> {
   const rels = urls.map(storedPath).filter((r): r is string => !!r);
