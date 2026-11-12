@@ -420,10 +420,10 @@ export function HowTo({ step, total = HOW }: { step: number; total?: number }) {
       )}
       {step === 2 && (
         <>
-          <h2 className="intro-h">크레파스로 그림 한 장</h2>
+          <h2 className="intro-h">AI 그림에 크레파스로 쓱쓱</h2>
           <div className="intro-pic">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={bgSrc("park")} alt="공원 벤치 배경 위에 크레파스로 그린 사람" />
+            <img src={bgSrc("park")} alt="크레파스 그림 위에 크레파스로 더 그린 사람" />
             <svg className="intro-doodle" viewBox="0 0 400 300" aria-hidden="true">
               <circle cx="200" cy="126" r="24" stroke="#2b2622" />
               <path d="M200 150v62M170 176h60M200 212l-22 40M200 212l22 40" stroke="#e0453a" />
@@ -437,7 +437,7 @@ export function HowTo({ step, total = HOW }: { step: number; total?: number }) {
               </span>
             ))}
           </div>
-          <p className="intro-p">흰 종이에 쓱쓱. 잘 못 그려도 괜찮아요. 배경 그림을 골라 그 위에 그려도 돼요.</p>
+          <p className="intro-p">오늘 있었던 일을 쓰면 AI 가 1차 그림을 그려 줘요. 부족한 건 크레파스로 더 그려서 완성해요. 잘 못 그려도 괜찮아요.</p>
         </>
       )}
       {step === 3 && (

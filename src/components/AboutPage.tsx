@@ -8,7 +8,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BACKGROUNDS } from "@/lib/backgrounds";
 import { renderCard } from "@/lib/card";
 import { CRAYONS, type Point, type Stroke } from "@/lib/crayon";
 import { todayKey } from "@/lib/date";
@@ -316,7 +315,7 @@ export default function AboutPage() {
         </div>
         <p>
           달력에 도장이 하나씩 쌓여요. 깜빡한 날은 밀린 일기로 지난 90일까지 쓰고, 아무에게도 안 보이는 비밀 일기도 있어요. 크레파스는 칠할수록
-          닳아서 몽당 크레파스가 돼요. 그림이 어려운 날엔 오늘 있었던 일만 쓰고 AI 에게 그려 받을 수도 있어요(하루 한 장). 일기장 {THEMES.length}가지, 그림칸 배경 {BACKGROUNDS.length}장, 표지는 내 그림으로 바꿀 수 있어요.
+          닳아서 몽당 크레파스가 돼요. 그림은 오늘 있었던 일을 쓰면 AI 가 1차로 그려 주고(하루 한 장), 부족한 건 크레파스로 더 그려서 완성해요. 일기장 {THEMES.length}가지, 표지는 내 그림으로 바꿀 수 있어요.
         </p>
       </section>
 

@@ -7,6 +7,7 @@ import type { Stroke } from "@/lib/crayon";
 import { koreanDate, todayKey } from "@/lib/date";
 import { useMe } from "@/lib/me";
 import { stampThump, underlineSwish } from "@/lib/feel";
+import { BG_PICKER } from "@/lib/business";
 import { hasPreferredBg, preferredBg } from "@/lib/prefs";
 import { useHomework } from "@/lib/homework";
 import { useTopic } from "@/lib/useTopic";
@@ -41,6 +42,9 @@ function newId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
+/** 새 일기를 흰 종이(배경)로 시작하나 — 배경 고르기를 켜 두었고(BG_PICKER) 나 → 기본 설정에서 처음 배경을 고른 사람만. 아니면 AI 그려 줘 */
+const startPlain = () => BG_PICKER && hasPreferredBg();
+
 export default function DiaryEditor() {
   const { me } = useMe();
   const [hwOpen, setHwOpen] = useState(false); // 오늘의 숙제(어른이 미션) 검사 시트
@@ -64,11 +68,13 @@ export default function DiaryEditor() {
   const [consentOpen, setConsentOpen] = useState(false);
   const [mineOpen, setMineOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  // AI 그림 (11-11 클라이언트 피드백, 사용자 "직접 그리기랑 AI 그려 줘를 고르게, 누르면 바로 그리지 말고 오늘 일상을 적으면 된다고"):
-  // 배경 줄의 [AI 그려 줘] → 그림칸에 안내 판 → 글을 쓰고 [그림 그려 줘] → 그림칸에 크레파스 그림이 깔린다 (이름표 있는 사람만 하루 한 장)
-  const [aiOn, setAiOn] = useState(true); // 처음엔 AI 그려 줘 (11-12 사용자 "최초는 AI 그려 줘") — 처음 배경을 직접 고른 사람은 직접 그리기
+  // AI 그림 (11-11 클라이언트 피드백 "글을 쓰면 AI 가 그림을" → 11-12 사용자 "AI 그려 주고 거기에 붙이는 거니까", "AI 하나로 + 비상구"):
+  // 그림칸에 안내 판 → 글을 쓰고 [그림 그려 줘] → AI 1차 그림이 깔리고 → 부족한 건 크레파스로 2차 완성 (이름표 있는 사람만 하루 한 장, 개발 서버는 제한 없음).
+  // AI 를 안 쓰거나 못 쓰면 '흰 종이에 그냥 그릴래요'
+  const [aiOn, setAiOn] = useState(true); // false = 비상구로 고른 흰 종이
   const [aiPic, setAiPic] = useState<string | null>(null); // 오늘 그려 받은 그림 (다시 깔 수 있다)
-  const [aiLeft, setAiLeft] = useState<number | null>(null); // 오늘 남은 장수 (모르면 null)
+  const [aiLeft, setAiLeft] = useState<number | null>(null); // 오늘 남은 장수 (모르거나 제한 없으면 null)
+  const [aiFree, setAiFree] = useState(false); // 개발 서버: 장수 제한 없음 → 다시 그려 받을 수 있다
   const [aiReady, setAiReady] = useState(true);
   const [aiBusy, setAiBusy] = useState(false);
   const [picAsk, setPicAsk] = useState(false); // 처음 한 번 국외 이전 동의
@@ -83,6 +89,7 @@ export default function DiaryEditor() {
         if (!alive) return;
         setAiReady(st.ready);
         setAiLeft(st.left);
+        setAiFree(!!st.unlimited);
         setAiPic(st.url);
       })
       .catch(() => {});
@@ -99,9 +106,9 @@ export default function DiaryEditor() {
     // 달력에서 지난 날을 눌러 왔으면 그날 일기 (밀린 숙제), 아니면 오늘
     const want = new URLSearchParams(location.search).get("date");
     setDate(want && /^\d{4}-\d{2}-\d{2}$/.test(want) && want <= t ? want : t);
-    // 처음엔 AI 그려 줘. "나 → 기본 설정"에서 처음 배경을 직접 고른 사람은 그 배경으로 직접 그리기
-    setAiOn(!hasPreferredBg());
-    setBg(hasPreferredBg() ? preferredBg() : null);
+    // 처음엔 AI 그려 줘 (배경 고르기를 켜 두었고 처음 배경을 고른 사람만 그 배경)
+    setAiOn(!startPlain());
+    setBg(startPlain() ? preferredBg() : null);
     const cls = new URLSearchParams(location.search).get("class");
     if (cls && /^[a-f0-9]{24}$/.test(cls)) {
       api<{ class: { id: string; name: string }; homework: string | null }>(`/api/classes/${cls}`)
@@ -119,7 +126,7 @@ export default function DiaryEditor() {
   const canSubmit = body.trim().length > 0 || strokes.length > 0;
   const textOk = enoughForPicture(title, body);
 
-  // 배경 줄: 직접 그리기·배경을 고르면 AI 그려 줘는 꺼진다
+  // 흰 종이(비상구)·배경을 고르면 AI 그려 줘는 꺼진다
   const pickBg = (id: string | null) => {
     setBg(id);
     setAiOn(false);
@@ -147,7 +154,7 @@ export default function DiaryEditor() {
       setAiLeft(r.left);
       setBg(r.url);
       setAiOn(true);
-      setToast("그림이 왔어요! 그 위에 크레파스로 더 그려도 돼요");
+      setToast("1차 그림이 왔어요! 부족한 건 크레파스로 더 그려요");
       track("ai_picture");
     } catch (e) {
       if (e instanceof ApiError && e.code === "used") setAiLeft(0);
@@ -157,22 +164,31 @@ export default function DiaryEditor() {
     }
   };
 
-  // 그림칸 위 안내 판 (AI 그려 줘를 골랐고 아직 그림을 안 받았을 때)
+  // 비상구: AI 없이 흰 종이에 (AI 를 안 쓰거나 못 쓸 때)
+  const skipAi = (
+    <button type="button" className="ai-panel-skip" onClick={() => pickBg(null)}>
+      흰 종이에 그냥 그릴래요
+    </button>
+  );
+  // 그림칸 위 안내 판 (아직 그림을 안 받았을 때): 1차는 AI, 2차는 크레파스 (11-12 사용자 "AI 1차 그림을 그려 주면 부족한 건 추가해서 그려")
   const aiPanel = (
     <div className="ai-panel-in">
-      <p className="ai-panel-h">AI 가 그려 줄게요</p>
+      <p className="ai-panel-h">AI 가 먼저 그려 줄게요</p>
       {!me || me.demo ? (
         <>
-          <p className="ai-panel-p">아래 원고지에 오늘 있었던 일을 적으면, 그 글을 읽고 크레파스 그림을 그려 줘요.</p>
+          <p className="ai-panel-p">오늘 있었던 일을 적으면 AI 가 1차 그림을 그려 줘요. 부족한 건 크레파스로 더 그려서 완성해요.</p>
           <button type="button" className="ai-panel-btn" onClick={() => (me?.demo ? openDemoSheet() : setAiLogin(true))}>
             {me?.demo ? "내 이름으로 시작하기" : "이름표 만들고 그려 받기"}
           </button>
           <p className="ai-panel-note">{me?.demo ? "예제 일기장 둘러보기에선 그려 받을 수 없어요" : "이름표가 있으면 하루 한 장"}</p>
+          {skipAi}
         </>
       ) : !aiReady ? (
         <>
-          <p className="ai-panel-p">그림 AI 가 아직 준비 중이에요.</p>
-          <p className="ai-panel-note">아래 [직접 그리기]로 크레파스로 그려 볼까요?</p>
+          <p className="ai-panel-p">그림 AI 가 아직 준비 중이에요. 오늘은 흰 종이에 크레파스로 그려 볼까요?</p>
+          <button type="button" className="ai-panel-btn" onClick={() => pickBg(null)}>
+            흰 종이에 그리기
+          </button>
         </>
       ) : aiLeft === 0 ? (
         <>
@@ -182,7 +198,7 @@ export default function DiaryEditor() {
               오늘 그림 다시 깔기
             </button>
           )}
-          <p className="ai-panel-note">아래 [직접 그리기]로 그려도 돼요</p>
+          {skipAi}
         </>
       ) : (
         <>
@@ -190,12 +206,16 @@ export default function DiaryEditor() {
             <span className="al-no">1.</span>아래 원고지에 오늘 있었던 일을 적어요
           </p>
           <p className="ai-panel-step">
-            <span className="al-no">2.</span>다 쓰면 [그림 그려 줘]를 눌러요
+            <span className="al-no">2.</span>[그림 그려 줘] → AI 가 1차 그림을 그려 줘요
+          </p>
+          <p className="ai-panel-step">
+            <span className="al-no">3.</span>부족한 건 크레파스로 더 그려서 완성!
           </p>
           <button type="button" className="ai-panel-btn" disabled={!textOk} onClick={() => void drawAi()}>
             {textOk ? "그림 그려 줘" : "글을 먼저 적어 주세요"}
           </button>
-          <p className="ai-panel-note">하루 한 장 · 그린 그림 위에 크레파스로 더 그려도 돼요</p>
+          <p className="ai-panel-note">{aiFree ? "개발 서버라 몇 장이든 그려 줘요" : "하루 한 장"}</p>
+          {skipAi}
         </>
       )}
     </div>
@@ -288,9 +308,9 @@ export default function DiaryEditor() {
     setTitle("");
     setBody("");
     setStrokes([]);
-    setBg(hasPreferredBg() ? preferredBg() : null);
+    setBg(startPlain() ? preferredBg() : null);
     setSecret(false);
-    setAiOn(!hasPreferredBg());
+    setAiOn(!startPlain());
     setDone(null);
     setReading(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -381,12 +401,16 @@ export default function DiaryEditor() {
           {done && !reading && !!done.stickers?.length && <PraiseStickers ids={done.stickers} animate delay={1500} />}
         </div>
 
-        {aiOn && !locked && !isAiPic(bg) && (
+        {/* 원고지 아래 [그림 그려 줘] — 개발 서버(장수 제한 없음)면 그림을 받은 뒤에도 '다시 그려 줘' */}
+        {aiOn && !locked && (!isAiPic(bg) || aiFree) && (
           <div className="ai-under">
             <button type="button" className="ai-under-btn" disabled={aiBusy || (!!me && !me.demo && !textOk)} onClick={() => void drawAi()}>
-              {aiBusy ? "그리는 중이에요…" : "이 글로 그림 그려 줘"}
+              {aiBusy ? "그리는 중이에요…" : isAiPic(bg) ? "이 글로 다시 그려 줘" : "이 글로 그림 그려 줘"}
             </button>
-            <span className="ai-under-note">{textOk ? "그림칸에 크레파스 그림이 깔려요" : "글을 조금 더 적으면 그려 줘요"} · 하루 한 장</span>
+            <span className="ai-under-note">
+              {textOk ? (isAiPic(bg) ? "새 1차 그림으로 바뀌어요" : "그림칸에 1차 그림이 깔려요") : "글을 조금 더 적으면 그려 줘요"} ·{" "}
+              {aiFree ? "개발 서버라 몇 장이든" : "하루 한 장"}
+            </span>
           </div>
         )}
 

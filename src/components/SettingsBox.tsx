@@ -1,9 +1,10 @@
 "use client";
 
-// "나" → 기본 설정: 일기장(테마) / 표지 그림 / 새 일기의 처음 배경 / 넓은 화면 배경 / 소리·진동 / 선생님이 직접 읽기(AI 동의)
+// "나" → 기본 설정: 일기장(테마) / 표지 그림 / 새 일기의 처음 배경(BG_PICKER 일 때만) / 넓은 화면 배경 / 소리·진동 / 선생님이 직접 읽기(AI 동의)
 
 import { useEffect, useState } from "react";
 import { BACKGROUNDS, bgThumb } from "@/lib/backgrounds";
+import { BG_PICKER } from "@/lib/business";
 import { setCoverPic, useCoverPic } from "@/lib/coverPic";
 import { preferredBg, setPreferredBg, setWebBg, WEB_BG_MODES, webBg, type WebBgId } from "@/lib/prefs";
 import { WEB_BACKDROP_GROUPS, WEB_BACKDROPS, webBackdropThumb } from "@/lib/webBackdrops";
@@ -73,24 +74,29 @@ export default function SettingsBox() {
       </div>
       <CoverPicSheet open={coverOpen} onClose={() => setCoverOpen(false)} current={cover.id} />
 
-      <h3 className="set-title">새 일기의 처음 배경</h3>
-      <div className="bg-tray wrap" role="radiogroup" aria-label="처음 배경">
-        <button type="button" role="radio" aria-checked={bg === null} className="bg-tile blank" onClick={() => pickBg(null)}>
-          <span className="bg-thumb">
-            <PencilIcon />
-          </span>
-          <span className="bg-name">직접 그리기</span>
-        </button>
-        {BACKGROUNDS.map((b) => (
-          <button key={b.id} type="button" role="radio" aria-checked={bg === b.id} className="bg-tile" onClick={() => pickBg(b.id)}>
-            <span className="bg-thumb">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={bgThumb(b.id)} alt="" loading="lazy" />
-            </span>
-            <span className="bg-name">{b.name}</span>
-          </button>
-        ))}
-      </div>
+      {/* 11-12 부터 그림은 AI 하나로 → 배경 고르기를 켰을 때만 (business.ts BG_PICKER) */}
+      {BG_PICKER && (
+        <>
+          <h3 className="set-title">새 일기의 처음 배경</h3>
+          <div className="bg-tray wrap" role="radiogroup" aria-label="처음 배경">
+            <button type="button" role="radio" aria-checked={bg === null} className="bg-tile blank" onClick={() => pickBg(null)}>
+              <span className="bg-thumb">
+                <PencilIcon />
+              </span>
+              <span className="bg-name">직접 그리기</span>
+            </button>
+            {BACKGROUNDS.map((b) => (
+              <button key={b.id} type="button" role="radio" aria-checked={bg === b.id} className="bg-tile" onClick={() => pickBg(b.id)}>
+                <span className="bg-thumb">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={bgThumb(b.id)} alt="" loading="lazy" />
+                </span>
+                <span className="bg-name">{b.name}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* 넓은 화면에서만 보이는 설정이라(이 기기 저장) 휴대폰 화면에선 감춘다 */}
       <div className="web-bg-set">

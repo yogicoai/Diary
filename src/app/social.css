@@ -3287,70 +3287,42 @@ html[data-intro] .tabbar {
   font-size: 12px;
 }
 
-/* 그림 그리는 방법 두 갈래 (11-12): [AI 그려 줘] [직접 그리기] — 직접 그리기일 때만 배경 줄·크레파스 */
-.pad-modes {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+/* 그림은 AI 하나로 (11-12): 안내 판의 비상구 '흰 종이에 그냥 그릴래요' · 흰 종이일 때 'AI 에게 1차 그림 부탁하기' */
+.ai-panel-skip {
+  display: block;
+  margin: 4px auto 0;
+  padding: 2px 6px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ai-back {
+  display: flex;
+  justify-content: center;
   margin-top: 10px;
 }
-.pad-mode {
-  display: flex;
+.ai-back button {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding: 7px 9px;
-  border: 1.5px solid var(--line-soft);
+  gap: 6px;
+  padding: 5px 14px 6px;
+  border: 1.5px dashed var(--line);
   border-radius: 12px 14px 11px 15px / 14px 11px 15px 12px;
   background: var(--paper);
   color: var(--ink);
-  text-align: left;
+  font-family: var(--font-kid), cursive;
+  font-size: 16px;
+  font-weight: 700;
 }
-.pad-mode[aria-checked="true"] {
-  border: 2px solid var(--red);
-  padding: 6.5px 8.5px;
-}
-.pad-mode-ic {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 36px;
-  height: 32px;
-  overflow: hidden;
-  border: 1.5px dashed var(--line);
-  border-radius: 8px;
-}
-.pad-mode-ic svg {
-  width: 20px;
-  height: 20px;
+.ai-back svg {
+  width: 18px;
+  height: 18px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-.pad-mode-ic img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.pad-mode > span:last-child {
-  min-width: 0;
-}
-.pad-mode b {
-  display: block;
-  font-family: var(--font-kid), cursive;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.15;
-  white-space: nowrap;
-}
-.pad-mode small {
-  display: block;
-  margin-top: 1px;
-  color: var(--muted);
-  font-size: 11px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
