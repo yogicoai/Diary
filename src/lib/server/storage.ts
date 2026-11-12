@@ -35,6 +35,27 @@ async function withFtp<T>(work: (client: FtpClient) => Promise<T>): Promise<T> {
   }
 }
 
+// 저장소 점검 결과 (서버 인스턴스마다): 잘 되면 5분, 안 되면 1분 동안 다시 묻지 않는다
+const ready = new Map<string, { ok: boolean; until: number }>();
+
+/** 이 폴더에 그림을 올릴 수 있나 — 돈이 드는 일(AI 그림)을 하기 전에 먼저 본다 (11-12: 배포 서버 FTP 가 550 이면 그림값만 나가고 저장이 실패해서).
+ *  FTP 가 없는 개발 환경은 public/_dev-uploads 라 늘 된다 */
+export async function storageReady(dir: string): Promise<boolean> {
+  if (!hasFtp()) return process.env.NODE_ENV !== "production";
+  const safeDir = dir.replace(/[^a-zA-Z0-9/_-]/g, "").replace(/^\/+|\/+$/g, "");
+  const hit = ready.get(safeDir);
+  if (hit && hit.until > Date.now()) return hit.ok;
+  const ok = await withFtp((client) => client.ensureDir(`${ROOT}/${safeDir}`)).then(
+    () => true,
+    (e: { code?: unknown; message?: string }) => {
+      console.error("저장소 점검 실패:", e.code ?? "", (e.message ?? "").slice(0, 160));
+      return false;
+    },
+  );
+  ready.set(safeDir, { ok, until: Date.now() + (ok ? 5 : 1) * 60_000 });
+  return ok;
+}
+
 /** 추측할 수 없는 ASCII 파일 이름 (Cafe24 는 한글 파일명을 못 읽는다) */
 function fileName(ext: string) {
   return `${Date.now().toString(36)}-${crypto.randomBytes(9).toString("hex")}.${ext}`;

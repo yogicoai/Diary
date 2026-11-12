@@ -120,7 +120,7 @@ export type NoteDoc = { _id: ObjectId; diaryId: ObjectId; userId: ObjectId; text
 export type GoneDiaryDoc = { _id: ObjectId; userId: ObjectId; clientId: string; at: Date };
 // AI 그림 (11-11): 한 사람 하루 한 장 표시 + 그린 그림 주소. 일기 글·장면 설명은 남기지 않는다 (혼자 쓴 일기는 운영자도 못 보게)
 // slot = 그날 몇 번째 장 (0부터, business.ts AI_PICTURE.perDay 칸까지 — 같은 칸은 한 번만 잡힌다)
-export type PictureDoc = { _id: ObjectId; userId: ObjectId; day: string; slot: number; status: "drawing" | "done"; url: string | null; at: Date };
+export type PictureDoc = { _id: ObjectId; userId: ObjectId; day: string; slot: number; status: "drawing" | "done" | "failed"; url: string | null; at: Date }; // failed = 그림은 받았는데 보관 실패 (그날 칸은 쓴 것으로)
 // 칭찬 스티커 자랑 (11-10 사용자: "이걸로 친구방에 자랑하기"): 이 반에 그달 스티커판을 보여 주겠다는 표시만. 스티커는 볼 때 숙제에서 센다
 export type BragDoc = { _id: ObjectId; classId: ObjectId; userId: ObjectId; month: string; at: Date };
 export type AwardDoc = {
