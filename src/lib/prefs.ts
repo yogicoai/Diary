@@ -17,6 +17,15 @@ export function preferredBg(): string | null {
   return defaultBg();
 }
 
+/** 나 → 기본 설정에서 처음 배경을 직접 고른 적이 있나. 없으면 새 일기는 AI 그려 줘로 시작한다 (11-12 사용자 "최초는 AI 그려 줘") */
+export function hasPreferredBg(): boolean {
+  try {
+    return localStorage.getItem(BG_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
 export function setPreferredBg(id: string | null) {
   try {
     localStorage.setItem(BG_KEY, id ?? "none");

@@ -47,6 +47,7 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
   const bgUrl = bgImage(bg);
   const aiBg = isAiPic(bg);
   const aiPanel = !!ai && !readOnly && !ai.busy && ai.on && !aiBg; // 그림을 아직 안 받았다 → 안내 판
+  const aiMode = !!ai && (ai.on || aiBg); // 두 갈래 중 AI 그려 줘 (아니면 직접 그리기)
   const boxRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef<Stroke | null>(null);
@@ -365,7 +366,39 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
         drawBox
       )}
 
-      {!readOnly && BACKGROUNDS.length > 0 && (
+      {/* 그림 그리는 방법 두 갈래 (11-12 사용자: "최초는 AI 그려 줘", "직접 그리기를 눌렀을 때 배경 그림들이 나오게") */}
+      {!readOnly && ai && (
+        <div className="pad-modes" role="radiogroup" aria-label="그림 그리는 방법">
+          <button type="button" role="radio" aria-checked={aiMode} className="pad-mode" onClick={ai.onPick}>
+            <span className="pad-mode-ic">
+              {ai.pic ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={bgImage(ai.pic) ?? ""} alt="" />
+              ) : (
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 20l1-4.5L13.5 7a2 2 0 0 1 2.8 0l.7.7a2 2 0 0 1 0 2.8L8.5 19 4 20Z M16.5 2.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6Z M20 9l.4 1 1 .4-1 .4-.4 1-.4-1-1-.4 1-.4Z" />
+                </svg>
+              )}
+            </span>
+            <span>
+              <b>AI 그려 줘</b>
+              <small>{ai.pic ? "오늘 받은 그림" : "쓴 글로 그려 줘요"}</small>
+            </span>
+          </button>
+          <button type="button" role="radio" aria-checked={!aiMode} className="pad-mode" onClick={() => aiMode && onBg?.(null)}>
+            <span className="pad-mode-ic">
+              <PencilIcon />
+            </span>
+            <span>
+              <b>직접 그리기</b>
+              <small>배경·크레파스로</small>
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* 직접 그리기일 때만: 상황별 배경 칩 · 배경 줄 */}
+      {!readOnly && !aiMode && BACKGROUNDS.length > 0 && (
         <div className="bg-packs" role="group" aria-label="상황별 배경">
           {[{ id: "", name: "전체" }, ...BG_PACKS.filter((p) => BACKGROUNDS.some((b) => b.pack === p.id))].map((p) => (
             <button key={p.id || "all"} type="button" aria-pressed={pack === p.id} onClick={() => setPack(p.id)}>
@@ -374,36 +407,14 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
           ))}
         </div>
       )}
-      {!readOnly && BACKGROUNDS.length > 0 && (
+      {!readOnly && !aiMode && BACKGROUNDS.length > 0 && (
         <div className="bg-tray" role="radiogroup" aria-label="배경 고르기">
-          <button
-            type="button"
-            role="radio"
-            aria-checked={!bg && !ai?.on}
-            className="bg-tile blank"
-            onClick={() => onBg?.(null)}
-          >
+          <button type="button" role="radio" aria-checked={!bg} className="bg-tile blank" onClick={() => onBg?.(null)}>
             <span className="bg-thumb">
               <PencilIcon />
             </span>
-            <span className="bg-name">직접 그리기</span>
+            <span className="bg-name">흰 종이</span>
           </button>
-          {ai && (
-            // AI 그려 줘: 누르면 바로 그리지 않고 그림칸에 "오늘 있었던 일을 적으면 그려 줘요" 안내가 뜬다
-            <button type="button" role="radio" aria-checked={ai.on || aiBg} className="bg-tile blank ai" onClick={ai.onPick}>
-              <span className="bg-thumb">
-                {ai.pic ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={bgImage(ai.pic) ?? ""} alt="" />
-                ) : (
-                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 20l1-4.5L13.5 7a2 2 0 0 1 2.8 0l.7.7a2 2 0 0 1 0 2.8L8.5 19 4 20Z M16.5 2.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6Z M20 9l.4 1 1 .4-1 .4-.4 1-.4-1-1-.4 1-.4Z" />
-                  </svg>
-                )}
-              </span>
-              <span className="bg-name">{ai.pic ? "AI 그림" : "AI 그려 줘"}</span>
-            </button>
-          )}
           {onPickMine && (
             <button type="button" className="bg-tile blank mine" onClick={onPickMine}>
               <span className="bg-thumb">
@@ -433,7 +444,7 @@ export default function CrayonPad({ strokes, onChange, bg = null, onBg, readOnly
         </div>
       )}
 
-      {!readOnly && !big && (
+      {!readOnly && !big && !aiPanel && !ai?.busy && (
         <>
           {crayonBox}
           {tools}

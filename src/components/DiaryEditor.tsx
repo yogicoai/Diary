@@ -7,7 +7,7 @@ import type { Stroke } from "@/lib/crayon";
 import { koreanDate, todayKey } from "@/lib/date";
 import { useMe } from "@/lib/me";
 import { stampThump, underlineSwish } from "@/lib/feel";
-import { preferredBg } from "@/lib/prefs";
+import { hasPreferredBg, preferredBg } from "@/lib/prefs";
 import { useHomework } from "@/lib/homework";
 import { useTopic } from "@/lib/useTopic";
 import { pushDiary } from "@/lib/sync";
@@ -66,7 +66,7 @@ export default function DiaryEditor() {
   const [toast, setToast] = useState<string | null>(null);
   // AI 그림 (11-11 클라이언트 피드백, 사용자 "직접 그리기랑 AI 그려 줘를 고르게, 누르면 바로 그리지 말고 오늘 일상을 적으면 된다고"):
   // 배경 줄의 [AI 그려 줘] → 그림칸에 안내 판 → 글을 쓰고 [그림 그려 줘] → 그림칸에 크레파스 그림이 깔린다 (이름표 있는 사람만 하루 한 장)
-  const [aiOn, setAiOn] = useState(false);
+  const [aiOn, setAiOn] = useState(true); // 처음엔 AI 그려 줘 (11-12 사용자 "최초는 AI 그려 줘") — 처음 배경을 직접 고른 사람은 직접 그리기
   const [aiPic, setAiPic] = useState<string | null>(null); // 오늘 그려 받은 그림 (다시 깔 수 있다)
   const [aiLeft, setAiLeft] = useState<number | null>(null); // 오늘 남은 장수 (모르면 null)
   const [aiReady, setAiReady] = useState(true);
@@ -99,8 +99,9 @@ export default function DiaryEditor() {
     // 달력에서 지난 날을 눌러 왔으면 그날 일기 (밀린 숙제), 아니면 오늘
     const want = new URLSearchParams(location.search).get("date");
     setDate(want && /^\d{4}-\d{2}-\d{2}$/.test(want) && want <= t ? want : t);
-    // 처음 배경은 "나 → 기본 설정"에서 고른 것
-    setBg(preferredBg());
+    // 처음엔 AI 그려 줘. "나 → 기본 설정"에서 처음 배경을 직접 고른 사람은 그 배경으로 직접 그리기
+    setAiOn(!hasPreferredBg());
+    setBg(hasPreferredBg() ? preferredBg() : null);
     const cls = new URLSearchParams(location.search).get("class");
     if (cls && /^[a-f0-9]{24}$/.test(cls)) {
       api<{ class: { id: string; name: string }; homework: string | null }>(`/api/classes/${cls}`)
@@ -169,9 +170,20 @@ export default function DiaryEditor() {
           <p className="ai-panel-note">{me?.demo ? "예제 일기장 둘러보기에선 그려 받을 수 없어요" : "이름표가 있으면 하루 한 장"}</p>
         </>
       ) : !aiReady ? (
-        <p className="ai-panel-p">그림 AI 가 아직 준비 중이에요. 오늘은 직접 그려 볼까요?</p>
+        <>
+          <p className="ai-panel-p">그림 AI 가 아직 준비 중이에요.</p>
+          <p className="ai-panel-note">아래 [직접 그리기]로 크레파스로 그려 볼까요?</p>
+        </>
       ) : aiLeft === 0 ? (
-        <p className="ai-panel-p">오늘 그림은 다 그렸어요. 내일 또 그려 줄게요.</p>
+        <>
+          <p className="ai-panel-p">오늘 그림은 다 그렸어요. 내일 또 그려 줄게요.</p>
+          {aiPic && (
+            <button type="button" className="ai-panel-btn" onClick={() => setBg(aiPic)}>
+              오늘 그림 다시 깔기
+            </button>
+          )}
+          <p className="ai-panel-note">아래 [직접 그리기]로 그려도 돼요</p>
+        </>
       ) : (
         <>
           <p className="ai-panel-step">
@@ -276,9 +288,9 @@ export default function DiaryEditor() {
     setTitle("");
     setBody("");
     setStrokes([]);
-    setBg(preferredBg());
+    setBg(hasPreferredBg() ? preferredBg() : null);
     setSecret(false);
-    setAiOn(false);
+    setAiOn(!hasPreferredBg());
     setDone(null);
     setReading(false);
     window.scrollTo({ top: 0, behavior: "smooth" });

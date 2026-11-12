@@ -3286,3 +3286,71 @@ html[data-intro] .tabbar {
   color: var(--muted);
   font-size: 12px;
 }
+
+/* 그림 그리는 방법 두 갈래 (11-12): [AI 그려 줘] [직접 그리기] — 직접 그리기일 때만 배경 줄·크레파스 */
+.pad-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+.pad-mode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1.5px solid var(--line-soft);
+  border-radius: 12px 14px 11px 15px / 14px 11px 15px 12px;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+}
+.pad-mode[aria-checked="true"] {
+  border: 2px solid var(--red);
+  padding: 6.5px 8.5px;
+}
+.pad-mode-ic {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 32px;
+  overflow: hidden;
+  border: 1.5px dashed var(--line);
+  border-radius: 8px;
+}
+.pad-mode-ic svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pad-mode-ic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pad-mode > span:last-child {
+  min-width: 0;
+}
+.pad-mode b {
+  display: block;
+  font-family: var(--font-kid), cursive;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.pad-mode small {
+  display: block;
+  margin-top: 1px;
+  color: var(--muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
